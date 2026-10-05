@@ -1,0 +1,9 @@
+build/
+.gradle/
+*.class
+.idea/
+*.iml
+.DS_Store
+
+# Projet séparé (son propre dépôt git), sans rapport avec le mod
+Hermes/
