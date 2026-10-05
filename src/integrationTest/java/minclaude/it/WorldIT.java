@@ -110,8 +110,10 @@ class WorldIT{
     void newGameAddsEnemyWaves(){
         int before = state.rules.spawns.size;
         Events.fire(Trigger.newGame);
-        assertEquals(before + 5, state.rules.spawns.size);
+        assertEquals(before + minclaude.logic.EnemyWavePlan.forDifficulty(2).size(), state.rules.spawns.size);
         assertTrue(state.rules.spawns.contains(g -> g.type == MCUnits.brute));
+        var boss = state.rules.spawns.find(g -> g.type == MCUnits.warlord);
+        assertSame(mindustry.content.StatusEffects.boss, boss.effect, "les boss ont l'effet « boss » du jeu");
         assertTrue(state.rules.spawns.contains(g -> g.type == MCUnits.marauder));
         assertTrue(state.rules.spawns.contains(g -> g.type == MCUnits.wasp));
         var marauder = state.rules.spawns.find(g -> g.type == MCUnits.marauder);

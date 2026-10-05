@@ -91,6 +91,7 @@ public final class WorldSetup{
             group.unitAmount = g.amount();
             group.unitScaling = g.scaling();
             group.max = g.max();
+            if(g.boss()) group.effect = mindustry.content.StatusEffects.boss;
             state.rules.spawns.add(group);
         }
     }

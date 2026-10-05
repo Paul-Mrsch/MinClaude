@@ -4,35 +4,26 @@ _Mis à jour le 2026-10-05._ Chaque tâche cite son artefact (voir [docs/PLAN.md
 Une tâche n'est terminée que si ses **tests** et sa **doc** sont faits, et si `./gradlew check selfTest` passe.
 Branches : on développe sur `dev`, on fusionne dans `main` à chaque version publiée (tag `v0.x.0`).
 
-## Maintenant : clôturer la V2
+## Maintenant : clôturer la V3
 
 - [ ] **Partie réelle** (à faire par le joueur) :
-  - [ ] Chaîne ferraille + charbon → acier → invar (presse) → convoyeur blindé et conteneur
-  - [ ] Chaîne sable + eau → saumure → chrome (électrolyseur) ; eau + aluminium → azote liquide → tourelle Givre
-  - [ ] Gardien → Sentinelle (reconstructeur additif) → Bastion (multiplicatif)
-  - [ ] Vagues : escouades qui se regroupent, ailes qui contournent, unités abîmées qui reculent
-  - [ ] Difficulté Brutal sur une nouvelle partie : ennemis nettement plus résistants
-  - [ ] Onglet Ressources : fixer un objectif, vérifier l'échéance et l'alerte « Objectif atteint »
+  - [ ] Chaîne de fin de jeu : pyratite + eau → acide → cermet et fibre de carbone → cristal quantique (résonateur, azote liquide)
+  - [ ] Canon électrique : portée, transpercement, consommation d'énergie
+  - [ ] Lignées T4/T5 (reconstructeurs exponentiel et tétratif) et navals (carte avec de l'eau)
+  - [ ] Ingénieur : construction et minage
+  - [ ] Onglet Défense : construire une défense sans anti-aérien, puis vérifier l'adaptation « +N volants » à la vague suivante
+  - [ ] Onglet Ressources : « mesure exacte », et pertes affichées quand le noyau est plein
+  - [ ] Vagues 60+ : boss Seigneur de guerre et Léviathan
   - [ ] Noter les retours d'équilibrage dans ce fichier
-- [ ] Fusionner `dev` dans `main`, tag `v0.3.0`, pousser
+- [ ] Fusionner `dev` dans `main`, tag `v0.4.0`, pousser
 
-## V3 — Contenu complet (≥ 15 par catégorie)
+## V4 — Version 1.0
 
-### Contenu
-- [ ] **A3.1 Ressources** : 4 de plus (duralumin, cermet, fibre de carbone, cristal quantique…)
-- [ ] **A3.2 Industries** : 5 de plus (chaînes de fin de jeu)
-- [ ] **A3.3 Bâtiments** : 2 de plus au minimum (pont/transport de masse, tourelle lourde)
-- [ ] **A3.4 Unités alliées** : 10 de plus (T4/T5, navales, soutien)
-- [ ] **A3.5 Ennemis** : 10 de plus, dont des boss
-
-### IA
-- [ ] **A3.6 Adaptation** : composition des vagues selon la défense du joueur (via `DefenseReport` : peu d'anti-aérien → plus de volants, beaucoup de murs → plus d'artillerie)
-
-### Gestion et qualité
-- [ ] **A3.7 Mesure exacte des flux** : intercepter les transferts vers le noyau
-- [ ] **A3.8 Performance** : coût par tick du tracker, du scanner et des escouades sur une grosse base (objectif < 0,1 ms par tick) ; test « partie longue » (1 h simulée) : mémoire et taille de la sauvegarde
-- [ ] Test automatique anti-conflit de noms avec le contenu vanilla (plus clair que l'échec au démarrage)
-- [ ] Étendre `selfTest` à chaque nouvel écran ou contenu
+- [ ] **A4.1 Équilibrage** : tableau des coûts, temps de production, PV et dégâts comparés au vanilla (doc) ; ajuster selon les retours du joueur ; simulation automatique de vagues contre une défense type (test d'intégration) pour détecter les ennemis trop forts ou trop faibles
+- [ ] **A4.2 Performance** : mesure dans le client réel (avec rendu) sur une grosse partie ; profil des escouades sur 500+ unités
+- [ ] **A4.3 Qualité des sprites** : animations (foreuse, creusets lumineux, région `-heat` des tourelles), variantes des grands blocs, revue complète de la planche
+- [ ] **A4.4 Compatibilité** : vérifier la dernière version de Mindustry à cette date, monter `mindustryVersion`, tester avec Exogenesis et New Horizon installés (conflits, performances)
+- [ ] **A4.5 Publication** : notes de version, page du mod, captures, `README` joueur, `mod.hjson` final
 
 ## Idées et questions ouvertes
 
@@ -41,3 +32,4 @@ Branches : on développe sur `dev`, on fusionne dans `main` à chaque version pu
 - Panneau déplaçable par glisser-déposer
 - Dans l'onglet Industries, cliquer sur une usine bloquée pour centrer la caméra dessus
 - Objectifs de stock : proposer un objectif par défaut selon la demande installée
+- Adaptation : ajouter des familles « anti-unités » (contre les armées alliées nombreuses)

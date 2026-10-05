@@ -7,7 +7,7 @@ import mindustry.type.Liquid;
 
 /** Liquides du mod. */
 public final class MCLiquids{
-    public static Liquid brine, nitrogen;
+    public static Liquid brine, nitrogen, acid;
 
     public static final Seq<Liquid> all = new Seq<>();
 
@@ -28,6 +28,14 @@ public final class MCLiquids{
             lightColor = Color.valueOf("8fd9ff").a(0.2f);
             boilPoint = 0.4f;
             gasColor = Color.valueOf("e6f7ff");
+        }});
+        // Acide sulfurique : réactif de la chimie de fin de jeu (fibre de carbone, cermet).
+        acid = add(new Liquid("sulfuric-acid", Color.valueOf("d6e04a")){{
+            heatCapacity = 0.35f;
+            temperature = 0.55f;
+            viscosity = 0.7f;
+            coolant = false;
+            effect = StatusEffects.corroded;
         }});
     }
 

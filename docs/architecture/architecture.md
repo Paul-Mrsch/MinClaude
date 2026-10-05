@@ -29,17 +29,20 @@ src/main/java/minclaude/
 │   ├── DifficultyProfile    PV / dégâts de l'équipe des vagues selon la difficulté
 │   ├── SquadPlanner         escouades : regroupement, flanquement, retraite
 │   ├── ProductionModel      capacité installée / demande installée par ressource
-│   └── StockGoals           objectifs de stock du joueur (+ format de sauvegarde)
+│   ├── StockGoals           objectifs de stock du joueur (+ format de sauvegarde)
+│   └── AdaptiveWaves        bonus d'unités par famille selon la défense du joueur
 ├── tracking/                Liaison avec le jeu
 │   ├── ResourceTracker      observe le noyau, alimente l'historique, orchestre scanner et alertes
 │   ├── BaseScanner          relevé de la base chaque seconde (énergie historisée, usines, défense, vague)
 │   ├── HistoryChunk         chunk de sauvegarde « minclaude-history »
-│   └── GoalsChunk           chunk de sauvegarde « minclaude-goals »
+│   ├── GoalsChunk           chunk de sauvegarde « minclaude-goals »
+│   └── CoreFlowHook         noyaux vanilla instrumentés (TrackedCoreBuild) : entrées et pertes exactes
 ├── debug/SelfTest.java      autotest de l'UI dans le vrai client (actif seulement avec MINCLAUDE_SELFTEST)
 ├── ai/                      IA ennemie
 │   ├── SmartGroundAI        GroundAI + ordres d'escouade + ciblage intelligent (repli vanilla si désactivée ou bloquée)
 │   ├── SmartFlyingAI        FlyingAI + ciblage intelligent (les targetFlags de l'unité restent prioritaires)
 │   ├── SquadManager         ordres d'escouade recalculés chaque seconde pour les unités des vagues
+│   ├── WaveAdapter          adaptation des vagues appliquée à chaque WaveEvent
 │   └── SmartAI              installation sur les unités armées (hors navals, mineurs, constructeurs)
 ├── world/WorldSetup.java    nouvelle partie : gisements + vagues ennemies (une seule fois, marqueur dans les règles)
 ├── ui/                      Interface (Arc scene2d)
@@ -137,6 +140,13 @@ Une fois par seconde de jeu, après l'enregistrement des ressources, `BaseScanne
 - **Capacité installée** : `BaseScanner.addProduction` calcule, pour chaque usine, `sorties × 60 / craftTime` (GenericCrafter), une moyenne pondérée des résultats (Separator) ou `60 × dominantItems / getDrillTime` (Drill). La consommation vient des `ConsumeItems`. Chaque valeur est ensuite pondérée par `efficiency` pour la part réellement utilisée.
 - **Objectifs** : `StockGoals` dans `ResourceTracker`, vérifiés chaque seconde (alerte `GOAL_REACHED`). Ils sont sauvegardés par le chunk `minclaude-goals` (format `MCG1` v1), lu comme l'historique après le `WorldLoadEvent`.
 - **Noms internes** : ils ne doivent pas reprendre un nom de contenu vanilla, même d'Erekir. En test, le préfixe du mod n'est pas appliqué et le démarrage échoue (`Two content objects defined with the same name`).
+
+## V3 : flux exacts, adaptation, performance
+
+- **Flux exacts** : `CoreFlowHook.install()` (dans `Mod.init`) remplace `buildType` de chaque `CoreBlock` dont le bâtiment est exactement `CoreBlock.CoreBuild` par `TrackedCoreBuild`. C'est une sous-classe nommée de la classe interne, construite par `block.super()`. Ses `handleItem` et `handleStack` comparent le stock avant et après l'appel au vanilla : accepté = différence, perdu = proposé − accepté. Chaque seconde, `FlowCounter.reconcile(entrées comptées, variation du stock)` donne les sorties exactes (sorties = entrées − variation). Une variation supérieure aux entrées comptées (objets arrivés par un autre chemin) est ajoutée aux entrées. Les pertes sont historisées sous `item/<nom>/lost`. Un noyau d'un autre mod n'est pas instrumenté et garde l'estimation `DeltaAccumulator`.
+- **Adaptation** : à chaque `WaveEvent` (après l'apparition d'une vague), `WaveAdapter.adapt()` relève la défense du joueur (`DefenseReport.profile()` : tourelles, anti-air, anti-sol, murs) et calcule `AdaptiveWaves.compute(défense, difficulté)`. Pour chaque `SpawnGroup` d'un ennemi du mod, il applique `unitAmount = unitAmount − ancien bonus + nouveau bonus`. Le bonus appliqué est mémorisé dans `rules.tags` (`minclaude-adapt-<index>`, enregistré dans la sauvegarde), ce qui garantit le retour exact à la valeur de base.
+- **Familles d'ennemis** : `MCUnits.airEnemies`, `siegeEnemies`, `armorEnemies`, `swarmEnemies`.
+- **Performance** : `V3IT.largeBasePerformance` et `longGameKeepsMemoryAndSaveBounded` fixent des seuils (voir Etat.md). Le coût du mod est dominé par le relevé de la base, une fois par seconde, linéaire en nombre de bâtiments, et par les escouades (union-find en O(n²) sur les ennemis au sol).
 
 ## Points d'extension prévus
 

@@ -9,12 +9,27 @@ public final class DefenseReport{
     /** Seuil sous lequel une tourelle est considérée comme endommagée. */
     public static final float DAMAGED_FRACTION = 0.5f;
 
-    private int turrets, turretsNoAmmo, turretsDamaged;
+    private int turrets, turretsNoAmmo, turretsDamaged, antiAir, antiGround, walls;
     private final LinkedHashMap<String, Integer> units = new LinkedHashMap<>();
     private final LinkedHashMap<String, Integer> nextWave = new LinkedHashMap<>();
     private int wave;
     private float secondsToNextWave = Float.POSITIVE_INFINITY;
     private int enemiesAlive;
+
+    public void addTurret(boolean hasAmmo, float healthFraction, boolean targetsAir, boolean targetsGround){
+        if(targetsAir) antiAir++;
+        if(targetsGround) antiGround++;
+        addTurret(hasAmmo, healthFraction);
+    }
+
+    public void addWall(){
+        walls++;
+    }
+
+    /** Défense vue par l'adaptation des vagues. */
+    public AdaptiveWaves.Defense profile(){
+        return new AdaptiveWaves.Defense(turrets, antiAir, antiGround, walls);
+    }
 
     public void addTurret(boolean hasAmmo, float healthFraction){
         turrets++;

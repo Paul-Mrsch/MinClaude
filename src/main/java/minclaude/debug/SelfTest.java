@@ -15,6 +15,7 @@ import mindustry.content.Items;
 import mindustry.game.EventType.Trigger;
 import mindustry.game.Gamemode;
 import mindustry.type.Item;
+import mindustry.type.UnitType;
 
 import static mindustry.Vars.*;
 
@@ -130,6 +131,7 @@ public final class SelfTest{
         step(0.5f, "base-demo", () -> {
             ui.content.hide();
             buildDemoBase();
+            buildDemoBaseV3();
             spawnDemoUnits();
             state.set(mindustry.core.GameState.State.playing);
         });
@@ -167,6 +169,20 @@ public final class SelfTest{
         step(2f, "monde-base-capture", () -> shot("13-base-demo"));
         step(0.5f, "monde-base-v2", () -> lookAt(demoX * tilesize, (demoY + 7) * tilesize));
         step(2f, "monde-base-v2-capture", () -> shot("13b-base-demo-v2"));
+        step(0.5f, "monde-base-v3", () -> {
+            if(v3X >= 0) lookAt((v3X + 11) * tilesize, (v3Y + 6) * tilesize);
+        });
+        step(2f, "monde-base-v3-capture", () -> shot("13c-base-demo-v3"));
+        step(0.5f, "adaptation", () -> {
+            MinClaudeMod.waves.adapt();
+            check("adaptation des vagues déclenchée (peu d'anti-aérien)", MinClaudeMod.waves.current().bonus(minclaude.logic.AdaptiveWaves.Family.AIR) > 0);
+            MinClaudeMod.toggleDashboard();
+            MinClaudeMod.dashboard.showTab("defense");
+        });
+        step(1.5f, "adaptation-capture", () -> {
+            shot("12c-defense-adaptation");
+        });
+        step(0.5f, "adaptation-fermeture", MinClaudeMod::toggleDashboard);
         step(0.5f, "monde-minerais", () -> {
             var ore = nearestModOre();
             check("minerais du mod présents sur la carte", ore != null);
@@ -200,6 +216,26 @@ public final class SelfTest{
             ui.content.show(MCLiquids.nitrogen);
         });
         step(1.5f, "fiche-azote-capture", () -> shot("21-fiche-azote"));
+        step(0.5f, "fiche-canon", () -> {
+            ui.content.hide();
+            ui.content.show(MCBlocks.railgun);
+        });
+        step(1.5f, "fiche-canon-capture", () -> shot("22-fiche-canon-electrique"));
+        step(0.5f, "fiche-colosse", () -> {
+            ui.content.hide();
+            ui.content.show(MCUnits.colossus);
+        });
+        step(1.5f, "fiche-colosse-capture", () -> shot("23-fiche-colosse"));
+        step(0.5f, "fiche-seigneur", () -> {
+            ui.content.hide();
+            ui.content.show(MCUnits.warlord);
+        });
+        step(1.5f, "fiche-seigneur-capture", () -> shot("24-fiche-seigneur"));
+        step(0.5f, "fiche-fregate", () -> {
+            ui.content.hide();
+            ui.content.show(MCUnits.frigate);
+        });
+        step(1.5f, "fiche-fregate-capture", () -> shot("25-fiche-fregate"));
         step(0.5f, "options-v1", () -> {
             ui.content.hide();
             ui.settings.show();
@@ -296,6 +332,43 @@ public final class SelfTest{
         putRotated(MCBlocks.reinforcedConveyor, x + 12, y + 11, 3, team); // entrée latérale par le haut
     }
 
+    private int v3X = -1, v3Y = -1;
+
+    /** V3 : zone séparée (le contenu est plus gros), cherchée autour du noyau. */
+    private void buildDemoBaseV3(){
+        var core = MinClaudeMod.tracker.core();
+        var team = state.rules.defaultTeam;
+        for(int r = 6; r < 60 && v3X < 0; r++){
+            for(int dx = -r; dx <= r && v3X < 0; dx += 2){
+                for(int dy : new int[]{-r, r}){
+                    int x = core.tile.x + dx, y = core.tile.y + dy;
+                    if(v3X < 0 && free(x, y, 22, 9) && (y + 9 < demoY - 4 || y > demoY + 12 || x + 22 < demoX - 10 || x > demoX + 10)){
+                        v3X = x;
+                        v3Y = y;
+                    }
+                }
+            }
+        }
+        check("zone libre pour la démo V3", v3X >= 0);
+        if(v3X < 0) return;
+        int x = v3X, y = v3Y;
+        put(MCBlocks.duraluminForge, x + 1, y + 1, team);
+        put(MCBlocks.acidPlant, x + 4, y + 1, team);
+        put(MCBlocks.cermetKiln, x + 7, y + 1, team);
+        put(MCBlocks.carbonWeaver, x + 10, y + 1, team);
+        put(MCBlocks.quantumResonator, x + 14, y + 1, team);
+        put(MCBlocks.railgun, x + 18, y + 1, team);
+        put(MCBlocks.cermetWall, x, y + 5, team);
+        put(MCBlocks.cermetWallLarge, x + 2, y + 5, team);
+        putRotated(MCBlocks.duraluminBridge, x + 5, y + 5, 0, team);
+        putRotated(MCBlocks.duraluminBridge, x + 11, y + 5, 0, team);
+        var bridge = world.build(x + 5, y + 5);
+        if(bridge != null) bridge.configureAny(world.tile(x + 11, y + 5).pos());
+        // Anti-sol seulement : l'ennemi s'adapte (plus de volants).
+        for(int i = 0; i < 9; i++) put(mindustry.content.Blocks.hail, x + 13 + i, y + 6, team);
+        for(int i = 0; i < 9; i++) put(mindustry.content.Blocks.hail, x + 13 + i, y + 7, team);
+    }
+
     private static void putRotated(mindustry.world.Block block, int x, int y, int rotation, mindustry.game.Team team){
         var t = world.tile(x, y);
         if(t != null) t.setNet(block, team, rotation);
@@ -314,13 +387,22 @@ public final class SelfTest{
         MCUnits.ravager.spawn(state.rules.waveTeam, wx + 30f, vy);
         MCUnits.hornet.spawn(state.rules.waveTeam, wx + 52f, vy + 10f);
         MCUnits.brute.spawn(state.rules.waveTeam, wx + 80f, vy);
+        if(v3X >= 0){
+            float ux = (v3X + 2) * tilesize, uy = (v3Y + 9) * tilesize;
+            UnitType[] v3 = {MCUnits.scout, MCUnits.engineer, MCUnits.citadel, MCUnits.colossus, MCUnits.halo};
+            for(int i = 0; i < v3.length; i++) v3[i].spawn(state.rules.defaultTeam, ux + i * 36f, uy);
+            UnitType[] foes = {MCUnits.swarmling, MCUnits.stalker, MCUnits.juggernaut, MCUnits.warlord, MCUnits.leviathan, MCUnits.dreadwing};
+            for(int i = 0; i < foes.length; i++) foes[i].spawn(state.rules.waveTeam, ux + i * 44f, uy + 70f);
+        }
     }
 
     private static boolean free(int x, int y, int w, int h){
         for(int i = 0; i < w; i++){
             for(int j = 0; j < h; j++){
                 var t = world.tile(x + i, y + j);
-                if(t == null || t.block() != mindustry.content.Blocks.air || t.floor().isLiquid || t.floor().solid) return false;
+                // Hors des zones sombres du bord de carte, où rien n'est visible.
+                if(t == null || t.block() != mindustry.content.Blocks.air || t.floor().isLiquid || t.floor().solid
+                    || t.floor() == mindustry.content.Blocks.empty || world.getDarkness(x + i, y + j) > 0) return false;
             }
         }
         return true;

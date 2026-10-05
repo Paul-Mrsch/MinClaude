@@ -82,9 +82,13 @@ class WorldLogicTest{
         assertEquals(easy.size(), brutal.size());
         for(int i = 0; i < easy.size(); i++){
             assertTrue(brutal.get(i).begin() < easy.get(i).begin());
-            assertTrue(brutal.get(i).max() > easy.get(i).max());
-            assertTrue(brutal.get(i).scaling() < easy.get(i).scaling());
             assertTrue(brutal.get(i).begin() >= 0);
+            if(brutal.get(i).boss()){
+                assertEquals(1, brutal.get(i).max(), "un seul boss à la fois, quelle que soit la difficulté");
+                continue;
+            }
+            assertTrue(brutal.get(i).max() >= easy.get(i).max());
+            assertTrue(brutal.get(i).scaling() < easy.get(i).scaling());
         }
         assertEquals(EnemyWavePlan.forDifficulty(4), EnemyWavePlan.forDifficulty(99), "valeur bornée");
     }

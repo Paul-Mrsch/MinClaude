@@ -59,7 +59,11 @@ public final class BaseScanner{
                 addIndustry(b, industry);
                 addProduction(b, production);
             }
-            if(b instanceof TurretBuild t) defense.addTurret(t.hasAmmo(), b.healthf());
+            if(b instanceof TurretBuild t){
+                var turret = (mindustry.world.blocks.defense.turrets.Turret)b.block;
+                defense.addTurret(t.hasAmmo(), b.healthf(), turret.targetAir, turret.targetGround);
+            }
+            if(b.block instanceof mindustry.world.blocks.defense.Wall) defense.addWall();
         }
 
         team.data().units.each(u -> defense.addUnit(u.type.name));

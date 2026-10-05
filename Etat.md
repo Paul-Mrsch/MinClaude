@@ -1,20 +1,18 @@
 # MinClaude — État du projet
 
-_Mis à jour le 2026-10-05 · version du mod **0.3.0** (V2)_
+_Mis à jour le 2026-10-05 · version du mod **0.4.0** (V3)_
 
 ## Résumé
 
-La **V2 est terminée** sur la branche `dev`.
+La **V3 est terminée** sur la branche `dev`. Le contenu atteint l'objectif du cahier des charges, **au moins 15 éléments par catégorie**, et c'est vérifié par un test.
 
-- **Contenu** : il passe à environ 10 éléments par catégorie, avec l'acier, l'invar, le chrome, deux liquides, la lignée d'unités T1 → T3 et trois nouveaux ennemis, dont un mini-boss.
-- **IA ennemie** : elle a maintenant des tactiques de groupe (regroupement, flanquement, retraite), et les volants ont aussi un ciblage intelligent.
-- **Difficulté** : elle règle aussi les PV et les dégâts des ennemis.
-- **Dashboard** : il affiche les objectifs de stock et la capacité de production installée.
-- **Convoyeurs** : ils ont leurs vraies formes de virage et de jonction.
+- **IA ennemie** : elle couvre maintenant ses 3 axes. Le ciblage intelligent et les tactiques de groupe s'ajoutent à l'**adaptation des vagues** aux défenses du joueur.
+- **Flux du noyau** : ils sont **mesurés exactement**. Entrées, sorties et objets perdus quand le noyau est plein ne sont plus estimés.
+- **Performance** : elle est mesurée et négligeable.
 
-Tous les tests passent : 62 unitaires, 27 d'intégration headless, et l'autotest dans le vrai client (rapport OK, captures relues).
+Tous les tests passent : 69 unitaires, 33 d'intégration headless, et l'autotest dans le vrai client (rapport OK, captures relues).
 
-Versions publiées : `v0.1.0` (V0) et `v0.2.0` (V1) sur `main`.
+Versions publiées sur `main` : `v0.1.0` (V0), `v0.2.0` (V1), `v0.3.0` (V2).
 
 ## Versions et environnement
 
@@ -36,67 +34,70 @@ Le plan détaillé est dans [docs/PLAN.md](docs/PLAN.md).
 |---|---|---|
 | V0 (`v0.1.0`) | MVP : suivi des ressources dans le temps, mini-panneau, dashboard, alertes, sauvegarde | ✅ publié |
 | V1 (`v0.2.0`) | Dashboard complet, contenu lot 1, IA ciblage, refonte graphique | ✅ publié |
-| V2 (`0.3.0`) | Contenu lot 2, tactiques de groupe, difficulté complète, objectifs, capacité installée, formes de convoyeur | ✅ sur `dev` |
-| V3 | Contenu complet (≥ 15 par catégorie), adaptation de l'IA, mesure exacte des flux, performance | ⬜ |
+| V2 (`v0.3.0`) | Contenu lot 2, tactiques de groupe, difficulté complète, objectifs, capacité installée, formes de convoyeur | ✅ publié |
+| V3 (`0.4.0`) | Contenu complet (≥ 15 par catégorie), adaptation de l'IA, mesure exacte des flux, performance | ✅ sur `dev` |
 | V4 | Équilibrage, polissage, version 1.0 | ⬜ |
 
-### V2 — détail
+### V3 — détail
 
 | # | Artefact | Vérification |
 |---|---|---|
-| A2.1 | Ressources : chrome, acier, invar, saumure, azote liquide | `ContentIT`, fiche `21-fiche-azote` |
-| A2.2 | Industries : four à acier, presse à alliage, mélangeur de saumure, cryogénisateur, électrolyseur | `ContentIT` (recettes), capture `13b-base-demo-v2` |
-| A2.3 | Bâtiments : murs en acier, convoyeur blindé, Salve, Givre, conteneur en invar | `ContentIT`, fiche `19-fiche-salve` |
-| A2.4 | Alliés : Sentinelle, Bastion, Relais (reconstructeurs vanilla) | `ContentIT`, fiche `20-fiche-bastion` |
-| A2.5 | Ennemis : Ravageur, Frelon, Brute | `WorldIT`, `V2LogicTest` |
-| A2.6 | Tactiques de groupe + IA des volants | `V2LogicTest`, `SquadIT` (ordres sur de vraies unités, déplacement vers le ralliement), `ContentIT` |
-| A2.7 | Difficulté : PV et dégâts des ennemis | `V2LogicTest`, `WorldIT` (Brutal : PV ×1,7 et dégâts ×1,35 pour les vagues seulement) |
-| A2.8 | Objectifs de stock, capacité installée | `V2LogicTest`, `BaseIT`, `TrackingIT` (objectif conservé après sauvegarde et chargement), capture `12b-ressources-objectif` |
-| A2.9 | Formes de convoyeur | `ContentIT`, capture `13b-base-demo-v2` |
+| A3.1 | Ressources : duralumin, cermet, fibre de carbone, cristal quantique, acide sulfurique | `ContentIT` |
+| A3.2 | Industries : forge à duralumin, usine d'acide, four à cermet, tisseuse de carbone, résonateur quantique | `ContentIT`, capture `13c-base-demo-v3` |
+| A3.3 | Bâtiments : murs en cermet, pont en duralumin, canon électrique | `ContentIT`, fiche `22-fiche-canon-electrique` |
+| A3.4 | 10 alliés : éclaireur, ingénieur, lignées T4/T5 au sol et dans les airs, 3 navals | `ContentIT` (reconstructeurs exponentiel et tétratif, usine navale, navires reconnus « navals ») |
+| A3.5 | 11 ennemis dont 2 boss | `WorldIT` (effet « boss »), fiche `24-fiche-seigneur` |
+| A3.6 | Adaptation des vagues | `V3LogicTest`, `V3IT` (Brutal sans anti-aérien : +3 volants ; anti-aérien ajouté : retour exact à la base), capture `12c-defense-adaptation` |
+| A3.7 | Mesure exacte des flux | `V3LogicTest`, `V3IT` (40 entrées et 25 sorties dans la même seconde, 35 objets perdus quand le noyau est plein) |
+| A3.8 | Performance | `V3IT` : seuils 0,5 ms par tick et 5 ms par seconde |
 
 ## Contenu actuel
 
-| Catégorie | Objectif V3 | Actuel | Éléments |
+| Catégorie | Objectif | Actuel | Éléments |
 |---|---|---|---|
-| Ressources | ≥ 15 | 11 | cobalt, nickel, zinc, bauxite, aluminium, laiton, chrome, acier, invar + liquides saumure, azote liquide |
+| Ressources | ≥ 15 | **16** | cobalt, nickel, zinc, bauxite, aluminium, laiton, chrome, acier, invar, duralumin, cermet, fibre de carbone, cristal quantique + liquides : saumure, azote liquide, acide sulfurique |
 | Minerais (génération) | — | 5 | cobalt, nickel, zinc, bauxite, chrome |
-| Industries | ≥ 15 | 10 | fonderies de cobalt, d'aluminium et de laiton, laveur, foreuse à percussion, four à acier, presse à alliage, mélangeur de saumure, cryogénisateur, électrolyseur |
-| Bâtiments | ≥ 15 | 13 | murs cobalt (2), nickel (2) et acier (2), convoyeurs renforcé et blindé, Riveteuse, Salve, Givre, nœud en aluminium, conteneur en invar |
-| Unités alliées | ≥ 15 | 5 | Gardien → Sentinelle → Bastion, Secours → Relais |
-| Ennemis | ≥ 15 | 5 | Maraudeur, Guêpe, Ravageur, Frelon, Brute |
-| IA ennemie | 3 axes | 2 | ciblage intelligent (sol et air), tactiques de groupe |
-| Dashboard | 4 onglets | 4 | + objectifs de stock et capacité installée (Ressources) |
+| Industries | ≥ 15 | **15** | 3 fonderies (cobalt, aluminium, laiton), laveur, foreuse à percussion, four à acier, presse à alliage, mélangeur de saumure, cryogénisateur, électrolyseur, forge à duralumin, usine d'acide, four à cermet, tisseuse de carbone, résonateur quantique |
+| Bâtiments | ≥ 15 | **17** | murs cobalt, nickel, acier et cermet (×2 chacun), convoyeurs renforcé et blindé, pont en duralumin, Riveteuse, Salve, Givre, canon électrique, nœud en aluminium, conteneur en invar |
+| Unités alliées | ≥ 15 | **15** | Gardien → Sentinelle → Bastion → Citadelle → Colosse ; Secours → Relais → Balise → Sanctuaire → Halo ; Esquif → Corvette → Frégate ; Éclaireur, Ingénieur |
+| Ennemis | ≥ 15 | **16** | Maraudeur, Guêpe, Ravageur, Frelon, Brute, Essaimeur, Sapeur, Brise-siège, Électrocuteur, Mastodonte, Traqueur, Fantôme, Cannonière, Aile-terreur, **Seigneur de guerre** et **Léviathan** (boss) |
+| IA ennemie | 3 axes | **3** | ciblage intelligent (sol et air), tactiques de groupe, adaptation des vagues |
+| Dashboard | 4 onglets | 4 | + pertes du noyau, mesure exacte, adaptation ennemie |
 
 ## Tests
 
 | Suite | Commande | Tests | Résultat |
 |---|---|---|---|
-| Unitaires (logique pure + fichiers du mod) | `./gradlew test` | 62 | ✅ 62/62 |
-| Intégration headless (vrai jeu v160.5) | `./gradlew integrationTest` | 27 | ✅ 27/27 |
-| Autotest en jeu (client réel 160.4, rendu, UI) | `./gradlew selfTest` | ~30 captures + vérifications | ✅ OK |
+| Unitaires (logique pure + fichiers du mod) | `./gradlew test` | 69 | ✅ 69/69 |
+| Intégration headless (vrai jeu v160.5) | `./gradlew integrationTest` | 33 | ✅ 33/33 |
+| Autotest en jeu (client réel 160.4, rendu, UI) | `./gradlew selfTest` | ~35 captures + vérifications | ✅ OK |
 
-Ce que la V2 ajoute contre les régressions :
+### Mesures de performance (`V3IT`, headless, Mac M3)
 
-- **logique** : escouades (regroupement borné dans le temps, ailes de chaque côté et en avant, retraite temporaire, escouades distinctes, désactivé en Facile), difficulté, modèle de production (capacité, rendement), objectifs (une alerte, réarmement sous 90 %, aller-retour du format, rejet des données corrompues), plan des vagues V2 ;
-- **jeu réel** : ordres d'escouade calculés pour de vraies unités ennemies et suivis par l'IA ; multiplicateurs de difficulté appliqués aux vagues seulement ; capacité installée d'une fonderie ; objectif restauré après sauvegarde ; lignée d'unités dans les reconstructeurs ; IA installée sur les volants armés mais pas sur les mineurs ni les constructeurs ;
-- **démarrage du jeu** : un conflit de nom avec le contenu vanilla fait échouer tous les tests d'intégration. C'est arrivé deux fois en V2 (`nitrogen` et `electrolyzer` existent déjà dans Erekir), et c'est corrigé.
+| Mesure | Résultat | Seuil du test |
+|---|---|---|
+| Suivi par tick (160 bâtiments, 150 unités ennemies) | **0,011 ms** | < 0,5 ms |
+| Relevé de la base + escouades, une fois par seconde | **0,38 ms** | < 5 ms |
+| Historique après 1 h de jeu (132 séries) | 533 Ko en mémoire | < 3 Mo |
+| Sauvegarde après 1 h de jeu (compressée par le jeu) | **25 Ko** | < 2 Mo |
 
-## Recette V2 (2026-10-05)
+Une image à 60 i/s dispose de 16,6 ms : le mod en utilise moins de 0,1 %.
 
-- Sprites V2 relus sur une planche agrandie : la goutte de liquide et le virage du convoyeur ont été retouchés.
-- **Conflits de nom avec Erekir** : les noms internes ont été renommés en `liquid-nitrogen` et `brine-electrolyzer`. En jeu, le préfixe `minclaude-` évitait déjà le conflit, mais pas en test.
-- **Escouades vides en jeu** : la liste des unités d'une équipe n'est mise à jour qu'à la frame suivante. Le gestionnaire parcourt maintenant toutes les unités du jeu.
-- **IA volante installée sur le mono (mineur)** : l'installation est réservée aux unités armées et exclut mineurs et constructeurs.
-- **Autotest** : la base de démonstration a une deuxième partie avec tout le contenu V2, des convoyeurs en virage et en jonction, et les 6 nouvelles unités. L'autotest capture aussi l'onglet Ressources avec un objectif et 3 nouvelles fiches.
+## Recette V3 (2026-10-05)
+
+- La troisième zone de la base de démonstration a d'abord été placée dans l'obscurité hors carte, invisible. La recherche de zone exclut maintenant les tuiles sombres et vides.
+- **Adaptation** : la première démo était équilibrée (50 % d'anti-aérien), donc sans adaptation, ce qui est le bon comportement. La démo pose maintenant 18 tourelles anti-sol seulement, et l'autotest vérifie que le bonus « volants » apparaît.
+- Un ancien test exigeait plus d'unités en Brutal pour **chaque** groupe : il exclut maintenant les boss, limités à un seul exemplaire quelle que soit la difficulté.
+- Une erreur de démarrage due à un conflit de nom avec le vanilla affiche maintenant un message clair (« Nom de contenu déjà utilisé par le jeu de base… »).
 
 ## Limitations connues
 
-- **Entrées et sorties estimées** : elles sont déduites des variations du stock. La mesure exacte est prévue en A3.7.
-- **Tactiques de groupe** : déplacements en ligne droite vers les points de ralliement et de flanc. Une unité bloquée par un mur abandonne l'ordre quelques secondes. Les vagues de moins de 3 à 5 unités (selon la difficulté) attendent jusqu'à 10 à 20 s au point d'apparition avant d'attaquer.
-- **Difficulté** : les PV et dégâts sont appliqués au début d'une nouvelle partie et enregistrés avec ses règles. Changer l'option en cours de partie ne modifie que l'IA.
-- **Capacité installée** : calculée pour les `GenericCrafter`, séparateurs et foreuses. Le laveur de minerai produit au hasard : sa capacité par ressource est une moyenne.
+- **Mesure exacte** : seulement pour les noyaux vanilla. Les noyaux d'autres mods, avec leur propre classe, restent estimés : le dashboard indique « estimation ».
+- **Adaptation** : appliquée aux groupes des ennemis du mod. Elle est recalculée à chaque vague à partir des tourelles et des murs du joueur.
+- **Navals** : ils ne se déplacent que sur l'eau, et l'usine navale vanilla est nécessaire.
+- **Tactiques de groupe** : déplacements en ligne droite. Une unité bloquée abandonne l'ordre quelques secondes.
+- **Équilibrage** : les valeurs sont proches du vanilla, et les boss et les T5 n'ont pas encore été joués (V4).
 - **Minerais, ennemis et difficulté** : appliqués seulement aux nouvelles parties.
-- **Équilibrage** : les valeurs sont proches du vanilla mais n'ont pas encore été jouées longuement (A4.1).
 
 ## Fichiers clés
 

@@ -32,6 +32,8 @@ public final class ResourceTracker{
     private final minclaude.logic.StockGoals goals = new minclaude.logic.StockGoals();
     private boolean[] tracked = new boolean[64];
     private float tickTimer;
+    /** Stock de chaque ressource à la seconde précédente (mesure exacte des sorties). */
+    private int[] lastStock = filled(64);
     private Cons<AlertEngine.Alert> alertListener = a -> {};
 
     public void register(){
@@ -98,14 +100,28 @@ public final class ResourceTracker{
         alerts.reset();
         tracked = new boolean[tracked.length];
         tickTimer = 0f;
+        java.util.Arrays.fill(lastStock, -1);
+        CoreFlowHook.counter.reset();
         scanner.reset();
         goals.clear();
+    }
+
+    private static int[] filled(int n){
+        int[] a = new int[n];
+        java.util.Arrays.fill(a, -1);
+        return a;
+    }
+
+    /** Vrai si le noyau suivi est instrumenté : entrées, sorties et pertes sont alors exactes. */
+    public boolean exactFlows(){
+        return core() instanceof CoreFlowHook.TrackedCoreBuild;
     }
 
     private void update(){
         if(!state.isPlaying()) return;
         CoreBuild core = core();
         if(core == null) return;
+        CoreFlowHook.trackedTeam = core.team;
 
         for(Item item : content.items()){
             int amount = core.items.get(item);
@@ -122,11 +138,31 @@ public final class ResourceTracker{
 
     private void sampleSecond(Building core){
         MetricHistory h = history;
+        boolean exact = core instanceof CoreFlowHook.TrackedCoreBuild;
         for(Item item : content.items()){
+            int id = item.id;
+            if(id >= lastStock.length){
+                int old = lastStock.length;
+                lastStock = java.util.Arrays.copyOf(lastStock, Math.max(id + 1, old * 2));
+                java.util.Arrays.fill(lastStock, old, lastStock.length, -1);
+            }
+            int stock = core.items.get(item);
+            int countedIn = CoreFlowHook.counter.takeIn(id), lost = CoreFlowHook.counter.takeLost(id);
+            float estIn = deltas.takeIn(id), estOut = deltas.takeOut(id);
+            int prev = lastStock[id];
+            lastStock[id] = stock;
             if(!isTracked(item)) continue;
-            h.record(ResourceStats.stockKey(item.name), core.items.get(item));
-            h.record(ResourceStats.inKey(item.name), deltas.takeIn(item.id));
-            h.record(ResourceStats.outKey(item.name), deltas.takeOut(item.id));
+            h.record(ResourceStats.stockKey(item.name), stock);
+            if(exact && prev >= 0){
+                var flows = minclaude.stats.FlowCounter.reconcile(countedIn, stock - prev);
+                h.record(ResourceStats.inKey(item.name), flows.in());
+                h.record(ResourceStats.outKey(item.name), flows.out());
+                h.record(ResourceStats.lostKey(item.name), lost);
+            }else{
+                h.record(ResourceStats.inKey(item.name), estIn);
+                h.record(ResourceStats.outKey(item.name), estOut);
+                if(exact) h.record(ResourceStats.lostKey(item.name), lost);
+            }
         }
         scanner.scan(team(), h);
         h.tick();
