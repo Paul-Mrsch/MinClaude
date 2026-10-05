@@ -2,6 +2,7 @@ package minclaude.tools;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
+import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -12,24 +13,26 @@ import java.util.List;
  * Génère les sprites pixel art du mod, de façon déterministe (même entrée = mêmes pixels).
  * Usage : {@code ./gradlew generateSprites}. Chaque contenu du mod doit avoir ses sprites (vérifié par ContentIT).
  *
- * <p>Style vanilla : contour sombre, 3 à 4 nuances par couleur, lumière en haut à gauche.
+ * <p>Style « mod moderne » : aplats nets par facette (pas de dégradé), angles coupés à 45°, biseaux clairs
+ * en haut à gauche et sombres en bas à droite, motifs symétriques, bandes de couleur vive sur métal gris-bleu,
+ * rampes de couleurs avec décalage de teinte (ombres froides, lumières chaudes).
  * Orientation du jeu : convoyeurs vers la droite, tourelles, unités et armes vers le haut.
  */
 public final class SpriteGenerator{
-    enum Kind{ GEM, INGOT, ORE, WALL, CRAFTER, WASHER, DRILL, CONVEYOR, TURRET, NODE, MECH, FLYER, WEAPON }
+    enum Kind{ GEM, NUGGET, INGOT, ORE, WALL, CRAFTER, FOUNDRY, WASHER, DRILL, CONVEYOR, TURRET, NODE, MECH, FLYER, WEAPON }
 
     /** @param size taille en pixels (côté) */
     record Spec(String folder, String name, Kind kind, int size, Color color){}
 
-    private static final Color COBALT = hex("3f6fd8"), NICKEL = hex("b9b48f"), ZINC = hex("9fb7c4"), BAUXITE = hex("b5653d"),
-        ALUMINUM = hex("d6dde3"), BRASS = hex("e0b84f"), ALLY = hex("ffd37f"), ENEMY = hex("e05438");
+    private static final Color COBALT = hex("4a7cf0"), NICKEL = hex("c9c29a"), ZINC = hex("8fc3d6"), BAUXITE = hex("c4643a"),
+        ALUMINUM = hex("dde6ee"), BRASS = hex("e8b844"), ALLY = hex("ffc857"), ENEMY = hex("f0503c"), WATER = hex("4fa3ff"), HEAL = hex("6ee6a0");
 
     /** Une ligne par contenu. Nom = nom interne sans le préfixe du mod. */
     static final List<Spec> SPECS = List.of(
         new Spec("items", "cobalt", Kind.GEM, 32, COBALT),
-        new Spec("items", "nickel", Kind.GEM, 32, NICKEL),
+        new Spec("items", "nickel", Kind.NUGGET, 32, NICKEL),
         new Spec("items", "zinc", Kind.GEM, 32, ZINC),
-        new Spec("items", "bauxite", Kind.GEM, 32, BAUXITE),
+        new Spec("items", "bauxite", Kind.NUGGET, 32, BAUXITE),
         new Spec("items", "aluminum", Kind.INGOT, 32, ALUMINUM),
         new Spec("items", "brass", Kind.INGOT, 32, BRASS),
 
@@ -40,8 +43,8 @@ public final class SpriteGenerator{
 
         new Spec("blocks", "cobalt-smelter", Kind.CRAFTER, 64, COBALT),
         new Spec("blocks", "aluminum-smelter", Kind.CRAFTER, 64, ALUMINUM),
-        new Spec("blocks", "brass-foundry", Kind.CRAFTER, 64, BRASS),
-        new Spec("blocks", "ore-washer", Kind.WASHER, 64, hex("5f9de0")),
+        new Spec("blocks", "brass-foundry", Kind.FOUNDRY, 64, BRASS),
+        new Spec("blocks", "ore-washer", Kind.WASHER, 64, WATER),
         new Spec("blocks", "percussion-drill", Kind.DRILL, 64, NICKEL),
         new Spec("blocks", "cobalt-wall", Kind.WALL, 32, COBALT),
         new Spec("blocks", "cobalt-wall-large", Kind.WALL, 64, COBALT),
@@ -49,18 +52,19 @@ public final class SpriteGenerator{
         new Spec("blocks", "nickel-wall-large", Kind.WALL, 64, NICKEL),
         new Spec("blocks", "reinforced-conveyor", Kind.CONVEYOR, 32, ALUMINUM),
         new Spec("blocks", "rivet", Kind.TURRET, 64, NICKEL),
-        new Spec("blocks", "aluminum-node", Kind.NODE, 32, ALUMINUM),
+        new Spec("blocks", "aluminum-node", Kind.NODE, 32, hex("ffd37f")),
 
         new Spec("units", "warden", Kind.MECH, 40, ALLY),
-        new Spec("units", "aid", Kind.FLYER, 40, hex("8ce6a0")),
+        new Spec("units", "aid", Kind.FLYER, 40, HEAL),
         new Spec("units", "marauder", Kind.MECH, 48, ENEMY),
         new Spec("units", "wasp", Kind.FLYER, 40, ENEMY),
         new Spec("units/weapons", "warden-gun", Kind.WEAPON, 24, ALLY),
         new Spec("units/weapons", "marauder-cannon", Kind.WEAPON, 28, ENEMY)
     );
 
-    private static final Color OUTLINE = hex("2b2b33");
-    private static final Color METAL_DARK = hex("4a4b53"), METAL = hex("6e7080"), METAL_LIGHT = hex("989aa4");
+    private static final Color OUTLINE = hex("23232b");
+    /** Métal gris-bleu, du plus sombre au plus clair. */
+    private static final Color[] M = {hex("2c2d35"), hex("43454f"), hex("5e6170"), hex("80849a"), hex("a5a9bb"), hex("ccd0dc")};
 
     public static void main(String[] args) throws IOException{
         File out = new File(args.length > 0 ? args[0] : "assets/sprites");
@@ -81,341 +85,507 @@ public final class SpriteGenerator{
     /** Nom de fichier (sans .png) -> image. Certains contenus demandent plusieurs régions. */
     static Map<String, BufferedImage> render(Spec spec){
         Map<String, BufferedImage> out = new LinkedHashMap<>();
-        Random rand = new Random(spec.name.hashCode());
-        Color[] s = shades(spec.color);
+        Color[] r = ramp(spec.color);
         switch(spec.kind){
-            case GEM -> out.put(spec.name, gem(spec.size, s, rand));
-            case INGOT -> out.put(spec.name, ingot(spec.size, s));
+            case GEM -> out.put(spec.name, gem(spec.size, r, spec.name.hashCode()));
+            case NUGGET -> out.put(spec.name, nugget(spec.size, r));
+            case INGOT -> out.put(spec.name, ingot(spec.size, r));
             case ORE -> {
-                for(int v = 1; v <= 3; v++) out.put(spec.name + v, ore(spec.size, s, new Random(spec.name.hashCode() * 31L + v)));
+                for(int v = 1; v <= 3; v++) out.put(spec.name + v, ore(spec.size, r, new Random(spec.name.hashCode() * 31L + v)));
             }
-            case WALL -> out.put(spec.name, wall(spec.size, s));
-            case CRAFTER -> out.put(spec.name, crafter(spec.size, s, false));
-            case WASHER -> out.put(spec.name, crafter(spec.size, s, true));
+            case WALL -> out.put(spec.name, wall(spec.size, r));
+            case CRAFTER -> out.put(spec.name, crafter(spec.size, r, 1));
+            case FOUNDRY -> out.put(spec.name, crafter(spec.size, r, 2));
+            case WASHER -> out.put(spec.name, washer(spec.size, r));
             case DRILL -> {
-                out.put(spec.name, drillBase(spec.size));
-                out.put(spec.name + "-rotator", drillRotator(spec.size, s));
-                out.put(spec.name + "-top", drillTop(spec.size, s));
+                out.put(spec.name, drillBase(spec.size, r));
+                out.put(spec.name + "-rotator", drillRotator(spec.size));
+                out.put(spec.name + "-top", drillTop(spec.size, r));
             }
             case CONVEYOR -> {
                 // 7 formes x 4 images d'animation, nommées comme le vanilla : name-forme-image.
                 for(int shape = 0; shape < 7; shape++){
-                    for(int frame = 0; frame < 4; frame++) out.put(spec.name + "-" + shape + "-" + frame, conveyor(spec.size, s, frame));
+                    for(int frame = 0; frame < 4; frame++) out.put(spec.name + "-" + shape + "-" + frame, conveyor(spec.size, r, frame));
                 }
-                out.put(spec.name, conveyor(spec.size, s, 0));
+                out.put(spec.name, conveyor(spec.size, r, 0));
             }
-            case TURRET -> out.put(spec.name, turret(spec.size, s));
-            case NODE -> out.put(spec.name, node(spec.size, s));
+            case TURRET -> out.put(spec.name, turret(spec.size, r));
+            case NODE -> out.put(spec.name, node(spec.size, r));
             case MECH -> {
-                out.put(spec.name, mechBody(spec.size, s));
+                out.put(spec.name, mechBody(spec.size, r));
                 out.put(spec.name + "-leg", mechLeg(spec.size));
                 out.put(spec.name + "-base", mechBase(spec.size));
             }
-            case FLYER -> out.put(spec.name, flyer(spec.size, s));
-            case WEAPON -> out.put(spec.name, weapon(spec.size, s));
+            case FLYER -> out.put(spec.name, flyer(spec.size, r));
+            case WEAPON -> out.put(spec.name, weapon(spec.size, r));
         }
         return out;
     }
 
-    // ---- Ressources ----
+    // ================= Ressources =================
 
-    /** Amas de cristaux : quelques losanges ombrés. */
-    private static BufferedImage gem(int size, Color[] s, Random rand){
-        BufferedImage img = image(size);
-        int[][] gems = {{16, 16, 9}, {10, 20, 6}, {22, 11, 6}, {21, 22, 5}};
-        for(int[] g : gems){
-            int cx = g[0] + rand.nextInt(3) - 1, cy = g[1] + rand.nextInt(3) - 1, r = g[2];
-            for(int y = -r; y <= r; y++){
-                for(int x = -r; x <= r; x++){
-                    if(Math.abs(x) + Math.abs(y) > r) continue;
-                    Color c = x + y < -r / 2 ? s[3] : x + y < r / 3 ? s[2] : s[1];
-                    set(img, cx + x, cy + y, c);
-                }
-            }
+    /** Amas de cristaux prismatiques : face gauche claire, face droite sombre, pointe très claire. */
+    private static BufferedImage gem(int size, Color[] r, int seed){
+        Canvas c = new Canvas(size);
+        Random rand = new Random(seed);
+        int[][] crystals = {{9, 28, 17, 9, -2}, {23, 28, 20, 10, 2}, {16, 30, 27, 12, 0}};
+        for(int[] k : crystals){
+            int bx = k[0] + rand.nextInt(2), by = k[1], h = k[2], w = k[3], tilt = k[4];
+            int tx = bx + tilt, ty = by - h, sh = by - h * 2 / 3;
+            c.poly(r[3], tx, ty, bx - w / 2, sh, bx - w / 2, by, bx, by);
+            c.poly(r[1], tx, ty, bx, by, bx + w / 2, by, bx + w / 2, sh);
+            c.poly(r[4], tx, ty, bx - w / 2, sh, bx - w / 4, sh + 2, bx, sh - 1);
+            c.poly(r[2], tx, ty, bx, sh - 1, bx + w / 4, sh + 2, bx + w / 2, sh);
+            c.set(tx - 1, ty + 3, r[5]);
+            c.set(bx - w / 2 + 1, by - 2, r[2]);
         }
-        outline(img);
-        return img;
+        c.outline();
+        return c.img;
     }
 
-    /** Lingot vu de trois quarts : dessus clair, face avant, flanc sombre. */
-    private static BufferedImage ingot(int size, Color[] s){
-        BufferedImage img = image(size);
-        for(int y = 0; y < 8; y++) fillRect(img, 6 + (8 - y) / 2, 9 + y, 20 - (8 - y), 1, s[3]);
-        fillRect(img, 6, 17, 20, 7, s[2]);
-        fillRect(img, 6, 22, 20, 2, s[1]);
-        fillRect(img, 25, 13, 2, 11, s[0]);
-        fillRect(img, 10, 12, 6, 1, Color.WHITE);
-        outline(img);
-        return img;
+    /** Pépites arrondies (minerai brut) : volume par aplats, point de lumière, ombre portée. */
+    private static BufferedImage nugget(int size, Color[] r){
+        Canvas c = new Canvas(size);
+        pebble(c, 11, 19, 7, r);
+        pebble(c, 21, 13, 6, r);
+        pebble(c, 20, 23, 5, r);
+        c.outline();
+        return c.img;
     }
 
-    /** Minerai au sol : cailloux colorés sur fond transparent (le sol reste visible). */
-    private static BufferedImage ore(int size, Color[] s, Random rand){
-        BufferedImage img = image(size);
-        for(int i = 0; i < 5; i++){
-            int cx = 5 + rand.nextInt(size - 10), cy = 5 + rand.nextInt(size - 10), r = 2 + rand.nextInt(3);
-            for(int y = -r; y <= r; y++){
-                for(int x = -r; x <= r; x++){
-                    if(x * x + y * y > r * r) continue;
-                    set(img, cx + x, cy + y, x + y < 0 ? s[3] : s[2]);
-                }
-            }
-            set(img, cx + r / 2, cy + r / 2, s[1]);
+    private static void pebble(Canvas c, int cx, int cy, int rad, Color[] r){
+        c.octagon(r[0], cx + 1, cy + 1, rad);
+        c.octagon(r[1], cx, cy, rad);
+        c.octagon(r[2], cx - 1, cy - 1, rad - 2);
+        c.octagon(r[3], cx - 2, cy - 2, Math.max(1, rad - 4));
+        c.set(cx - rad / 2 - 1, cy - rad / 2 - 1, r[5]);
+    }
+
+    /** Lingot en perspective : dessus clair, face avant, flanc sombre, arête lumineuse ; un second lingot derrière. */
+    private static BufferedImage ingot(int size, Color[] r){
+        Canvas c = new Canvas(size);
+        bar(c, 5, 7, r);
+        bar(c, 2, 15, r);
+        c.outline();
+        return c.img;
+    }
+
+    private static void bar(Canvas c, int x, int y, Color[] r){
+        c.poly(r[4], x + 5, y, x + 23, y, x + 26, y + 5, x + 2, y + 5);       // dessus
+        c.poly(r[2], x + 2, y + 5, x + 26, y + 5, x + 25, y + 12, x + 3, y + 12); // face avant
+        c.poly(r[1], x + 26, y + 5, x + 28, y + 2, x + 28, y + 9, x + 25, y + 12); // flanc
+        c.rect(r[5], x + 6, y + 1, 11, 1);
+        c.rect(r[3], x + 3, y + 6, 22, 1);
+        c.rect(r[1], x + 4, y + 10, 20, 1);
+    }
+
+    /** Minerai au sol : pépites et ombre translucide, sur fond transparent (le sol reste visible). */
+    private static BufferedImage ore(int size, Color[] r, Random rand){
+        Canvas c = new Canvas(size);
+        int n = 3 + rand.nextInt(2);
+        for(int i = 0; i < n; i++){
+            int rad = 2 + rand.nextInt(3), cx = 6 + rand.nextInt(size - 12), cy = 6 + rand.nextInt(size - 12);
+            c.octagon(new Color(0, 0, 0, 70), cx + 1, cy + 2, rad + 1);
+            pebble(c, cx, cy, rad, r);
         }
-        outline(img);
-        return img;
+        c.outline();
+        return c.img;
     }
 
-    // ---- Blocs ----
+    // ================= Blocs =================
 
-    /** Plaque biseautée de la couleur du matériau, rivets aux coins de chaque case. */
-    private static BufferedImage wall(int size, Color[] s){
-        BufferedImage img = image(size);
-        int tiles = size / 32;
-        fillRect(img, 1, 1, size - 2, size - 2, s[2]);
-        fillRect(img, 1, 1, size - 2, 2, s[3]);
-        fillRect(img, 1, 1, 2, size - 2, s[3]);
-        fillRect(img, 1, size - 3, size - 2, 2, s[0]);
-        fillRect(img, size - 3, 1, 2, size - 2, s[0]);
-        for(int ty = 0; ty < tiles; ty++){
-            for(int tx = 0; tx < tiles; tx++){
-                int ox = tx * 32, oy = ty * 32;
-                for(int[] p : new int[][]{{6, 6}, {25, 6}, {6, 25}, {25, 25}}){
-                    fillRect(img, ox + p[0], oy + p[1], 2, 2, s[1]);
-                    set(img, ox + p[0], oy + p[1], s[3]);
-                }
-                fillRect(img, ox + 10, oy + 15, 12, 2, s[1]);
-            }
-        }
-        outline(img);
-        return img;
-    }
-
-    /** Châssis métallique vanilla. Fonderie : cuve carrée. Laveur : bassin rond. */
-    private static BufferedImage crafter(int size, Color[] s, boolean round){
-        BufferedImage img = image(size);
-        frame(img, size);
-        int m = size / 4;
-        if(round){
-            int c = size / 2, r = size / 2 - m + 2;
-            disc(img, c, c, r + 2, OUTLINE);
-            disc(img, c, c, r, s[1]);
-            disc(img, c - 1, c - 1, r - 3, s[2]);
-            disc(img, c - 4, c - 4, r / 3, s[3]);
+    /** Plaque biseautée de la couleur du matériau, motif octogonal concentrique. */
+    private static BufferedImage wall(int size, Color[] r){
+        Canvas c = new Canvas(size);
+        Polygon body = Canvas.chamfer(0, 0, size, size, size / 10);
+        c.fill(body, r[2]);
+        c.bevel(body, r[4], r[1], 2);
+        int m = size / 2;
+        if(size <= 32){
+            Polygon inset = Canvas.chamfer(7, 7, size - 14, size - 14, 5);
+            c.fill(inset, r[1]);
+            Polygon plate = Canvas.chamfer(9, 9, size - 18, size - 18, 4);
+            c.fill(plate, r[3]);
+            c.bevel(plate, r[4], r[2], 1);
+            c.octagon(r[2], m, m, 3);
         }else{
-            fillRect(img, m - 2, m - 2, size - 2 * m + 4, size - 2 * m + 4, OUTLINE);
-            fillRect(img, m, m, size - 2 * m, size - 2 * m, s[1]);
-            fillRect(img, m + 2, m + 2, size - 2 * m - 4, size - 2 * m - 4, s[2]);
-            fillRect(img, m + 4, m + 4, (size - 2 * m) / 3, 3, s[3]);
-        }
-        outline(img);
-        return img;
-    }
-
-    private static BufferedImage drillBase(int size){
-        BufferedImage img = image(size);
-        frame(img, size);
-        disc(img, size / 2, size / 2, size / 3, METAL_DARK);
-        outline(img);
-        return img;
-    }
-
-    /** Rotor à quatre pales, dessiné sur la base et tourné par le jeu. */
-    private static BufferedImage drillRotator(int size, Color[] s){
-        BufferedImage img = image(size);
-        int c = size / 2, len = size / 3, w = size / 10;
-        fillRect(img, c - w / 2, c - len, w, len * 2, METAL_LIGHT);
-        fillRect(img, c - len, c - w / 2, len * 2, w, METAL_LIGHT);
-        fillRect(img, c - w / 2 + 1, c - len + 1, w / 2, len * 2 - 2, s[3]);
-        outline(img);
-        return img;
-    }
-
-    private static BufferedImage drillTop(int size, Color[] s){
-        BufferedImage img = image(size);
-        int c = size / 2;
-        disc(img, c, c, size / 7, s[1]);
-        disc(img, c - 1, c - 1, size / 10, s[2]);
-        outline(img);
-        return img;
-    }
-
-    /** Tapis horizontal vers la droite ; les chevrons avancent de 2 px par image. */
-    private static BufferedImage conveyor(int size, Color[] s, int frame){
-        BufferedImage img = image(size);
-        fillRect(img, 0, 4, size, size - 8, METAL_DARK);
-        fillRect(img, 0, 4, size, 3, METAL_LIGHT);
-        fillRect(img, 0, size - 7, size, 3, METAL);
-        fillRect(img, 0, 8, size, size - 16, s[0]);
-        for(int k = -1; k < 5; k++){
-            int x0 = k * 8 + frame * 2;
-            for(int i = 0; i < 4; i++){
-                set(img, x0 + i, 10 + i, s[2]);
-                set(img, x0 + i, size - 11 - i, s[2]);
-                set(img, x0 + i + 1, 10 + i, s[3]);
-                set(img, x0 + i + 1, size - 11 - i, s[3]);
+            int[] rings = {26, 22, 15, 10, 5};
+            Color[] tones = {r[1], r[3], r[1], r[4], r[2]};
+            for(int i = 0; i < rings.length; i++) c.octagon(tones[i], m, m, rings[i]);
+            for(int[] q : new int[][]{{4, 4}, {size - 12, 4}, {4, size - 12}, {size - 12, size - 12}}){
+                Polygon p = Canvas.chamfer(q[0], q[1], 8, 8, 2);
+                c.fill(p, r[3]);
+                c.bevel(p, r[4], r[1], 1);
             }
         }
-        // Pas de contour à gauche/droite : les tronçons se raccordent.
-        fillRect(img, 0, 3, size, 1, OUTLINE);
-        fillRect(img, 0, size - 4, size, 1, OUTLINE);
-        return img;
+        c.outline();
+        return c.img;
     }
 
-    /** Tourelle vue de dessus, canon vers le haut ; la base vanilla « block-2 » est dessinée dessous par le jeu. */
-    private static BufferedImage turret(int size, Color[] s){
-        BufferedImage img = image(size);
-        int c = size / 2;
-        fillRect(img, c - 5, 4, 10, c, METAL);
-        fillRect(img, c - 5, 4, 3, c, METAL_LIGHT);
-        fillRect(img, c - 6, 2, 12, 4, METAL_DARK);
-        disc(img, c, c + 6, size / 4, s[1]);
-        disc(img, c - 1, c + 5, size / 4 - 3, s[2]);
-        disc(img, c - 4, c + 2, 3, s[3]);
-        outline(img);
-        return img;
+    /** Châssis métallique biseauté, équerres de couleur aux coins, creusets octogonaux incandescents. */
+    private static BufferedImage crafter(int size, Color[] r, int crucibles){
+        Canvas c = frame(size);
+        cornerBrackets(c, size, r);
+        int m = size / 2;
+        grooves(c, size);
+        if(crucibles == 1){
+            diagonals(c, size, r);
+            crucible(c, m, m, 14, r);
+            for(int[] v : new int[][]{{m, 7}, {m, size - 8}, {7, m}, {size - 8, m}}) c.octagon(M[0], v[0], v[1], 2);
+        }else{
+            for(int y : new int[]{10, size - 14}){
+                c.rect(r[1], 16, y, size - 32, 4);
+                c.rect(r[3], 16, y, size - 32, 1);
+                for(int x = 18; x < size - 18; x += 6) c.rect(r[0], x, y + 2, 3, 1);
+            }
+            crucible(c, m - 12, m, 10, r);
+            crucible(c, m + 12, m, 10, r);
+            c.rect(M[0], m - 3, m - 3, 6, 6);
+            c.rect(r[2], m - 2, m - 2, 4, 4);
+            c.rect(r[4], m - 2, m - 2, 4, 1);
+        }
+        c.outline();
+        return c.img;
     }
 
-    private static BufferedImage node(int size, Color[] s){
-        BufferedImage img = image(size);
-        fillRect(img, 6, 6, size - 12, size - 12, METAL);
-        fillRect(img, 6, 6, size - 12, 2, METAL_LIGHT);
-        disc(img, size / 2, size / 2, 6, s[1]);
-        disc(img, size / 2 - 1, size / 2 - 1, 4, s[3]);
-        outline(img);
-        return img;
+    /** Bassin circulaire d'eau avec vaguelettes, entouré d'un anneau de couleur. */
+    private static BufferedImage washer(int size, Color[] r){
+        Canvas c = frame(size);
+        cornerBrackets(c, size, ramp(NICKEL));
+        int m = size / 2;
+        c.octagon(M[0], m, m, 21);
+        c.octagon(M[3], m, m, 19);
+        c.octagon(M[1], m, m, 17);
+        c.circle(r[1], m, m, 15);
+        c.circle(r[2], m - 1, m - 1, 13);
+        for(int k = 0; k < 3; k++){
+            int y = m - 7 + k * 6;
+            c.rect(r[4], m - 8 + k * 2, y, 6, 1);
+            c.rect(r[3], m + 1 - k, y + 2, 5, 1);
+        }
+        c.octagon(M[2], m, m, 4);
+        c.octagon(M[4], m - 1, m - 1, 2);
+        c.outline();
+        return c.img;
     }
 
-    private static void frame(BufferedImage img, int size){
-        fillRect(img, 1, 1, size - 2, size - 2, METAL);
-        fillRect(img, 1, 1, size - 2, 3, METAL_LIGHT);
-        fillRect(img, 1, size - 4, size - 2, 3, METAL_DARK);
-        fillRect(img, 1, 1, 3, size - 2, METAL_LIGHT);
-        fillRect(img, size - 4, 1, 3, size - 2, METAL_DARK);
-        for(int[] p : new int[][]{{6, 6}, {size - 8, 6}, {6, size - 8}, {size - 8, size - 8}}){
-            fillRect(img, p[0], p[1], 3, 3, METAL_DARK);
-            set(img, p[0], p[1], METAL_LIGHT);
+    private static BufferedImage drillBase(int size, Color[] r){
+        Canvas c = frame(size);
+        cornerBrackets(c, size, r);
+        int m = size / 2;
+        c.octagon(M[0], m, m, 22);
+        c.octagon(M[2], m, m, 20);
+        c.octagon(M[0], m, m, 17);
+        for(int i = 0; i < 8; i++){
+            double a = i * Math.PI / 4;
+            c.octagon(M[3], m + (int)Math.round(Math.cos(a) * 19), m + (int)Math.round(Math.sin(a) * 19), 1);
+        }
+        c.outline();
+        return c.img;
+    }
+
+    /** Rotor à quatre pales facettées (moitié claire, moitié sombre), tourné par le jeu. */
+    private static BufferedImage drillRotator(int size){
+        Canvas c = new Canvas(size);
+        int m = size / 2;
+        for(int i = 0; i < 4; i++){
+            AffineTransform t = AffineTransform.getRotateInstance(i * Math.PI / 2, m, m);
+            c.poly(t, M[4], m - 5, m, m - 8, m - 15, m - 4, m - 21, m, m - 21, m, m);
+            c.poly(t, M[2], m, m, m, m - 21, m + 4, m - 21, m + 8, m - 15, m + 5, m);
+            c.poly(t, M[5], m - 4, m - 21, m, m - 21, m, m - 19, m - 3, m - 19);
+        }
+        Polygon hub = Canvas.chamfer(m - 7, m - 7, 14, 14, 4);
+        c.fill(hub, M[3]);
+        c.bevel(hub, M[5], M[1], 1);
+        c.outline();
+        return c.img;
+    }
+
+    private static BufferedImage drillTop(int size, Color[] r){
+        Canvas c = new Canvas(size);
+        int m = size / 2;
+        Polygon cap = Canvas.chamfer(m - 5, m - 5, 10, 10, 3);
+        c.fill(cap, r[2]);
+        c.bevel(cap, r[4], r[1], 1);
+        c.set(m - 1, m - 1, r[5]);
+        c.outline();
+        return c.img;
+    }
+
+    /** Tapis vers la droite entre deux rails biseautés ; les chevrons avancent de 2 px par image. */
+    private static BufferedImage conveyor(int size, Color[] r, int frame){
+        Canvas c = new Canvas(size);
+        c.rect(M[0], 0, 6, size, size - 12);
+        for(int k = -1; k < 5; k++){
+            int x = k * 8 + frame * 2;
+            c.poly(r[1], x, 9, x + 3, 9, x + 7, 16, x + 3, 23, x, 23, x + 4, 16);
+            c.poly(r[3], x, 9, x + 3, 9, x + 7, 16, x + 4, 16);
+        }
+        for(int y : new int[]{1, size - 7}){
+            c.rect(M[2], 0, y, size, 6);
+            c.rect(M[4], 0, y, size, 1);
+            c.rect(M[1], 0, y + 5, size, 1);
+            for(int x = 3; x < size; x += 8) c.rect(M[0], x, y + 2, 2, 2);
+        }
+        c.rect(OUTLINE, 0, 0, size, 1);
+        c.rect(OUTLINE, 0, size - 1, size, 1);
+        return c.img;
+    }
+
+    /** Tourelle symétrique : corps facetté, plaques latérales colorées, double canon, noyau lumineux. */
+    private static BufferedImage turret(int size, Color[] r){
+        Canvas c = new Canvas(size);
+        int m = size / 2;
+        // double canon
+        for(int bx : new int[]{m - 7, m + 3}){
+            c.rect(M[3], bx, 4, 4, 22);
+            c.rect(M[5], bx, 4, 1, 22);
+            c.rect(M[1], bx + 3, 4, 1, 22);
+            c.rect(M[1], bx - 1, 2, 6, 4);
+            c.rect(M[0], bx, 2, 4, 1);
+        }
+        // corps
+        Polygon body = Canvas.chamfer(m - 17, 20, 34, 34, 9);
+        c.fill(body, M[2]);
+        c.bevel(body, M[4], M[1], 2);
+        // plaques latérales facettées
+        c.poly(r[3], m - 23, 26, m - 15, 22, m - 15, 50, m - 23, 46);
+        c.poly(r[1], m - 19, 24, m - 15, 22, m - 15, 50, m - 19, 48);
+        c.poly(r[1], m + 23, 26, m + 15, 22, m + 15, 50, m + 23, 46);
+        c.poly(r[3], m + 19, 24, m + 15, 22, m + 15, 50, m + 19, 48);
+        // chevron d'accent
+        c.poly(r[2], m - 12, 27, m, 22, m + 12, 27, m + 12, 30, m, 25, m - 12, 30);
+        c.poly(r[4], m - 12, 27, m, 22, m + 12, 27, m, 23);
+        // noyau
+        c.octagon(M[0], m, 37, 8);
+        c.octagon(r[1], m, 37, 6);
+        c.octagon(r[3], m, 37, 4);
+        c.octagon(r[5], m - 1, 36, 1);
+        // évents arrière
+        for(int i = 0; i < 3; i++) c.rect(M[0], m - 6 + i * 5, 49, 3, 2);
+        c.outline();
+        return c.img;
+    }
+
+    private static BufferedImage node(int size, Color[] r){
+        Canvas c = new Canvas(size);
+        int m = size / 2;
+        Polygon base = Canvas.chamfer(4, 4, size - 8, size - 8, 6);
+        c.fill(base, M[2]);
+        c.bevel(base, M[4], M[1], 2);
+        for(int[] n : new int[][]{{m, 6}, {m, size - 7}, {6, m}, {size - 7, m}}) c.octagon(M[0], n[0], n[1], 1);
+        c.octagon(M[0], m, m, 8);
+        c.octagon(r[1], m, m, 6);
+        c.octagon(r[3], m, m, 4);
+        c.octagon(r[5], m - 1, m - 1, 1);
+        c.outline();
+        return c.img;
+    }
+
+    /** Châssis commun aux blocs de production : cadre biseauté, cuvette intérieure, boulons octogonaux. */
+    private static Canvas frame(int size){
+        Canvas c = new Canvas(size);
+        Polygon outer = Canvas.chamfer(0, 0, size, size, 7);
+        c.fill(outer, M[2]);
+        c.bevel(outer, M[4], M[1], 2);
+        Polygon recess = Canvas.chamfer(5, 5, size - 10, size - 10, 6);
+        c.fill(recess, M[1]);
+        Polygon plate = Canvas.chamfer(7, 7, size - 14, size - 14, 5);
+        c.fill(plate, M[2]);
+        c.bevel(plate, M[3], M[1], 1);
+        return c;
+    }
+
+    /** Bandes de couleur en X, des coins vers le centre (motif des fours modernes). */
+    private static void diagonals(Canvas c, int size, Color[] r){
+        int m = size / 2;
+        for(int i = 0; i < 4; i++){
+            AffineTransform t = AffineTransform.getRotateInstance(i * Math.PI / 2, m, m);
+            c.poly(t, r[1], 12, 15, 15, 12, m - 9, m - 12, m - 12, m - 9);
+            c.poly(t, r[3], 12, 15, 15, 12, 16, 13, 13, 16);
+            c.poly(t, r[2], 13, 16, 16, 13, m - 10, m - 13, m - 13, m - 10);
         }
     }
 
-    // ---- Unités (vues de dessus, vers le haut ; le jeu ajoute le contour) ----
+    /** Rainures d'usinage : anneau chanfreiné sombre et entailles sur les bords de la plaque. */
+    private static void grooves(Canvas c, int size){
+        Polygon ring = Canvas.chamfer(11, 11, size - 22, size - 22, 7);
+        Polygon inner = Canvas.chamfer(12, 12, size - 24, size - 24, 7);
+        for(int y = 0; y < size; y++){
+            for(int x = 0; x < size; x++){
+                if(ring.contains(x + 0.5, y + 0.5) && !inner.contains(x + 0.5, y + 0.5)) c.set(x, y, M[1]);
+            }
+        }
+        int m = size / 2;
+        for(int k : new int[]{m - 6, m + 4}){
+            c.rect(M[1], k, 8, 2, 3);
+            c.rect(M[1], k, size - 11, 2, 3);
+            c.rect(M[1], 8, k, 3, 2);
+            c.rect(M[1], size - 11, k, 3, 2);
+        }
+    }
 
-    private static BufferedImage mechBody(int size, Color[] s){
-        BufferedImage img = image(size);
-        int c = size / 2, r = size / 4;
-        disc(img, c, c, r + 2, METAL_DARK);
-        disc(img, c, c, r, METAL);
-        fillRect(img, c - r / 2, c - r - 2, r, r / 2, s[2]);
-        disc(img, c, c - 1, r / 2, s[2]);
-        disc(img, c - 1, c - 2, r / 4, s[3]);
-        return img;
+    /** Équerres de couleur aux quatre coins, symétriques. */
+    private static void cornerBrackets(Canvas c, int size, Color[] r){
+        int s = size - 1;
+        int[][] corners = {{0, 0, 1, 1}, {s, 0, -1, 1}, {0, s, 1, -1}, {s, s, -1, -1}};
+        for(int[] k : corners){
+            int x = k[0], y = k[1], dx = k[2], dy = k[3];
+            Color light = (dx > 0 && dy > 0) ? r[4] : r[3], dark = (dx < 0 && dy < 0) ? r[1] : r[2];
+            c.poly(dark, x + dx * 9, y + dy * 9, x + dx * 18, y + dy * 9, x + dx * 18, y + dy * 12, x + dx * 12, y + dy * 12,
+                x + dx * 12, y + dy * 18, x + dx * 9, y + dy * 18);
+            c.poly(light, x + dx * 9, y + dy * 9, x + dx * 18, y + dy * 9, x + dx * 18, y + dy * 10, x + dx * 10, y + dy * 10,
+                x + dx * 10, y + dy * 18, x + dx * 9, y + dy * 18);
+        }
+    }
+
+    /** Creuset : anneau métallique, bain coloré, cœur incandescent et reflet. */
+    private static void crucible(Canvas c, int cx, int cy, int rad, Color[] r){
+        c.octagon(M[0], cx, cy, rad + 2);
+        Polygon rim = Canvas.chamfer(cx - rad, cy - rad, 2 * rad + 1, 2 * rad + 1, Math.max(1, Math.round(rad * 0.42f)));
+        c.fill(rim, M[3]);
+        c.bevel(rim, M[5], M[1], 1);
+        c.octagon(M[1], cx, cy, rad - 2);
+        c.octagon(r[1], cx, cy, rad - 4);
+        c.octagon(r[3], cx, cy, rad - 6);
+        c.octagon(r[5], cx, cy, Math.max(1, rad - 10));
+        c.set(cx - rad / 2, cy - rad / 2, r[5]);
+    }
+
+    // ================= Unités (vues de dessus, vers le haut ; le jeu ajoute le contour) =================
+
+    private static BufferedImage mechBody(int size, Color[] r){
+        Canvas c = new Canvas(size);
+        int m = size / 2;
+        float k = size / 40f;
+        int tw = Math.round(13 * k), th = Math.round(12 * k), sh = Math.round(19 * k);
+        // épaulières facettées avec liseré coloré
+        for(int dir : new int[]{-1, 1}){
+            int x0 = m + dir * (tw - 2), x1 = m + dir * sh;
+            c.poly(dir < 0 ? M[3] : M[1], x0, m - th + 2, x1, m - th + 5, x1, m + th - 4, x0, m + th - 1);
+            c.poly(dir < 0 ? r[3] : r[1], x0, m - th + 2, x1, m - th + 5, x1, m - th + 8, x0, m - th + 5);
+            c.rect(M[0], Math.min(x0, x1) + 2, m + 2, Math.abs(x1 - x0) - 3, 1);
+        }
+        // torse
+        Polygon torso = Canvas.chamfer(m - tw, m - th, 2 * tw, 2 * th, Math.round(6 * k));
+        c.fill(torso, M[2]);
+        c.bevel(torso, M[4], M[0], 2);
+        // plastron coloré à facettes
+        int top = m - th - Math.round(3 * k);
+        c.poly(r[3], m, top, m - tw + 3, m - th + 4, m - 6, m + 2, m, m);
+        c.poly(r[1], m, top, m, m, m + 6, m + 2, m + tw - 3, m - th + 4);
+        c.poly(r[4], m, top, m - tw + 3, m - th + 4, m - tw + 5, m - th + 4, m, top + 2);
+        // visière
+        c.rect(M[0], m - 4, m - th + 2, 8, 2);
+        c.rect(r[5], m - 3, m - th + 2, 6, 1);
+        // noyau et évents
+        c.octagon(M[0], m, m + 5, Math.round(4 * k));
+        c.octagon(r[3], m, m + 5, Math.round(3 * k) - 1);
+        c.set(m - 1, m + 4, r[5]);
+        for(int i = -1; i <= 1; i++) c.rect(M[1], m + i * 4 - 1, m + th - 4, 2, 2);
+        return c.img;
     }
 
     private static BufferedImage mechLeg(int size){
-        BufferedImage img = image(size);
-        int c = size / 2, w = size / 6;
-        fillRect(img, c - size / 4 - w / 2, c - size / 5, w, size * 2 / 5, METAL_DARK);
-        fillRect(img, c + size / 4 - w / 2, c - size / 5, w, size * 2 / 5, METAL_DARK);
-        return img;
+        Canvas c = new Canvas(size);
+        int m = size / 2, off = size / 4 + 1, h = size * 2 / 5;
+        for(int dir : new int[]{-1, 1}){
+            Polygon foot = Canvas.chamfer(m + dir * off - 4, m - h / 2, 9, h, 3);
+            c.fill(foot, M[2]);
+            c.bevel(foot, M[4], M[0], 1);
+            c.rect(M[1], m + dir * off - 2, m - 1, 5, 2);
+        }
+        return c.img;
     }
 
     private static BufferedImage mechBase(int size){
-        BufferedImage img = image(size);
-        int c = size / 2;
-        fillRect(img, c - size / 4, c - 3, size / 2, 6, METAL);
-        return img;
+        Canvas c = new Canvas(size);
+        int m = size / 2;
+        Polygon hips = Canvas.chamfer(m - size / 4 - 2, m - 4, size / 2 + 4, 8, 3);
+        c.fill(hips, M[2]);
+        c.bevel(hips, M[3], M[0], 1);
+        return c.img;
     }
 
-    /** Aile delta pointant vers le haut. */
-    private static BufferedImage flyer(int size, Color[] s){
-        BufferedImage img = image(size);
-        int c = size / 2;
-        for(int y = 4; y < size - 6; y++){
-            int half = (y - 4) * (size / 2 - 3) / (size - 10);
-            for(int x = c - half; x <= c + half; x++) set(img, x, y, x < c ? s[2] : s[1]);
-        }
-        fillRect(img, c - 2, 6, 4, size - 14, METAL_LIGHT);
-        disc(img, c, size / 2, 3, s[3]);
-        return img;
+    /** Aile delta en couches : ailes colorées facettées, fuselage métallique, verrière et réacteur lumineux. */
+    private static BufferedImage flyer(int size, Color[] r){
+        Canvas c = new Canvas(size);
+        int m = size / 2;
+        c.poly(r[3], m, 5, m - 17, m + 12, m - 12, m + 14, m, m + 6);
+        c.poly(r[1], m, 5, m, m + 6, m + 12, m + 14, m + 17, m + 12);
+        c.poly(r[4], m - 17, m + 12, m - 12, m + 14, m - 11, m + 11);
+        c.poly(r[2], m - 9, m + 2, m - 14, m + 11, m - 10, m + 12, m - 6, m + 4);
+        c.poly(r[0], m + 9, m + 2, m + 14, m + 11, m + 10, m + 12, m + 6, m + 4);
+        c.poly(M[3], m, 2, m - 5, m + 4, m - 4, m + 16, m, m + 18);
+        c.poly(M[1], m, 2, m, m + 18, m + 4, m + 16, m + 5, m + 4);
+        c.octagon(M[0], m, m - 3, 3);
+        c.octagon(r[4], m, m - 3, 2);
+        c.rect(r[5], m - 2, m + 16, 4, 2);
+        c.rect(r[3], m - 1, m + 18, 2, 1);
+        return c.img;
     }
 
-    private static BufferedImage weapon(int size, Color[] s){
-        BufferedImage img = image(size);
-        int c = size / 2;
-        fillRect(img, c - 2, 2, 4, size - 8, METAL);
-        fillRect(img, c - 2, 2, 1, size - 8, METAL_LIGHT);
-        fillRect(img, c - 4, size - 9, 8, 7, s[1]);
-        fillRect(img, c - 3, size - 8, 3, 3, s[3]);
-        return img;
+    private static BufferedImage weapon(int size, Color[] r){
+        Canvas c = new Canvas(size);
+        int m = size / 2;
+        c.rect(M[3], m - 2, 1, 4, size - 9);
+        c.rect(M[5], m - 2, 1, 1, size - 9);
+        c.rect(M[1], m + 1, 1, 1, size - 9);
+        c.rect(M[0], m - 3, 0, 6, 3);
+        Polygon breech = Canvas.chamfer(m - 4, size - 11, 8, 9, 2);
+        c.fill(breech, r[2]);
+        c.bevel(breech, r[4], r[1], 1);
+        return c.img;
     }
 
-    /** Icône du mod : petit graphique en courbe sur fond sombre. */
+    /** Icône du mod : graphique en courbe dans un cadre biseauté. */
     static BufferedImage icon(){
-        BufferedImage img = image(64);
-        fillRect(img, 2, 2, 60, 60, hex("1f2029"));
-        Color accent = hex("ffd37f");
-        int[] ys = {48, 44, 46, 36, 38, 26, 30, 16};
-        for(int i = 0; i < ys.length - 1; i++) line(img, 8 + i * 7, ys[i], 8 + (i + 1) * 7, ys[i + 1], accent);
-        fillRect(img, 8, 52, 50, 2, hex("6e7080"));
-        outline(img);
-        return img;
+        Canvas c = new Canvas(64);
+        Polygon frame = Canvas.chamfer(1, 1, 62, 62, 8);
+        c.fill(frame, M[1]);
+        c.bevel(frame, M[3], M[0], 2);
+        Polygon screen = Canvas.chamfer(7, 7, 50, 50, 6);
+        c.fill(screen, hex("1b1c24"));
+        Color[] a = ramp(hex("ffc857"));
+        int[] ys = {46, 41, 43, 33, 36, 24, 27, 14};
+        for(int i = 0; i < ys.length - 1; i++) c.line(12 + i * 6, ys[i], 12 + (i + 1) * 6, ys[i + 1], a[3]);
+        c.rect(M[2], 12, 50, 42, 2);
+        c.outline();
+        return c.img;
     }
 
-    // ---- Outils ----
+    // ================= Couleurs =================
 
-    /** Quatre nuances : très sombre, sombre, base, claire. */
-    static Color[] shades(Color base){
-        return new Color[]{mul(base, 0.45f), mul(base, 0.7f), base, mix(base, Color.WHITE, 0.35f)};
-    }
-
-    private static BufferedImage image(int size){
-        return new BufferedImage(size, size, BufferedImage.TYPE_INT_ARGB);
-    }
-
-    /** Ajoute un contour sombre autour de tous les pixels opaques. */
-    static void outline(BufferedImage img){
-        int w = img.getWidth(), h = img.getHeight();
-        boolean[][] solid = new boolean[w][h];
-        for(int y = 0; y < h; y++) for(int x = 0; x < w; x++) solid[x][y] = (img.getRGB(x, y) >>> 24) != 0;
-        for(int y = 0; y < h; y++){
-            for(int x = 0; x < w; x++){
-                if(solid[x][y]) continue;
-                boolean edge = false;
-                for(int[] d : new int[][]{{1, 0}, {-1, 0}, {0, 1}, {0, -1}}){
-                    int nx = x + d[0], ny = y + d[1];
-                    if(nx >= 0 && ny >= 0 && nx < w && ny < h && solid[nx][ny]) edge = true;
-                }
-                if(edge) set(img, x, y, OUTLINE);
-            }
+    /**
+     * Rampe de 6 tons du plus sombre au plus clair. Les ombres glissent vers le bleu-violet et se saturent,
+     * les lumières glissent vers le jaune et se désaturent : c'est ce qui donne des aplats « vivants ».
+     */
+    static Color[] ramp(Color base){
+        float[] hsb = Color.RGBtoHSB(base.getRed(), base.getGreen(), base.getBlue(), null);
+        float[] bright = {0.38f, 0.6f, 0.82f, 1f, 1.14f, 1.28f};
+        float[] sat = {0.12f, 0.08f, 0.03f, 0f, -0.12f, -0.28f};
+        float[] hue = {0.05f, 0.03f, 0.01f, 0f, -0.02f, -0.04f};
+        Color[] out = new Color[6];
+        for(int i = 0; i < 6; i++){
+            float h = shiftHue(hsb[0], i < 3 ? 0.68f : 0.14f, Math.abs(hue[i]));
+            float s = clamp01(hsb[1] + sat[i] * (hsb[1] < 0.15f ? 0.3f : 1f));
+            float b = clamp01(hsb[2] * bright[i] + (i >= 4 ? 0.04f * (i - 3) : 0f));
+            out[i] = Color.getHSBColor(h, s, b);
         }
+        // Rampe décalée d'un cran : r[2] = couleur de base, r[3..5] lumières, r[0..1] ombres.
+        return new Color[]{out[0], out[1], out[3], out[4], out[5], mix(out[5], Color.WHITE, 0.45f)};
     }
 
-    private static void disc(BufferedImage img, int cx, int cy, int r, Color c){
-        for(int y = -r; y <= r; y++) for(int x = -r; x <= r; x++) if(x * x + y * y <= r * r) set(img, cx + x, cy + y, c);
-    }
-
-    private static void line(BufferedImage img, int x0, int y0, int x1, int y1, Color c){
-        int steps = Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0));
-        for(int i = 0; i <= steps; i++){
-            int x = x0 + (x1 - x0) * i / Math.max(1, steps), y = y0 + (y1 - y0) * i / Math.max(1, steps);
-            fillRect(img, x, y, 2, 2, c);
-        }
-    }
-
-    private static void fillRect(BufferedImage img, int x, int y, int w, int h, Color c){
-        for(int yy = y; yy < y + h; yy++) for(int xx = x; xx < x + w; xx++) set(img, xx, yy, c);
-    }
-
-    private static void set(BufferedImage img, int x, int y, Color c){
-        if(x >= 0 && y >= 0 && x < img.getWidth() && y < img.getHeight()) img.setRGB(x, y, c.getRGB());
+    private static float shiftHue(float h, float target, float amount){
+        float d = target - h;
+        if(d > 0.5f) d -= 1f;
+        if(d < -0.5f) d += 1f;
+        float r = h + Math.signum(d) * Math.min(Math.abs(d), amount);
+        return r < 0 ? r + 1 : r > 1 ? r - 1 : r;
     }
 
     static Color hex(String s){
         return new Color(Integer.parseInt(s, 16));
-    }
-
-    private static Color mul(Color c, float f){
-        return new Color(clamp(c.getRed() * f), clamp(c.getGreen() * f), clamp(c.getBlue() * f));
     }
 
     private static Color mix(Color a, Color b, float t){
@@ -425,5 +595,124 @@ public final class SpriteGenerator{
 
     private static int clamp(float v){
         return Math.max(0, Math.min(255, Math.round(v)));
+    }
+
+    private static float clamp01(float v){
+        return Math.max(0f, Math.min(1f, v));
+    }
+
+    // ================= Toile de dessin pixel art =================
+
+    /** Dessin sans anticrénelage : polygones pleins, octogones, biseaux et contour. */
+    static final class Canvas{
+        final BufferedImage img;
+        final int size;
+
+        Canvas(int size){
+            this.size = size;
+            img = new BufferedImage(size, size, BufferedImage.TYPE_INT_ARGB);
+        }
+
+        /** Rectangle aux coins coupés à 45° (octogone si carré). */
+        static Polygon chamfer(int x, int y, int w, int h, int k){
+            return new Polygon(new int[]{x + k, x + w - k, x + w, x + w, x + w - k, x + k, x, x},
+                new int[]{y, y, y + k, y + h - k, y + h, y + h, y + h - k, y + k}, 8);
+        }
+
+        void fill(Shape s, Color c){
+            Rectangle b = s.getBounds();
+            for(int y = Math.max(0, b.y); y < Math.min(size, b.y + b.height + 1); y++){
+                for(int x = Math.max(0, b.x); x < Math.min(size, b.x + b.width + 1); x++){
+                    if(s.contains(x + 0.5, y + 0.5)) set(x, y, c);
+                }
+            }
+        }
+
+        void poly(Color c, int... xy){
+            poly(null, c, xy);
+        }
+
+        void poly(AffineTransform t, Color c, int... xy){
+            Polygon p = new Polygon();
+            for(int i = 0; i < xy.length; i += 2) p.addPoint(xy[i], xy[i + 1]);
+            fill(t == null ? p : t.createTransformedShape(p), c);
+        }
+
+        void rect(Color c, int x, int y, int w, int h){
+            for(int yy = y; yy < y + h; yy++) for(int xx = x; xx < x + w; xx++) set(xx, yy, c);
+        }
+
+        /** Octogone plein de « rayon » {@code r} centré sur (cx, cy). */
+        void octagon(Color c, int cx, int cy, int r){
+            if(r <= 0){
+                set(cx, cy, c);
+                return;
+            }
+            fill(chamfer(cx - r, cy - r, 2 * r + 1, 2 * r + 1, Math.max(1, Math.round(r * 0.42f))), c);
+        }
+
+        void circle(Color c, int cx, int cy, int r){
+            for(int y = -r; y <= r; y++) for(int x = -r; x <= r; x++) if(x * x + y * y <= r * r + r) set(cx + x, cy + y, c);
+        }
+
+        /** Biseau : bord haut-gauche éclairé, bord bas-droit dans l'ombre, sur {@code w} pixels. */
+        void bevel(Shape s, Color light, Color dark, int w){
+            Rectangle b = s.getBounds();
+            for(int y = b.y; y <= b.y + b.height; y++){
+                for(int x = b.x; x <= b.x + b.width; x++){
+                    if(!s.contains(x + 0.5, y + 0.5)) continue;
+                    boolean lit = false, shadow = false;
+                    for(int k = 1; k <= w; k++){
+                        if(!s.contains(x - k + 0.5, y + 0.5) || !s.contains(x + 0.5, y - k + 0.5)) lit = true;
+                        if(!s.contains(x + k + 0.5, y + 0.5) || !s.contains(x + 0.5, y + k + 0.5)) shadow = true;
+                    }
+                    if(lit && !shadow) set(x, y, light);
+                    else if(shadow && !lit) set(x, y, dark);
+                    else if(lit) set(x, y, light);
+                }
+            }
+        }
+
+        void line(int x0, int y0, int x1, int y1, Color c){
+            int steps = Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0));
+            for(int i = 0; i <= steps; i++){
+                int x = x0 + (x1 - x0) * i / Math.max(1, steps), y = y0 + (y1 - y0) * i / Math.max(1, steps);
+                rect(c, x, y, 2, 2);
+            }
+        }
+
+        /** Contour sombre de 1 px autour de tout pixel opaque (les ombres translucides n'en reçoivent pas). */
+        void outline(){
+            boolean[][] solid = new boolean[size][size];
+            for(int y = 0; y < size; y++) for(int x = 0; x < size; x++) solid[x][y] = (img.getRGB(x, y) >>> 24) > 200;
+            for(int y = 0; y < size; y++){
+                for(int x = 0; x < size; x++){
+                    if(solid[x][y]) continue;
+                    for(int[] d : new int[][]{{1, 0}, {-1, 0}, {0, 1}, {0, -1}}){
+                        int nx = x + d[0], ny = y + d[1];
+                        if(nx >= 0 && ny >= 0 && nx < size && ny < size && solid[nx][ny]){
+                            set(x, y, OUTLINE);
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        void set(int x, int y, Color c){
+            if(x < 0 || y < 0 || x >= size || y >= size) return;
+            if(c.getAlpha() == 255){
+                img.setRGB(x, y, c.getRGB());
+                return;
+            }
+            // Mélange alpha simple pour les ombres translucides.
+            int dst = img.getRGB(x, y), da = dst >>> 24;
+            float a = c.getAlpha() / 255f;
+            int outA = Math.min(255, Math.round(c.getAlpha() + da * (1 - a)));
+            int rr = Math.round(c.getRed() * a + ((dst >> 16) & 255) * (1 - a));
+            int gg = Math.round(c.getGreen() * a + ((dst >> 8) & 255) * (1 - a));
+            int bb = Math.round(c.getBlue() * a + (dst & 255) * (1 - a));
+            img.setRGB(x, y, outA << 24 | rr << 16 | gg << 8 | bb);
+        }
     }
 }

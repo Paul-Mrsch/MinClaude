@@ -90,13 +90,23 @@ L'autotest construit une base de démonstration près du noyau : chaque bâtimen
 | Colonne des débits du mini-panneau qui débordait (« -53.7/min ») | Débits arrondis à l'unité dès 10/min (test unitaire), colonne élargie |
 | Onglet Défense centré verticalement, unités apparues pendant la pause non comptées | Alignement en haut ; scénario corrigé (unités créées avant le relevé) |
 
+## Refonte graphique (2026-10-05)
+
+À la demande du joueur, tous les sprites ont été redessinés dans un style moderne, inspiré d'Exogenesis sans reprendre ses images :
+
+- aplats facettés avec rampes de 6 tons à décalage de teinte, angles coupés à 45°, biseaux ;
+- métal gris-bleu, bandes de couleur vive, motifs symétriques ;
+- cristaux et pépites à facettes, lingots en perspective.
+
+Le résultat a été vérifié sur la planche des sprites et dans le jeu (capture `13-base-demo`). Tous les tests passent.
+
 ## Limitations connues
 
 - **Entrées et sorties estimées** : elles sont déduites des variations du stock, donc une entrée et une sortie dans le même tick se compensent. Le stock et la tendance sont exacts.
 - **IA intelligente** : seulement pour les unités terrestres. Les volants gardent l'IA vanilla ; la guêpe vise déjà les générateurs grâce à `targetFlags`. Les tactiques de groupe et l'adaptation sont prévues en V2 et V3.
 - **Minerais** : ajoutés seulement aux nouvelles parties, pas aux sauvegardes existantes. Ils ne remplacent jamais un minerai vanilla et ne se posent ni sous un bloc ni sur un liquide.
 - **Ennemis** : ajoutés aux vagues des nouvelles parties qui ont des vagues. Ils arrivent à partir de la vague 13 (maraudeur) et 17 (guêpe) en Normal (index 12 et 16 des règles de vague), et 4 vagues plus tôt par cran de difficulté.
-- **Sprites** : générés par script, simples. Les 7 formes du convoyeur utilisent le même dessin droit, donc les virages paraissent droits. Retouche prévue en A4.3.
+- **Sprites** : générés par script. Les 7 formes du convoyeur utilisent le même dessin droit, donc les virages paraissent droits (tâche dans ToDo).
 - **Équilibrage** : les valeurs sont proches du vanilla mais n'ont pas encore été jouées longuement (A4.1).
 - Les autres mods installés (Exogenesis, New Horizon) produisent leurs propres avertissements dans le journal. Ils sont sans rapport avec MinClaude.
 

@@ -35,6 +35,19 @@ Exemple : une nouvelle ressource `nickel`.
 
 Préfixes des clés de traduction : `item.`, `block.`, `liquid.`, `unit.`, suivis de `minclaude-<nom>`.
 
+### Style graphique
+
+Le générateur suit le style des mods récents (Exogenesis, entre autres) sans reprendre leurs images :
+
+- **aplats par facette**, sans dégradé : 6 tons par matière, donnés par `ramp(couleur)`. Les ombres glissent vers le bleu-violet et se saturent, les lumières glissent vers le jaune et se désaturent ;
+- **angles coupés à 45°** (`Canvas.chamfer`, `octagon`) partout : cadres, plaques, creusets, noyaux ;
+- **biseaux** (`Canvas.bevel`) : bord haut-gauche éclairé, bord bas-droit dans l'ombre (lumière du jeu en haut à gauche) ;
+- **métal gris-bleu** (`M[0..5]`) pour les châssis, **bandes de couleur vive** de la matière (équerres de coin, bandes en X, plaques latérales) ;
+- **motifs symétriques** : anneaux concentriques, rainures d'usinage, boulons octogonaux ;
+- **contour** sombre de 1 px sur les blocs et objets. Pour les unités, le jeu génère le contour lui-même.
+
+Pour relire le résultat : `./gradlew generateSprites spriteSheet`, puis ouvrir `docs/images/sprites.png`. Pour juger dans le jeu : `./gradlew selfTest`, puis ouvrir la capture `13-base-demo.png`.
+
 ### Régions de sprites demandées par le jeu
 
 `ContentIT.requiredRegions` liste les noms de fichiers attendus. Le test échoue s'il en manque un.
