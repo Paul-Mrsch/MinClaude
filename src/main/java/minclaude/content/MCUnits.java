@@ -263,22 +263,22 @@ public final class MCUnits{
             constructor = MechUnit::create;
             speed = 0.33f;
             hitSize = 20f;
-            health = 2600;
+            health = 6000;
             armor = 12f;
             mechFrontSway = 0.4f;
             weapons.add(new Weapon("minclaude-brute-cannon"){{
-                reload = 90f;
+                reload = 65f;
                 x = 11f;
                 top = false;
                 recoil = 5f;
                 shake = 3f;
                 shootSound = Sounds.shootArtillery;
                 ejectEffect = Fx.casing3;
-                bullet = new BasicBulletType(2.4f, 60){{
+                bullet = new BasicBulletType(2.4f, 95){{
                     width = 14f;
                     height = 18f;
                     lifetime = 70f;
-                    splashDamage = 40f;
+                    splashDamage = 70f;
                     splashDamageRadius = 28f;
                     hitEffect = Fx.blastExplosion;
                 }};
@@ -327,13 +327,13 @@ public final class MCUnits{
         frigate.weapons.first().mirror = false;
 
         // ---- Ennemis ----
-        swarmling = enemy(mech("swarmling", 90, 0, 1.0f, 7f, gun(null, 25f, 0f, bullet(2.5f, 10, 5f, 6f, 20f))), swarmEnemies);
-        sapper = enemy(mech("sapper", 420, 3, 0.55f, 10f, gun("minclaude-sapper-gun", 30f, 5f, bullet(2.6f, 16, 8f, 10f, 45f))), siegeEnemies);
+        swarmling = enemy(mech("swarmling", 120, 0, 1.0f, 7f, gun(null, 25f, 0f, bullet(2.5f, 10, 5f, 6f, 20f))), swarmEnemies);
+        sapper = enemy(mech("sapper", 520, 3, 0.55f, 10f, gun("minclaude-sapper-gun", 30f, 5f, bullet(2.6f, 24, 8f, 10f, 45f))), siegeEnemies);
         sapper.weapons.first().bullet.buildingDamageMultiplier = 3f;
         siegebreaker = enemy(mech("siegebreaker", 1300, 7, 0.38f, 16f,
             gun("minclaude-siegebreaker-mortar", 80f, 8f, artillery(2f, 30, 110f, 150f, 45f))), siegeEnemies);
         shocker = enemy(mech("shocker", 720, 5, 0.48f, 12f, lightning("minclaude-shocker-coil")), armorEnemies);
-        juggernaut = enemy(mech("juggernaut", 3200, 14, 0.3f, 22f, gun("minclaude-juggernaut-cannon", 60f, 11f, bullet(2.4f, 70, 14f, 18f, 75f))), armorEnemies);
+        juggernaut = enemy(mech("juggernaut", 7000, 14, 0.3f, 22f, gun("minclaude-juggernaut-cannon", 60f, 11f, bullet(2.4f, 120, 14f, 18f, 75f))), armorEnemies);
         juggernaut.abilities.add(new ForceFieldAbility(40f, 0.3f, 400f, 60f * 8f));
         stalker = enemy(mech("stalker", 600, 4, 0.75f, 11f, shotgun("minclaude-stalker-shotgun")), swarmEnemies);
         phantom = enemy(flyer("phantom", 260, 1, 3.2f, 9f), airEnemies);
@@ -343,8 +343,8 @@ public final class MCUnits{
         dreadwing = enemy(flyer("dreadwing", 3800, 9, 1.1f, 28f), airEnemies);
         dreadwing.targetAir = false;
         dreadwing.weapons.add(bombs(12f, 60f));
-        warlord = enemy(mech("warlord", 14000, 18, 0.27f, 30f,
-            gun("minclaude-warlord-cannon", 50f, 16f, artillery(2.5f, 60, 260f, 140f, 55f))), armorEnemies);
+        warlord = enemy(mech("warlord", 22000, 18, 0.27f, 30f,
+            gun("minclaude-warlord-cannon", 45f, 16f, artillery(2.5f, 80, 340f, 140f, 60f))), armorEnemies);
         warlord.weapons.add(lightning(null));
         leviathan = enemy(flyer("leviathan", 12000, 14, 0.9f, 40f), airEnemies);
         leviathan.weapons.add(bombs(20f, 120f), gun(null, 8f, 12f, bullet(4f, 22, 8f, 10f, 50f)));
@@ -481,7 +481,7 @@ public final class MCUnits{
         w.top = false;
         w.reload = 45f;
         LightningBulletType b = new LightningBulletType();
-        b.damage = 18f;
+        b.damage = 30f;
         b.lightningLength = 12;
         b.status = StatusEffects.shocked;
         b.lightningColor = Pal.lancerLaser;

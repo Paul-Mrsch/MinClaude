@@ -17,6 +17,7 @@
 | `./gradlew deployLocal` | `check` puis copie le jar dans `~/Library/Application Support/Mindustry/mods/` |
 | `./gradlew play` | `deployLocal` puis lance Mindustry |
 | `./gradlew selfTest` | Autotest dans le vrai client : captures et rapport dans `build/selftest/out/` |
+| `./gradlew selfTestCompat` | Même autotest avec les autres mods installés du joueur (compatibilité), dans `build/selftestCompat/out/` |
 | `./gradlew generateSprites` | Régénère `assets/sprites/**` et `icon.png` |
 | `./gradlew spriteSheet` | Planche de tous les sprites dans `docs/images/sprites.png`, pour les relire |
 
@@ -97,6 +98,25 @@ Le scénario V1 construit aussi une **base de démonstration** près du noyau, a
 Les captures sont prises après le dessin de l'UI (`Trigger.uiDrawEnd`). Il faut les **regarder** : elles montrent ce qu'aucune assertion ne voit (chevauchements, textes coupés, couleurs). Sans la variable d'environnement, `SelfTest` n'est jamais activé.
 
 À chaque nouvel écran, ajouter ses étapes dans `SelfTest.start()`.
+
+## Équilibrage
+
+`BalanceIT` (dans `integrationTest`) compare chaque contenu au vanilla de même rôle et réécrit `docs/equilibrage.md` à chaque passage :
+
+- murs : PV par valeur de coût ;
+- tourelles : DPS de la meilleure munition par valeur de coût ;
+- usines : valeur produite / consommée, comparée à la médiane vanilla ;
+- unités : puissance √(PV effectifs × DPS) par rang et lignées croissantes ;
+- simulation de combat : temps de survie face à 3 duos et 2 lancers.
+
+Le test échoue si une valeur sort des bornes. **Tout nouveau contenu doit y trouver sa place.** Une nouvelle unité doit recevoir un rang dans `BalanceIT.units`, sinon le test échoue.
+
+## Animations
+
+- **Lueur** : `MCBlocks.glow(bloc, couleur)` ajoute `DrawGlowRegion` au dessin du bloc. Le sprite `<nom>-glow.png` (blanc sur transparent) est généré par `SpriteGenerator.glow` pour les noms listés dans `GLOWING`.
+- **Chaleur** : toute `ItemTurret` du mod a un sprite `<nom>-heat.png`, que le jeu teinte en rouge après chaque tir.
+
+`ContentIT` exige ces régions.
 
 ## Monter de version de Mindustry
 

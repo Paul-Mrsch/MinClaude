@@ -236,6 +236,25 @@ public final class SelfTest{
             ui.content.show(MCUnits.frigate);
         });
         step(1.5f, "fiche-fregate-capture", () -> shot("25-fiche-fregate"));
+        // ---- V4 : performance dans le client réel, base de démo en combat ----
+        step(0.5f, "perf-debut", () -> {
+            ui.content.hide();
+            frames.clear();
+            measuring = true;
+            state.set(mindustry.core.GameState.State.playing);
+        });
+        step(5f, "perf-fin", () -> {
+            measuring = false;
+            state.set(mindustry.core.GameState.State.paused);
+            frames.sort();
+            float avg = 0;
+            for(int i = 0; i < frames.size; i++) avg += frames.get(i);
+            avg /= Math.max(1, frames.size);
+            float p95 = frames.isEmpty() ? 0 : frames.get((int)(frames.size * 0.95f));
+            line(String.format(java.util.Locale.ROOT, "info perf : %d images, %.1f ms en moyenne (%.0f i/s), 95e centile %.1f ms, %d unités, %d bâtiments",
+                frames.size, avg * 1000, 1f / Math.max(avg, 1e-4f), p95 * 1000, mindustry.gen.Groups.unit.size(), mindustry.gen.Groups.build.size()));
+            check("fluidité en combat (≥ 30 i/s en moyenne)", avg > 0 && 1f / avg >= 30f);
+        });
         step(0.5f, "options-v1", () -> {
             ui.content.hide();
             ui.settings.show();
@@ -259,7 +278,11 @@ public final class SelfTest{
         steps.add(new Step(delay, name, action));
     }
 
+    private final arc.struct.FloatSeq frames = new arc.struct.FloatSeq();
+    private boolean measuring;
+
     private void tick(){
+        if(measuring) frames.add(Core.graphics.getDeltaTime());
         if(index >= steps.size) return;
         timer += Core.graphics.getDeltaTime();
         Step s = steps.get(index);

@@ -22,6 +22,8 @@ public final class SpriteSheet{
         try(Stream<Path> s = Files.walk(root)){
             files = s.filter(p -> p.toString().endsWith(".png"))
                 .filter(p -> !p.getFileName().toString().matches(".*-[1-6]-\\d\\.png") && !p.getFileName().toString().matches(".*-0-[1-3]\\.png"))
+                // Calques de lueur et de chaleur : blancs, utiles au jeu mais illisibles sur la planche.
+                .filter(p -> !p.getFileName().toString().matches(".*-(glow|heat)\\.png"))
                 .sorted().toList();
         }
         int rows = (files.size() + COLUMNS - 1) / COLUMNS;

@@ -8,9 +8,11 @@ author: "pmrsch"
 
 main: "minclaude.MinClaudeMod"
 
-description: "Gestion des ressources dans le temps (graphiques, débits, prévisions, alertes), dashboard, et nouveau contenu pour Serpulo."
+subtitle: "Gestion de base, contenu Serpulo et IA ennemie"
 
-version: "0.4.0"
+description: "Suivi des ressources dans le temps (graphiques, flux exacts, prévisions, objectifs, alertes) et dashboard de gestion (énergie, industries, défense). Plus de 15 ressources, industries, bâtiments, unités alliées et ennemis pour Serpulo, et une IA ennemie qui vise vos points faibles, attaque en escouades et s'adapte à vos défenses."
+
+version: "1.0.0"
 
 #build minimale du jeu
 minGameVersion: 160.4
