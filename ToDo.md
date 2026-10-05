@@ -2,41 +2,36 @@
 
 _Mis à jour le 2026-10-05._ Chaque tâche cite son artefact (voir [docs/PLAN.md](docs/PLAN.md)).
 Une tâche n'est terminée que si ses **tests** et sa **doc** sont faits, et si `./gradlew check selfTest` passe.
+Branches : on développe sur `dev`, on fusionne dans `main` à chaque version publiée (tag `v0.x.0`).
 
-## Maintenant : clôturer la V1
+## Maintenant : clôturer la V2
 
 - [ ] **Partie réelle** (à faire par le joueur) :
-  - [ ] Nouvelle partie sur Ground Zero : minerais du mod visibles, minables (foreuse à percussion pour le cobalt)
-  - [ ] Construire la chaîne bauxite → aluminium → convoyeur renforcé, puis zinc + cuivre → laiton
-  - [ ] Onglet Industries : couper une entrée, puis vérifier le goulot et l'alerte « Usines arrêtées faute de … »
-  - [ ] Onglet Énergie : production, consommation et batteries cohérentes avec le jeu
-  - [ ] Vague 13 et suivantes : arrivée des maraudeurs, qui visent les générateurs et convoyeurs plutôt que les murs
-  - [ ] Gardien (usine terrestre) et Secours (usine aérienne) : construction, combat, soin
+  - [ ] Chaîne ferraille + charbon → acier → invar (presse) → convoyeur blindé et conteneur
+  - [ ] Chaîne sable + eau → saumure → chrome (électrolyseur) ; eau + aluminium → azote liquide → tourelle Givre
+  - [ ] Gardien → Sentinelle (reconstructeur additif) → Bastion (multiplicatif)
+  - [ ] Vagues : escouades qui se regroupent, ailes qui contournent, unités abîmées qui reculent
+  - [ ] Difficulté Brutal sur une nouvelle partie : ennemis nettement plus résistants
+  - [ ] Onglet Ressources : fixer un objectif, vérifier l'échéance et l'alerte « Objectif atteint »
   - [ ] Noter les retours d'équilibrage dans ce fichier
-- [ ] Fusionner la branche `v1` dans `main`, tag `v0.2.0`, pousser
+- [ ] Fusionner `dev` dans `main`, tag `v0.3.0`, pousser
 
-## V2 — Expansion (10 éléments par catégorie)
+## V3 — Contenu complet (≥ 15 par catégorie)
 
 ### Contenu
-- [ ] **A2.1 Ressources** : chrome, acier, invar, liquides (saumure, azote liquide)
-- [ ] **A2.2 Industries** : électrolyseur, cryogénisateur, aciérie, presse à alliage, raffinerie chimique
-- [ ] **A2.3 Bâtiments** : convoyeur blindé, routeur filtrant, 2 tourelles, stockage
-- [ ] **A2.4 Unités alliées** : arbre d'évolution T1 → T3 (reconstructeurs)
-- [ ] **A2.5 Ennemis** : ennemis aériens et blindés supplémentaires
+- [ ] **A3.1 Ressources** : 4 de plus (duralumin, cermet, fibre de carbone, cristal quantique…)
+- [ ] **A3.2 Industries** : 5 de plus (chaînes de fin de jeu)
+- [ ] **A3.3 Bâtiments** : 2 de plus au minimum (pont/transport de masse, tourelle lourde)
+- [ ] **A3.4 Unités alliées** : 10 de plus (T4/T5, navales, soutien)
+- [ ] **A3.5 Ennemis** : 10 de plus, dont des boss
 
-### IA et difficulté
-- [ ] **A2.6 Tactiques de groupe** : regroupement avant l'assaut, flanquement, retraite si affaiblis ; logique pure testée + IT avec plusieurs unités
-- [ ] **A2.7 Difficulté active partout** : PV, dégâts et vagues selon la difficulté (aujourd'hui elle règle seulement l'IA et l'arrivée des ennemis du mod)
-- [ ] IA intelligente pour les volants (ciblage selon `TargetScorer`)
+### IA
+- [ ] **A3.6 Adaptation** : composition des vagues selon la défense du joueur (via `DefenseReport` : peu d'anti-aérien → plus de volants, beaucoup de murs → plus d'artillerie)
 
-### Gestion
-- [ ] **A2.8 Prévisions avancées** : objectifs de stock, projection de la production des usines construites
-- [ ] Mesure exacte des entrées dans le noyau (interception des transferts) à la place de l'estimation
-
-### Qualité
-- [ ] Convoyeur : dessiner les 7 formes (virages, jonctions) au lieu d'une seule
-- [ ] Mesurer le coût par tick du tracker et du scanner sur une grande base (objectif < 0,1 ms par tick)
-- [ ] Test d'intégration « partie longue » (1 h simulée) : mémoire et taille de la sauvegarde
+### Gestion et qualité
+- [ ] **A3.7 Mesure exacte des flux** : intercepter les transferts vers le noyau
+- [ ] **A3.8 Performance** : coût par tick du tracker, du scanner et des escouades sur une grosse base (objectif < 0,1 ms par tick) ; test « partie longue » (1 h simulée) : mémoire et taille de la sauvegarde
+- [ ] Test automatique anti-conflit de noms avec le contenu vanilla (plus clair que l'échec au démarrage)
 - [ ] Étendre `selfTest` à chaque nouvel écran ou contenu
 
 ## Idées et questions ouvertes
@@ -45,3 +40,4 @@ Une tâche n'est terminée que si ses **tests** et sa **doc** sont faits, et si 
 - Afficher plusieurs ressources sur le même graphique pour les comparer
 - Panneau déplaçable par glisser-déposer
 - Dans l'onglet Industries, cliquer sur une usine bloquée pour centrer la caméra dessus
+- Objectifs de stock : proposer un objectif par défaut selon la demande installée

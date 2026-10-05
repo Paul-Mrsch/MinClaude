@@ -3,14 +3,16 @@ package minclaude.ai;
 import arc.util.Time;
 import minclaude.ModSettings;
 import minclaude.logic.TargetScorer;
+import mindustry.ai.types.FlyingAI;
 import mindustry.ai.types.GroundAI;
 import mindustry.type.UnitType;
 
 import static mindustry.Vars.content;
 
 /**
- * Installe l'IA ennemie intelligente : toute unité terrestre dont l'IA par défaut est le GroundAI vanilla
- * (unités des vagues) utilise {@link SmartGroundAI}, qui se comporte comme le vanilla quand l'option est désactivée.
+ * Installe l'IA ennemie intelligente : toute unité dont l'IA par défaut est le GroundAI ou le FlyingAI vanilla
+ * (unités des vagues) utilise {@link SmartGroundAI} ou {@link SmartFlyingAI}, qui se comportent comme le vanilla
+ * quand l'option est désactivée.
  * Les unités du joueur ne sont pas concernées : elles sont pilotées par CommandAI.
  */
 public final class SmartAI{
@@ -20,14 +22,20 @@ public final class SmartAI{
 
     private SmartAI(){}
 
-    /** @return nombre de types d'unités modifiés */
+    /** @return nombre de types d'unités modifiés (terrestres + volants) */
     public static int install(){
         int n = 0;
         for(UnitType type : content.units()){
-            if(type.flying || type.naval) continue;
-            if(type.aiController.get().getClass() != GroundAI.class) continue;
-            type.aiController = SmartGroundAI::new;
-            n++;
+            // Navals, mineurs, constructeurs et unités sans arme gardent leur IA.
+            if(type.naval || !type.hasWeapons() || type.mineTier > 0 || type.buildSpeed > 0) continue;
+            Class<?> ai = type.aiController.get().getClass();
+            if(!type.flying && ai == GroundAI.class){
+                type.aiController = SmartGroundAI::new;
+                n++;
+            }else if(type.flying && ai == FlyingAI.class){
+                type.aiController = SmartFlyingAI::new;
+                n++;
+            }
         }
         return n;
     }

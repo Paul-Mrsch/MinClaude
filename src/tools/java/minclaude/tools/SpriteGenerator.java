@@ -19,13 +19,15 @@ import java.util.List;
  * Orientation du jeu : convoyeurs vers la droite, tourelles, unités et armes vers le haut.
  */
 public final class SpriteGenerator{
-    enum Kind{ GEM, NUGGET, INGOT, ORE, WALL, CRAFTER, FOUNDRY, WASHER, DRILL, CONVEYOR, TURRET, NODE, MECH, FLYER, WEAPON }
+    enum Kind{ GEM, NUGGET, INGOT, LIQUID, ORE, WALL, CRAFTER, FOUNDRY, WASHER, PRESS, TANK, CRYO, ELECTRO, DRILL, CONVEYOR, ARMORED_CONVEYOR,
+        TURRET, SHOTGUN, NOZZLE, CONTAINER, NODE, MECH, FLYER, BOMBER, WEAPON }
 
     /** @param size taille en pixels (côté) */
     record Spec(String folder, String name, Kind kind, int size, Color color){}
 
     private static final Color COBALT = hex("4a7cf0"), NICKEL = hex("c9c29a"), ZINC = hex("8fc3d6"), BAUXITE = hex("c4643a"),
-        ALUMINUM = hex("dde6ee"), BRASS = hex("e8b844"), ALLY = hex("ffc857"), ENEMY = hex("f0503c"), WATER = hex("4fa3ff"), HEAL = hex("6ee6a0");
+        ALUMINUM = hex("dde6ee"), BRASS = hex("e8b844"), ALLY = hex("ffc857"), ENEMY = hex("f0503c"), WATER = hex("4fa3ff"), HEAL = hex("6ee6a0"),
+        CHROME = hex("c3d2e6"), STEEL = hex("93a0b3"), INVAR = hex("aebb9c"), BRINE = hex("7fb9c9"), NITROGEN = hex("bfeaff");
 
     /** Une ligne par contenu. Nom = nom interne sans le préfixe du mod. */
     static final List<Spec> SPECS = List.of(
@@ -59,7 +61,36 @@ public final class SpriteGenerator{
         new Spec("units", "marauder", Kind.MECH, 48, ENEMY),
         new Spec("units", "wasp", Kind.FLYER, 40, ENEMY),
         new Spec("units/weapons", "warden-gun", Kind.WEAPON, 24, ALLY),
-        new Spec("units/weapons", "marauder-cannon", Kind.WEAPON, 28, ENEMY)
+        new Spec("units/weapons", "marauder-cannon", Kind.WEAPON, 28, ENEMY),
+
+        // ---- V2 ----
+        new Spec("items", "chrome", Kind.GEM, 32, CHROME),
+        new Spec("items", "steel", Kind.INGOT, 32, STEEL),
+        new Spec("items", "invar", Kind.INGOT, 32, INVAR),
+        new Spec("liquids", "brine", Kind.LIQUID, 32, BRINE),
+        new Spec("liquids", "liquid-nitrogen", Kind.LIQUID, 32, NITROGEN),
+        new Spec("blocks/environment", "ore-chrome", Kind.ORE, 32, CHROME),
+        new Spec("blocks", "steel-furnace", Kind.CRAFTER, 64, hex("ff8a3d")),
+        new Spec("blocks", "alloy-press", Kind.PRESS, 64, INVAR),
+        new Spec("blocks", "brine-mixer", Kind.TANK, 64, BRINE),
+        new Spec("blocks", "cryogenizer", Kind.CRYO, 64, NITROGEN),
+        new Spec("blocks", "brine-electrolyzer", Kind.ELECTRO, 64, BRINE),
+        new Spec("blocks", "steel-wall", Kind.WALL, 32, STEEL),
+        new Spec("blocks", "steel-wall-large", Kind.WALL, 64, STEEL),
+        new Spec("blocks", "plated-conveyor", Kind.ARMORED_CONVEYOR, 32, INVAR),
+        new Spec("blocks", "volley", Kind.SHOTGUN, 64, STEEL),
+        new Spec("blocks", "frost", Kind.NOZZLE, 64, NITROGEN),
+        new Spec("blocks", "invar-container", Kind.CONTAINER, 64, INVAR),
+        new Spec("units", "sentinel", Kind.MECH, 48, ALLY),
+        new Spec("units", "bastion", Kind.MECH, 56, ALLY),
+        new Spec("units", "relay", Kind.FLYER, 48, HEAL),
+        new Spec("units", "ravager", Kind.MECH, 52, ENEMY),
+        new Spec("units", "hornet", Kind.BOMBER, 48, ENEMY),
+        new Spec("units", "brute", Kind.MECH, 64, hex("c2362a")),
+        new Spec("units/weapons", "sentinel-gun", Kind.WEAPON, 28, ALLY),
+        new Spec("units/weapons", "bastion-mortar", Kind.WEAPON, 32, ALLY),
+        new Spec("units/weapons", "ravager-shotgun", Kind.WEAPON, 30, ENEMY),
+        new Spec("units/weapons", "brute-cannon", Kind.WEAPON, 36, ENEMY)
     );
 
     private static final Color OUTLINE = hex("23232b");
@@ -90,6 +121,21 @@ public final class SpriteGenerator{
             case GEM -> out.put(spec.name, gem(spec.size, r, spec.name.hashCode()));
             case NUGGET -> out.put(spec.name, nugget(spec.size, r));
             case INGOT -> out.put(spec.name, ingot(spec.size, r));
+            case LIQUID -> out.put(spec.name, liquid(spec.size, r));
+            case PRESS -> out.put(spec.name, press(spec.size, r));
+            case TANK -> out.put(spec.name, tank(spec.size, r, false));
+            case CRYO -> out.put(spec.name, tank(spec.size, r, true));
+            case ELECTRO -> out.put(spec.name, electrolyzer(spec.size, r));
+            case SHOTGUN -> out.put(spec.name, shotgun(spec.size, r));
+            case NOZZLE -> out.put(spec.name, nozzle(spec.size, r));
+            case CONTAINER -> out.put(spec.name, container(spec.size, r));
+            case BOMBER -> out.put(spec.name, bomber(spec.size, r));
+            case ARMORED_CONVEYOR -> {
+                for(int shape = 0; shape < 7; shape++){
+                    for(int frame = 0; frame < 4; frame++) out.put(spec.name + "-" + shape + "-" + frame, conveyor(spec.size, r, Math.min(shape, 4), frame, true));
+                }
+                out.put(spec.name, conveyor(spec.size, r, 0, 0, true));
+            }
             case ORE -> {
                 for(int v = 1; v <= 3; v++) out.put(spec.name + v, ore(spec.size, r, new Random(spec.name.hashCode() * 31L + v)));
             }
@@ -105,9 +151,9 @@ public final class SpriteGenerator{
             case CONVEYOR -> {
                 // 7 formes x 4 images d'animation, nommées comme le vanilla : name-forme-image.
                 for(int shape = 0; shape < 7; shape++){
-                    for(int frame = 0; frame < 4; frame++) out.put(spec.name + "-" + shape + "-" + frame, conveyor(spec.size, r, frame));
+                    for(int frame = 0; frame < 4; frame++) out.put(spec.name + "-" + shape + "-" + frame, conveyor(spec.size, r, Math.min(shape, 4), frame, false));
                 }
-                out.put(spec.name, conveyor(spec.size, r, 0));
+                out.put(spec.name, conveyor(spec.size, r, 0, 0, false));
             }
             case TURRET -> out.put(spec.name, turret(spec.size, r));
             case NODE -> out.put(spec.name, node(spec.size, r));
@@ -312,24 +358,68 @@ public final class SpriteGenerator{
         return c.img;
     }
 
-    /** Tapis vers la droite entre deux rails biseautés ; les chevrons avancent de 2 px par image. */
-    private static BufferedImage conveyor(int size, Color[] r, int frame){
+    /**
+     * Convoyeur vers la droite, forme selon le raccordement (géométrie du vanilla) :
+     * 0 droit (rails haut et bas), 1 virage (entrée par le haut : rails à gauche et en bas),
+     * 2 entrée latérale par le bas (rail en haut), 3 jonction (entrées des deux côtés et de l'arrière),
+     * 4 deux entrées latérales sans arrière (rail à gauche). Les chevrons avancent de 2 px par image.
+     */
+    private static BufferedImage conveyor(int size, Color[] r, int shape, int frame, boolean armored){
         Canvas c = new Canvas(size);
-        c.rect(M[0], 0, 6, size, size - 12);
-        for(int k = -1; k < 5; k++){
-            int x = k * 8 + frame * 2;
-            c.poly(r[1], x, 9, x + 3, 9, x + 7, 16, x + 3, 23, x, 23, x + 4, 16);
-            c.poly(r[3], x, 9, x + 3, 9, x + 7, 16, x + 4, 16);
+        c.rect(M[0], 0, 0, size, size);
+        Color belt = armored ? r[1] : r[1], beltLight = r[3];
+        if(shape == 1){
+            // Virage : barres radiales autour du coin haut-droit ; elles tournent du haut vers la droite.
+            double step = Math.PI / 2 / 4;
+            for(int k = -1; k < 5; k++){
+                double a = Math.PI + k * step - frame * step / 4;
+                if(a < Math.PI * 0.98 || a > Math.PI * 1.52) continue;
+                for(int rad = 11; rad <= 21; rad++){
+                    int x = size + (int)Math.round(Math.cos(a) * rad), y = (int)Math.round(-Math.sin(a) * rad);
+                    int x2 = size + (int)Math.round(Math.cos(a + 0.12) * rad), y2 = (int)Math.round(-Math.sin(a + 0.12) * rad);
+                    c.set(x, y, beltLight);
+                    c.set(x2, y2, belt);
+                    c.set(x2, y2 + 1, belt);
+                }
+            }
+        }else{
+            for(int k = -1; k < 5; k++){
+                int x = k * 8 + frame * 2;
+                c.poly(belt, x, 8, x + 3, 8, x + 7, 16, x + 3, 24, x, 24, x + 4, 16);
+                c.poly(beltLight, x, 8, x + 3, 8, x + 7, 16, x + 4, 16);
+            }
         }
-        for(int y : new int[]{1, size - 7}){
-            c.rect(M[2], 0, y, size, 6);
-            c.rect(M[4], 0, y, size, 1);
-            c.rect(M[1], 0, y + 5, size, 1);
-            for(int x = 3; x < size; x += 8) c.rect(M[0], x, y + 2, 2, 2);
+        boolean top = shape == 0 || shape == 2, bottom = shape == 0 || shape == 1, left = shape == 1 || shape == 4;
+        Color rail = armored ? r[2] : M[2], railLight = armored ? r[4] : M[4], railDark = armored ? r[0] : M[1];
+        if(top) rail(c, 0, 1, size, 6, rail, railLight, railDark, true);
+        if(bottom) rail(c, 0, size - 7, size, 6, rail, railLight, railDark, true);
+        if(left) rail(c, 1, 0, 6, size, rail, railLight, railDark, false);
+        // Coins : petits butoirs aux angles ouverts.
+        for(int[] k : new int[][]{{0, 0}, {size - 6, 0}, {0, size - 6}, {size - 6, size - 6}}){
+            boolean covered = (k[1] == 0 && top) || (k[1] != 0 && bottom) || (k[0] == 0 && left);
+            if(!covered){
+                Polygon nub = Canvas.chamfer(k[0], k[1], 6, 6, 2);
+                c.fill(nub, rail);
+                c.bevel(nub, railLight, railDark, 1);
+            }
         }
-        c.rect(OUTLINE, 0, 0, size, 1);
-        c.rect(OUTLINE, 0, size - 1, size, 1);
+        if(top) c.rect(OUTLINE, 0, 0, size, 1);
+        if(bottom) c.rect(OUTLINE, 0, size - 1, size, 1);
+        if(left) c.rect(OUTLINE, 0, 0, 1, size);
         return c.img;
+    }
+
+    private static void rail(Canvas c, int x, int y, int w, int h, Color base, Color light, Color dark, boolean horizontal){
+        c.rect(base, x, y, w, h);
+        if(horizontal){
+            c.rect(light, x, y, w, 1);
+            c.rect(dark, x, y + h - 1, w, 1);
+            for(int i = x + 3; i < x + w; i += 8) c.rect(M[0], i, y + 2, 2, 2);
+        }else{
+            c.rect(light, x, y, 1, h);
+            c.rect(dark, x + w - 1, y, 1, h);
+            for(int i = y + 3; i < y + h; i += 8) c.rect(M[0], x + 2, i, 2, 2);
+        }
     }
 
     /** Tourelle symétrique : corps facetté, plaques latérales colorées, double canon, noyau lumineux. */
@@ -379,6 +469,183 @@ public final class SpriteGenerator{
         c.octagon(r[3], m, m, 4);
         c.octagon(r[5], m - 1, m - 1, 1);
         c.outline();
+        return c.img;
+    }
+
+    /** Goutte de liquide facettée avec reflet. */
+    private static BufferedImage liquid(int size, Color[] r){
+        Canvas c = new Canvas(size);
+        int m = size / 2;
+        c.poly(r[3], m, 3, m - 9, 17, m - 10, 21, m, 21);
+        c.poly(r[1], m, 3, m, 21, m + 10, 21, m + 9, 17);
+        c.circle(r[1], m + 1, 21, 10);
+        c.circle(r[2], m, 20, 9);
+        c.circle(r[3], m - 2, 18, 6);
+        c.rect(r[5], m - 6, 15, 2, 4);
+        c.set(m - 4, 13, r[5]);
+        c.outline();
+        return c.img;
+    }
+
+    /** Presse : deux plaques-pistons colorées qui se font face, fente centrale incandescente. */
+    private static BufferedImage press(int size, Color[] r){
+        Canvas c = frame(size);
+        cornerBrackets(c, size, r);
+        int m = size / 2;
+        for(int dir : new int[]{-1, 1}){
+            int y = dir < 0 ? 12 : m + 4;
+            Polygon plate = Canvas.chamfer(13, y, size - 26, m - 16, 3);
+            c.fill(plate, r[2]);
+            c.bevel(plate, r[4], r[1], 2);
+            for(int x = 18; x < size - 18; x += 7) c.rect(r[1], x, y + 4, 4, m - 24);
+        }
+        c.rect(M[0], 12, m - 3, size - 24, 6);
+        c.rect(hex("ff8a3d"), 14, m - 1, size - 28, 2);
+        c.rect(hex("ffd9a0"), 20, m - 1, size - 40, 1);
+        c.outline();
+        return c.img;
+    }
+
+    /** Cuve ronde de liquide, conduites aux quatre côtés ; version cryo : givre et serpentin. */
+    private static BufferedImage tank(int size, Color[] r, boolean cryo){
+        Canvas c = frame(size);
+        int m = size / 2;
+        for(int[] p : new int[][]{{m - 3, 5, 6, 10}, {m - 3, size - 15, 6, 10}, {5, m - 3, 10, 6}, {size - 15, m - 3, 10, 6}}){
+            c.rect(M[3], p[0], p[1], p[2], p[3]);
+            c.rect(M[1], p[0] + 1, p[1] + 1, p[2] - 2, p[3] - 2);
+        }
+        c.circle(M[0], m, m, 19);
+        c.circle(M[3], m, m, 17);
+        c.circle(r[1], m, m, 15);
+        c.circle(r[2], m - 1, m - 1, 12);
+        c.circle(r[3], m - 4, m - 4, 6);
+        c.rect(r[5], m - 9, m - 7, 3, 2);
+        if(cryo){
+            for(int i = 0; i < 3; i++){
+                int y = m - 8 + i * 8;
+                c.rect(M[4], m - 10, y, 20, 2);
+                c.rect(M[2], m - 10, y + 2, 20, 1);
+            }
+            for(int[] f : new int[][]{{m - 13, m - 3}, {m + 11, m + 5}, {m + 6, m - 12}, {m - 6, m + 12}}){
+                c.set(f[0], f[1], Color.WHITE);
+                c.set(f[0] + 1, f[1], r[5]);
+            }
+        }else{
+            c.octagon(M[2], m, m, 3);
+            c.rect(M[4], m - 1, m - 10, 2, 20);
+        }
+        c.outline();
+        return c.img;
+    }
+
+    /** Bassin rectangulaire de saumure, deux électrodes et arcs électriques. */
+    private static BufferedImage electrolyzer(int size, Color[] r){
+        Canvas c = frame(size);
+        cornerBrackets(c, size, ramp(CHROME));
+        int m = size / 2;
+        Polygon basin = Canvas.chamfer(13, 15, size - 26, size - 30, 4);
+        c.fill(basin, M[0]);
+        Polygon fluid = Canvas.chamfer(15, 17, size - 30, size - 34, 3);
+        c.fill(fluid, r[1]);
+        c.rect(r[3], 17, 19, size - 34, 2);
+        Color[] cu = ramp(hex("d99d73")), cr = ramp(CHROME);
+        for(int[] e : new int[][]{{m - 13, 0}, {m + 8, 1}}){
+            Color[] t = e[1] == 0 ? cu : cr;
+            Polygon rod = Canvas.chamfer(e[0], 10, 6, size - 20, 2);
+            c.fill(rod, t[2]);
+            c.bevel(rod, t[4], t[0], 1);
+        }
+        Color spark = hex("bfe9ff");
+        for(int i = 0; i < 3; i++){
+            int y = m - 8 + i * 8;
+            c.line(m - 6, y, m - 2, y + 3, spark);
+            c.line(m - 2, y + 3, m + 3, y, spark);
+        }
+        c.outline();
+        return c.img;
+    }
+
+    /** Tourelle-fusil : bouche large à cinq canons, corps trapu facetté. */
+    private static BufferedImage shotgun(int size, Color[] r){
+        Canvas c = new Canvas(size);
+        int m = size / 2;
+        Polygon muzzle = Canvas.chamfer(m - 13, 3, 26, 20, 4);
+        c.fill(muzzle, M[3]);
+        c.bevel(muzzle, M[5], M[1], 2);
+        for(int i = 0; i < 5; i++) c.octagon(M[0], m - 10 + i * 5, 8, 1);
+        c.rect(r[2], m - 13, 16, 26, 3);
+        c.rect(r[4], m - 13, 16, 26, 1);
+        Polygon body = Canvas.chamfer(m - 18, 20, 36, 34, 10);
+        c.fill(body, M[2]);
+        c.bevel(body, M[4], M[1], 2);
+        c.poly(r[3], m - 18, 30, m - 10, 24, m - 10, 48, m - 18, 44);
+        c.poly(r[1], m + 18, 30, m + 10, 24, m + 10, 48, m + 18, 44);
+        c.octagon(M[0], m, 37, 7);
+        c.octagon(r[2], m, 37, 5);
+        c.octagon(r[4], m - 1, 36, 2);
+        c.outline();
+        return c.img;
+    }
+
+    /** Lance-liquide : réservoir rond sous une buse évasée. */
+    private static BufferedImage nozzle(int size, Color[] r){
+        Canvas c = new Canvas(size);
+        int m = size / 2;
+        c.poly(M[3], m - 4, 22, m - 8, 3, m + 8, 3, m + 4, 22);
+        c.poly(M[5], m - 4, 22, m - 8, 3, m - 5, 3, m - 2, 22);
+        c.rect(r[3], m - 7, 5, 14, 2);
+        Polygon body = Canvas.chamfer(m - 17, 20, 34, 34, 10);
+        c.fill(body, M[2]);
+        c.bevel(body, M[4], M[1], 2);
+        c.circle(M[0], m, 38, 11);
+        c.circle(r[1], m, 38, 9);
+        c.circle(r[2], m - 1, 37, 7);
+        c.circle(r[4], m - 3, 35, 3);
+        c.outline();
+        return c.img;
+    }
+
+    /** Caisse de stockage : panneaux renforcés de sangles en croix et coins chanfreinés. */
+    private static BufferedImage container(int size, Color[] r){
+        Canvas c = new Canvas(size);
+        Polygon body = Canvas.chamfer(0, 0, size, size, 7);
+        c.fill(body, r[2]);
+        c.bevel(body, r[4], r[0], 3);
+        Polygon lid = Canvas.chamfer(8, 8, size - 16, size - 16, 5);
+        c.fill(lid, r[1]);
+        Polygon inner = Canvas.chamfer(10, 10, size - 20, size - 20, 4);
+        c.fill(inner, r[3]);
+        c.bevel(inner, r[4], r[2], 1);
+        int m = size / 2;
+        for(int i = 0; i < 2; i++){
+            AffineTransform t = AffineTransform.getRotateInstance(i * Math.PI / 2, m, m);
+            c.poly(t, M[2], 10, m - 3, size - 10, m - 3, size - 10, m + 3, 10, m + 3);
+            c.poly(t, M[4], 10, m - 3, size - 10, m - 3, size - 10, m - 2, 10, m - 2);
+        }
+        c.octagon(M[0], m, m, 5);
+        c.octagon(M[3], m, m, 3);
+        c.outline();
+        return c.img;
+    }
+
+    /** Bombardier : ailes larges en flèche, soute centrale et deux réacteurs. */
+    private static BufferedImage bomber(int size, Color[] r){
+        Canvas c = new Canvas(size);
+        int m = size / 2;
+        c.poly(r[3], m, 8, m - 22, m + 6, m - 20, m + 12, m - 6, m + 8, m, m + 6);
+        c.poly(r[1], m, 8, m, m + 6, m + 6, m + 8, m + 20, m + 12, m + 22, m + 6);
+        c.poly(r[4], m - 22, m + 6, m - 20, m + 12, m - 18, m + 8);
+        Polygon hull = Canvas.chamfer(m - 6, 4, 12, size - 10, 4);
+        c.fill(hull, M[2]);
+        c.bevel(hull, M[4], M[0], 1);
+        c.rect(M[0], m - 3, m - 2, 6, 10);
+        c.rect(r[2], m - 2, m - 1, 4, 2);
+        c.rect(r[2], m - 2, m + 4, 4, 2);
+        for(int dir : new int[]{-1, 1}){
+            c.octagon(M[0], m + dir * 12, m + 12, 3);
+            c.octagon(r[4], m + dir * 12, m + 12, 1);
+        }
+        c.octagon(r[4], m, 9, 2);
         return c.img;
     }
 

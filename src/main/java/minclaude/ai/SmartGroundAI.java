@@ -32,6 +32,9 @@ public class SmartGroundAI extends GroundAI{
 
     @Override
     public void updateMovement(){
+        // Tactiques de groupe d'abord : regroupement, flanquement et retraite passent avant la cible individuelle.
+        if(followSquadOrder()) return;
+
         TargetScorer.Profile p = SmartAI.profile();
         if(!p.enabled() || giveUpTimer > 0f){
             giveUpTimer -= Time.delta;
@@ -57,6 +60,25 @@ public class SmartGroundAI extends GroundAI{
             trackStuck();
         }
         faceTarget();
+    }
+
+    /** @return vrai si un ordre d'escouade a piloté le déplacement ce tick */
+    private boolean followSquadOrder(){
+        if(giveUpTimer > 0f) return false;
+        var order = minclaude.MinClaudeMod.squads.order(unit);
+        if(order.type() == minclaude.logic.SquadPlanner.OrderType.NONE) return false;
+        float wx = order.x() * tilesize, wy = order.y() * tilesize;
+        float arrive = order.type() == minclaude.logic.SquadPlanner.OrderType.GATHER ? tilesize * 2f : tilesize * 1.5f;
+        if(unit.within(wx, wy, arrive)){
+            // Flanc atteint : on reprend l'assaut normal. Regroupement / retraite : on attend sur place.
+            if(order.type() == minclaude.logic.SquadPlanner.OrderType.FLANK) return false;
+            faceTarget();
+            return true;
+        }
+        moveTo(new arc.math.geom.Vec2(wx, wy), arrive * 0.8f);
+        trackStuck();
+        faceTarget();
+        return true;
     }
 
     /** Un déplacement en ligne droite peut buter sur un mur : on abandonne la cible quelque temps. */

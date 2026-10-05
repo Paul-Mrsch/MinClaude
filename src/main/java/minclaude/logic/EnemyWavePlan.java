@@ -32,7 +32,11 @@ public final class EnemyWavePlan{
         int max = 4 + d * 2;
         return List.of(
             new Group("marauder", 12 + shift, 3, 1, scaling, max),
-            new Group("wasp", 16 + shift, 4, 1, scaling, max)
+            new Group("wasp", 16 + shift, 4, 1, scaling, max),
+            new Group("ravager", 22 + shift, 4, 1, scaling * 1.5f, max / 2),
+            new Group("hornet", 26 + shift, 5, 1, scaling * 1.5f, max / 2),
+            // Mini-boss : rare et plafonné bas.
+            new Group("brute", 35 + shift, 10, 1, scaling * 4f, Math.max(1, d - 1))
         );
     }
 }

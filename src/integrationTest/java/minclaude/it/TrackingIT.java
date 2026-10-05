@@ -92,6 +92,7 @@ class TrackingIT{
         float[] expected = before.view(ResourceStats.stockKey(Items.lead.name), TimeRange.TEN_MINUTES).values();
         assertEquals(10, before.elapsedSeconds());
 
+        tracker.goals().set(Items.lead.name, 2000);
         Fi file = new Fi(System.getProperty("java.io.tmpdir")).child("minclaude-it.msav");
         SaveIO.save(file);
         logic.reset();
@@ -102,6 +103,7 @@ class TrackingIT{
         assertEquals(10, after.elapsedSeconds(), "l'historique doit être relu après WorldLoadEvent");
         assertArrayEquals(expected, after.view(ResourceStats.stockKey(Items.lead.name), TimeRange.TEN_MINUTES).values());
         assertTrue(tracker.isTracked(Items.lead));
+        assertEquals(2000, tracker.goals().get(Items.lead.name), "objectif de stock restauré");
     }
 
     @Test

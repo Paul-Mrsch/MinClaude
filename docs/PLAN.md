@@ -47,18 +47,19 @@ Légende : ✅ fait · 🔄 en cours · ⬜ à faire
 | A1.10 | IA : ciblage intelligent | `TargetScorer` + `SmartGroundAI` sur toutes les unités terrestres ennemies | `WorldLogicTest`, `WorldIT` | ✅ |
 | A1.11 | Sprites V2 | Minerais, lingots, convoyeur animé, foreuse, tourelle, nœud, méchas, volants, armes ; planche de relecture | `AssetsTest`, `ContentIT` | ✅ |
 
-## V2 — Expansion (10 éléments par catégorie)
+## V2 — Expansion ✅
 
-| # | Artefact | Contenu |
-|---|---|---|
-| A2.1 | Ressources, lot 2 | Chrome, acier, invar, liquides (saumure, azote liquide) |
-| A2.2 | Industries, lot 2 | Électrolyseur, cryogénisateur, aciérie, presse à alliage, raffinerie chimique |
-| A2.3 | Bâtiments, lot 2 | Convoyeur blindé, routeur filtrant, murs avancés, 2 tourelles, stockage |
-| A2.4 | Unités alliées, lot 2 | Arbre d'évolution d'unités (T1 → T3) dans une usine dédiée |
-| A2.5 | Ennemis, lot 2 | Ennemis aériens et blindés |
-| A2.6 | IA : tactiques de groupe | Formations, flanquement, attaques coordonnées, retraite si affaiblis |
-| A2.7 | Difficulté réglable active | Les options « Difficulté » et « IA avancée » modulent PV, dégâts, vagues et IA |
-| A2.8 | Prévisions avancées | Objectifs de stock, projection de la production à partir des usines construites |
+| # | Artefact | Contenu livré | Tests | Statut |
+|---|---|---|---|---|
+| A2.1 | Ressources, lot 2 | Chrome (minerai + électrolyse), acier, invar ; liquides saumure et azote liquide | `ContentIT` | ✅ |
+| A2.2 | Industries, lot 2 | Four à acier, presse à alliage, mélangeur de saumure, cryogénisateur, électrolyseur de saumure | `ContentIT` (recettes) | ✅ |
+| A2.3 | Bâtiments, lot 2 | Murs en acier (2, absorbent les lasers), convoyeur blindé, Salve (fusil), Givre (lance-liquide gelant), conteneur en invar | `ContentIT` | ✅ |
+| A2.4 | Unités alliées, lot 2 | Lignée Gardien → Sentinelle → Bastion, Secours → Relais, dans les reconstructeurs vanilla | `ContentIT` | ✅ |
+| A2.5 | Ennemis, lot 2 | Ravageur (blindé), Frelon (bombardier), Brute (mini-boss) | `WorldIT`, `V2LogicTest` | ✅ |
+| A2.6 | IA : tactiques de groupe | Escouades : regroupement, flanquement, retraite des unités abîmées (`SquadPlanner`, `SquadManager`) ; IA intelligente des volants | `V2LogicTest`, `SquadIT`, `ContentIT` | ✅ |
+| A2.7 | Difficulté active partout | PV et dégâts de l'équipe des vagues selon la difficulté (`DifficultyProfile`), en plus de l'IA et des vagues | `V2LogicTest`, `WorldIT` | ✅ |
+| A2.8 | Prévisions avancées | Objectifs de stock (progression, échéance, alerte, sauvegardés) ; capacité installée et demande installée par ressource (`ProductionModel`) | `V2LogicTest`, `BaseIT`, `TrackingIT` | ✅ |
+| A2.9 | Convoyeurs | Les 5 formes vanilla (droit, virage, entrée latérale, jonction, double entrée) pour les deux convoyeurs | `ContentIT` (régions), capture `13b-base-demo-v2` | ✅ |
 
 ## V3 — Contenu complet (15 éléments ou plus par catégorie)
 
@@ -70,6 +71,8 @@ Légende : ✅ fait · 🔄 en cours · ⬜ à faire
 | A3.4 | Unités alliées, lot 3 | Au moins 15 au total, dont des unités navales |
 | A3.5 | Ennemis, lot 3 | Au moins 15 au total, dont des boss |
 | A3.6 | IA : adaptation | La composition des vagues s'adapte aux défenses du joueur (anti-aérien faible → plus d'aérien, etc.) |
+| A3.7 | Mesure exacte des flux | Intercepter les transferts vers le noyau pour remplacer l'estimation des entrées/sorties |
+| A3.8 | Performance | Coût par tick du tracker, du scanner et des escouades sur une grosse base ; test « partie longue » (1 h simulée) |
 
 ## V4 — Version 1.0
 

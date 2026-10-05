@@ -1,18 +1,20 @@
 # MinClaude — État du projet
 
-_Mis à jour le 2026-10-05 · version du mod **0.2.0** (V1)_
+_Mis à jour le 2026-10-05 · version du mod **0.3.0** (V2)_
 
 ## Résumé
 
-La **V1 est terminée** sur la branche `v1`.
+La **V2 est terminée** sur la branche `dev`.
 
-- Le dashboard a ses 4 onglets : Ressources, Énergie, Industries (avec les goulots d'étranglement), Défense.
-- Un premier lot de contenu s'intègre à Serpulo : 6 ressources dont 4 minerais générés dans les nouvelles parties, 5 industries, 7 bâtiments, 2 unités alliées et 2 ennemis ajoutés aux vagues.
-- L'IA ennemie a un ciblage intelligent, réglé par la difficulté.
+- **Contenu** : il passe à environ 10 éléments par catégorie, avec l'acier, l'invar, le chrome, deux liquides, la lignée d'unités T1 → T3 et trois nouveaux ennemis, dont un mini-boss.
+- **IA ennemie** : elle a maintenant des tactiques de groupe (regroupement, flanquement, retraite), et les volants ont aussi un ciblage intelligent.
+- **Difficulté** : elle règle aussi les PV et les dégâts des ennemis.
+- **Dashboard** : il affiche les objectifs de stock et la capacité de production installée.
+- **Convoyeurs** : ils ont leurs vraies formes de virage et de jonction.
 
-Tous les tests passent : 52 unitaires, 21 d'intégration headless (2 relances sans échec instable) et l'autotest dans le vrai client (23 captures relues, rapport OK).
+Tous les tests passent : 62 unitaires, 27 d'intégration headless, et l'autotest dans le vrai client (rapport OK, captures relues).
 
-La V0 (`v0.1.0`) est sur `main`, poussée sur GitHub.
+Versions publiées : `v0.1.0` (V0) et `v0.2.0` (V1) sur `main`.
 
 ## Versions et environnement
 
@@ -24,91 +26,77 @@ La V0 (`v0.1.0`) est sur `main`, poussée sur GitHub.
 | Gradle | 9.8.0 via le wrapper |
 | Tests | JUnit 5.13 |
 | Plateforme | PC (macOS testé). Pas de build Android, pas de multijoueur |
-| Dépôt | [github.com/Paul-Mrsch/MinClaude](https://github.com/Paul-Mrsch/MinClaude) (privé) |
+| Dépôt | [github.com/Paul-Mrsch/MinClaude](https://github.com/Paul-Mrsch/MinClaude) (privé) : `main` = versions publiées, `dev` = développement |
 
 ## Avancement
 
 Le plan détaillé est dans [docs/PLAN.md](docs/PLAN.md).
 
-### V0 — MVP (terminé, tag `v0.1.0`)
+| Version | Contenu | État |
+|---|---|---|
+| V0 (`v0.1.0`) | MVP : suivi des ressources dans le temps, mini-panneau, dashboard, alertes, sauvegarde | ✅ publié |
+| V1 (`v0.2.0`) | Dashboard complet, contenu lot 1, IA ciblage, refonte graphique | ✅ publié |
+| V2 (`0.3.0`) | Contenu lot 2, tactiques de groupe, difficulté complète, objectifs, capacité installée, formes de convoyeur | ✅ sur `dev` |
+| V3 | Contenu complet (≥ 15 par catégorie), adaptation de l'IA, mesure exacte des flux, performance | ⬜ |
+| V4 | Équilibrage, polissage, version 1.0 | ⬜ |
 
-Suivi des ressources dans le temps, mini-panneau, dashboard (Ressources), alertes, persistance dans la sauvegarde, options, raccourci `K`, contenu pilote, générateur de sprites, autotest en jeu.
+### V2 — détail
 
-### V1 — Dashboard complet et premier lot de contenu (terminé)
-
-| # | Artefact | État | Vérification |
-|---|---|---|---|
-| A1.1 | Onglet Énergie | ✅ | `BaseLogicTest`, `BaseIT` (panneau solaire), capture `12-onglet-power` |
-| A1.2 | Onglet Industries | ✅ | `IndustryTest`, `BaseIT` (usine sans entrée, puis approvisionnée ; usine sans énergie), capture `12-onglet-industry` |
-| A1.3 | Onglet Défense | ✅ | `BaseLogicTest`, `BaseIT` (duo sans munitions, dagger, vague), capture `12-onglet-defense` |
-| A1.4 | Goulots d'étranglement + alertes | ✅ | `IndustryTest`, `BaseIT` ; alertes « usines arrêtées », « manque d'énergie », « tourelles sans munitions » |
-| A1.5 | Ressources, lot 1 | ✅ | `ContentIT`, `WorldIT` (gisements générés une seule fois, de façon déterministe, désactivables) |
-| A1.6 | Industries, lot 1 | ✅ | `ContentIT` (recettes) |
-| A1.7 | Bâtiments, lot 1 | ✅ | `ContentIT`, capture `13-base-demo` |
-| A1.8 | Unités alliées, lot 1 | ✅ | `ContentIT` (usines vanilla), capture `16-fiche-gardien` |
-| A1.9 | Ennemis, lot 1 | ✅ | `WorldIT` (ajout aux vagues, désactivable), capture `17-fiche-maraudeur` |
-| A1.10 | IA : ciblage intelligent | ✅ | `WorldLogicTest` (score), `WorldIT` (générateur préféré au mur ; Facile = vanilla) |
-| A1.11 | Sprites V2 | ✅ | `AssetsTest`, `ContentIT` (toutes les régions requises), planche [docs/images/sprites.png](docs/images/sprites.png) |
+| # | Artefact | Vérification |
+|---|---|---|
+| A2.1 | Ressources : chrome, acier, invar, saumure, azote liquide | `ContentIT`, fiche `21-fiche-azote` |
+| A2.2 | Industries : four à acier, presse à alliage, mélangeur de saumure, cryogénisateur, électrolyseur | `ContentIT` (recettes), capture `13b-base-demo-v2` |
+| A2.3 | Bâtiments : murs en acier, convoyeur blindé, Salve, Givre, conteneur en invar | `ContentIT`, fiche `19-fiche-salve` |
+| A2.4 | Alliés : Sentinelle, Bastion, Relais (reconstructeurs vanilla) | `ContentIT`, fiche `20-fiche-bastion` |
+| A2.5 | Ennemis : Ravageur, Frelon, Brute | `WorldIT`, `V2LogicTest` |
+| A2.6 | Tactiques de groupe + IA des volants | `V2LogicTest`, `SquadIT` (ordres sur de vraies unités, déplacement vers le ralliement), `ContentIT` |
+| A2.7 | Difficulté : PV et dégâts des ennemis | `V2LogicTest`, `WorldIT` (Brutal : PV ×1,7 et dégâts ×1,35 pour les vagues seulement) |
+| A2.8 | Objectifs de stock, capacité installée | `V2LogicTest`, `BaseIT`, `TrackingIT` (objectif conservé après sauvegarde et chargement), capture `12b-ressources-objectif` |
+| A2.9 | Formes de convoyeur | `ContentIT`, capture `13b-base-demo-v2` |
 
 ## Contenu actuel
 
 | Catégorie | Objectif V3 | Actuel | Éléments |
 |---|---|---|---|
-| Ressources | ≥ 15 | 6 | cobalt, nickel, zinc, bauxite, aluminium, laiton |
-| Minerais (génération) | — | 4 | cobalt, nickel, zinc, bauxite |
-| Industries | ≥ 15 | 5 | fonderie de cobalt, fonderie d'aluminium, fonderie de laiton, laveur de minerai, foreuse à percussion |
-| Bâtiments | ≥ 15 | 7 | murs cobalt (2), murs nickel (2), convoyeur renforcé, riveteuse (tourelle), nœud en aluminium |
-| Unités alliées | ≥ 15 | 2 | gardien (mécha), secours (drone de soin) |
-| Ennemis | ≥ 15 | 2 | maraudeur (mécha blindé), guêpe (volant, vise les générateurs) |
-| IA ennemie | 3 axes | 1 | ciblage intelligent (unités terrestres) |
-| Dashboard | 4 onglets | 4 | Ressources, Énergie, Industries, Défense |
+| Ressources | ≥ 15 | 11 | cobalt, nickel, zinc, bauxite, aluminium, laiton, chrome, acier, invar + liquides saumure, azote liquide |
+| Minerais (génération) | — | 5 | cobalt, nickel, zinc, bauxite, chrome |
+| Industries | ≥ 15 | 10 | fonderies de cobalt, d'aluminium et de laiton, laveur, foreuse à percussion, four à acier, presse à alliage, mélangeur de saumure, cryogénisateur, électrolyseur |
+| Bâtiments | ≥ 15 | 13 | murs cobalt (2), nickel (2) et acier (2), convoyeurs renforcé et blindé, Riveteuse, Salve, Givre, nœud en aluminium, conteneur en invar |
+| Unités alliées | ≥ 15 | 5 | Gardien → Sentinelle → Bastion, Secours → Relais |
+| Ennemis | ≥ 15 | 5 | Maraudeur, Guêpe, Ravageur, Frelon, Brute |
+| IA ennemie | 3 axes | 2 | ciblage intelligent (sol et air), tactiques de groupe |
+| Dashboard | 4 onglets | 4 | + objectifs de stock et capacité installée (Ressources) |
 
 ## Tests
 
 | Suite | Commande | Tests | Résultat |
 |---|---|---|---|
-| Unitaires (logique pure + fichiers du mod) | `./gradlew test` | 52 | ✅ 52/52 |
-| Intégration headless (vrai jeu v160.5) | `./gradlew integrationTest` | 21 | ✅ 21/21, stable sur 3 passages |
-| Autotest en jeu (client réel 160.4, rendu, UI) | `./gradlew selfTest` | 23 captures + vérifications | ✅ OK |
+| Unitaires (logique pure + fichiers du mod) | `./gradlew test` | 62 | ✅ 62/62 |
+| Intégration headless (vrai jeu v160.5) | `./gradlew integrationTest` | 27 | ✅ 27/27 |
+| Autotest en jeu (client réel 160.4, rendu, UI) | `./gradlew selfTest` | ~30 captures + vérifications | ✅ OK |
 
-Ce qui est protégé contre les régressions, en plus de la V0 :
+Ce que la V2 ajoute contre les régressions :
 
-- **logique** : classement des usines (sans entrée, sans énergie, sortie pleine, désactivée), agrégation par type, goulots ; énergie comptée une fois par réseau ; défense ; score de cible de l'IA ; répartition des minerais (déterministe, couverture raisonnable, éligibilité) ; plan des vagues selon la difficulté ; alertes génériques ;
-- **jeu réel** : usine privée d'entrée signalée puis active une fois approvisionnée ; usine sans énergie ; énergie historisée ; tourelle sans munitions ; unités ; vague ; gisements ajoutés une seule fois, jamais sous un bloc ni sur un liquide, identiques sur la même carte, désactivables ; ennemis ajoutés aux vagues, désactivables ; IA : générateur préféré au mur le plus proche, comportement vanilla en Facile ;
-- **contenu** : enregistré, tech tree (sauf minerais et ennemis), alliés dans les usines vanilla et ennemis dans aucune, IA installée sur les unités terrestres seulement, **toutes les régions de sprites requises par le jeu** (variantes de minerai, 28 images du convoyeur, rotor de foreuse, jambes de mécha, armes), traductions FR et EN avec descriptions ;
-- **interface (autotest)** : 4 onglets affichés, base de démonstration relevée (usines, goulot bauxite, énergie, tourelle à sec, unités du mod, foreuse hors gisement), minerais présents sur la carte.
+- **logique** : escouades (regroupement borné dans le temps, ailes de chaque côté et en avant, retraite temporaire, escouades distinctes, désactivé en Facile), difficulté, modèle de production (capacité, rendement), objectifs (une alerte, réarmement sous 90 %, aller-retour du format, rejet des données corrompues), plan des vagues V2 ;
+- **jeu réel** : ordres d'escouade calculés pour de vraies unités ennemies et suivis par l'IA ; multiplicateurs de difficulté appliqués aux vagues seulement ; capacité installée d'une fonderie ; objectif restauré après sauvegarde ; lignée d'unités dans les reconstructeurs ; IA installée sur les volants armés mais pas sur les mineurs ni les constructeurs ;
+- **démarrage du jeu** : un conflit de nom avec le contenu vanilla fait échouer tous les tests d'intégration. C'est arrivé deux fois en V2 (`nitrogen` et `electrolyzer` existent déjà dans Erekir), et c'est corrigé.
 
-## Recette de l'interface V1 (2026-10-05)
+## Recette V2 (2026-10-05)
 
-L'autotest construit une base de démonstration près du noyau : chaque bâtiment du mod dans un état différent, avec les 4 unités du mod. Il capture ensuite les 3 nouveaux onglets, la base, les minerais et les fiches. Défauts trouvés et corrigés :
-
-| Défaut | Correction |
-|---|---|
-| Une courbe plus courte que la plage s'arrêtait aux 3/4 de la largeur | Calcul de position corrigé dans `LineGraph` : le dernier point tombe sur le bord droit |
-| Foreuse posée hors gisement classée « Sortie pleine » | Foreuse sans minerai sous elle = « Sans entrée » (vérifié par l'autotest) |
-| Textes des goulots coupés, pluriels maladroits (« 1 usines ») | Retour à la ligne ; formulations « Bloque 1 usine(s) », « Usines : 4, dont arrêtées : 4 » |
-| Colonne des débits du mini-panneau qui débordait (« -53.7/min ») | Débits arrondis à l'unité dès 10/min (test unitaire), colonne élargie |
-| Onglet Défense centré verticalement, unités apparues pendant la pause non comptées | Alignement en haut ; scénario corrigé (unités créées avant le relevé) |
-
-## Refonte graphique (2026-10-05)
-
-À la demande du joueur, tous les sprites ont été redessinés dans un style moderne, inspiré d'Exogenesis sans reprendre ses images :
-
-- aplats facettés avec rampes de 6 tons à décalage de teinte, angles coupés à 45°, biseaux ;
-- métal gris-bleu, bandes de couleur vive, motifs symétriques ;
-- cristaux et pépites à facettes, lingots en perspective.
-
-Le résultat a été vérifié sur la planche des sprites et dans le jeu (capture `13-base-demo`). Tous les tests passent.
+- Sprites V2 relus sur une planche agrandie : la goutte de liquide et le virage du convoyeur ont été retouchés.
+- **Conflits de nom avec Erekir** : les noms internes ont été renommés en `liquid-nitrogen` et `brine-electrolyzer`. En jeu, le préfixe `minclaude-` évitait déjà le conflit, mais pas en test.
+- **Escouades vides en jeu** : la liste des unités d'une équipe n'est mise à jour qu'à la frame suivante. Le gestionnaire parcourt maintenant toutes les unités du jeu.
+- **IA volante installée sur le mono (mineur)** : l'installation est réservée aux unités armées et exclut mineurs et constructeurs.
+- **Autotest** : la base de démonstration a une deuxième partie avec tout le contenu V2, des convoyeurs en virage et en jonction, et les 6 nouvelles unités. L'autotest capture aussi l'onglet Ressources avec un objectif et 3 nouvelles fiches.
 
 ## Limitations connues
 
-- **Entrées et sorties estimées** : elles sont déduites des variations du stock, donc une entrée et une sortie dans le même tick se compensent. Le stock et la tendance sont exacts.
-- **IA intelligente** : seulement pour les unités terrestres. Les volants gardent l'IA vanilla ; la guêpe vise déjà les générateurs grâce à `targetFlags`. Les tactiques de groupe et l'adaptation sont prévues en V2 et V3.
-- **Minerais** : ajoutés seulement aux nouvelles parties, pas aux sauvegardes existantes. Ils ne remplacent jamais un minerai vanilla et ne se posent ni sous un bloc ni sur un liquide.
-- **Ennemis** : ajoutés aux vagues des nouvelles parties qui ont des vagues. Ils arrivent à partir de la vague 13 (maraudeur) et 17 (guêpe) en Normal (index 12 et 16 des règles de vague), et 4 vagues plus tôt par cran de difficulté.
-- **Sprites** : générés par script. Les 7 formes du convoyeur utilisent le même dessin droit, donc les virages paraissent droits (tâche dans ToDo).
+- **Entrées et sorties estimées** : elles sont déduites des variations du stock. La mesure exacte est prévue en A3.7.
+- **Tactiques de groupe** : déplacements en ligne droite vers les points de ralliement et de flanc. Une unité bloquée par un mur abandonne l'ordre quelques secondes. Les vagues de moins de 3 à 5 unités (selon la difficulté) attendent jusqu'à 10 à 20 s au point d'apparition avant d'attaquer.
+- **Difficulté** : les PV et dégâts sont appliqués au début d'une nouvelle partie et enregistrés avec ses règles. Changer l'option en cours de partie ne modifie que l'IA.
+- **Capacité installée** : calculée pour les `GenericCrafter`, séparateurs et foreuses. Le laveur de minerai produit au hasard : sa capacité par ressource est une moyenne.
+- **Minerais, ennemis et difficulté** : appliqués seulement aux nouvelles parties.
 - **Équilibrage** : les valeurs sont proches du vanilla mais n'ont pas encore été jouées longuement (A4.1).
-- Les autres mods installés (Exogenesis, New Horizon) produisent leurs propres avertissements dans le journal. Ils sont sans rapport avec MinClaude.
 
 ## Fichiers clés
 

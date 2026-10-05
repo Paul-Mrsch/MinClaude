@@ -142,6 +142,7 @@ public final class SelfTest{
             check("énergie relevée", base.power().networks() > 0);
             check("tourelle sans munitions relevée", base.defense().turretsNoAmmo() > 0);
             check("unités alliées du mod relevées", base.defense().units().stream().anyMatch(e -> e.getKey().equals(MCUnits.warden.name)));
+            check("capacité installée relevée (fonderie de laiton)", base.production().flow(MCItems.brass.name) != null);
             check("foreuse hors gisement = sans entrée", base.industry().block(MCBlocks.percussionDrill.name) != null
                 && base.industry().block(MCBlocks.percussionDrill.name).count(minclaude.logic.IndustryStatus.NO_INPUT) == 1);
         });
@@ -153,11 +154,19 @@ public final class SelfTest{
             });
             step(1.5f, "onglet-" + tab + "-capture", () -> shot("12-onglet-" + tab));
         }
+        step(0.5f, "objectif", () -> {
+            MinClaudeMod.tracker.goals().set(Items.lead.name, 3000);
+            MinClaudeMod.dashboard.select(Items.lead);
+            check("objectif enregistré", MinClaudeMod.tracker.goals().get(Items.lead.name) == 3000);
+        });
+        step(1.5f, "objectif-capture", () -> shot("12b-ressources-objectif"));
         step(0.5f, "monde-base", () -> {
             MinClaudeMod.toggleDashboard();
             lookAt(demoX * tilesize, demoY * tilesize + 2 * tilesize);
         });
         step(2f, "monde-base-capture", () -> shot("13-base-demo"));
+        step(0.5f, "monde-base-v2", () -> lookAt(demoX * tilesize, (demoY + 7) * tilesize));
+        step(2f, "monde-base-v2-capture", () -> shot("13b-base-demo-v2"));
         step(0.5f, "monde-minerais", () -> {
             var ore = nearestModOre();
             check("minerais du mod présents sur la carte", ore != null);
@@ -176,6 +185,21 @@ public final class SelfTest{
             ui.content.show(MCUnits.marauder);
         });
         step(1.5f, "fiche-maraudeur-capture", () -> shot("17-fiche-maraudeur"));
+        step(0.5f, "fiche-salve", () -> {
+            ui.content.hide();
+            ui.content.show(MCBlocks.volley);
+        });
+        step(1.5f, "fiche-salve-capture", () -> shot("19-fiche-salve"));
+        step(0.5f, "fiche-bastion", () -> {
+            ui.content.hide();
+            ui.content.show(MCUnits.bastion);
+        });
+        step(1.5f, "fiche-bastion-capture", () -> shot("20-fiche-bastion"));
+        step(0.5f, "fiche-azote", () -> {
+            ui.content.hide();
+            ui.content.show(MCLiquids.nitrogen);
+        });
+        step(1.5f, "fiche-azote-capture", () -> shot("21-fiche-azote"));
         step(0.5f, "options-v1", () -> {
             ui.content.hide();
             ui.settings.show();
@@ -224,7 +248,7 @@ public final class SelfTest{
         mindustry.world.Tile spot = null;
         for(int r = 6; r < 50 && spot == null; r++){
             for(int dx = -r; dx <= r && spot == null; dx += 2){
-                if(free(core.tile.x + dx, core.tile.y + r, 18, 7)) spot = world.tile(core.tile.x + dx, core.tile.y + r);
+                if(free(core.tile.x + dx, core.tile.y + r, 18, 12)) spot = world.tile(core.tile.x + dx, core.tile.y + r);
             }
         }
         check("zone libre pour la base de démo", spot != null);
@@ -252,6 +276,29 @@ public final class SelfTest{
         put(MCBlocks.cobaltWallLarge, x + 5, y + 4, team);
         for(int i = 0; i < 6; i++) put(MCBlocks.reinforcedConveyor, x + 7 + i, y + 4, team);
         put(MCBlocks.aluminumNode, x + 14, y + 4, team);
+
+        // V2, ligne 3 : industries et défense
+        put(MCBlocks.steelFurnace, x + 1, y + 7, team);
+        put(MCBlocks.alloyPress, x + 4, y + 7, team);
+        put(MCBlocks.brineMixer, x + 7, y + 7, team);
+        put(MCBlocks.cryogenizer, x + 10, y + 7, team);
+        put(MCBlocks.electrolyzer, x + 13, y + 7, team);
+        put(MCBlocks.volley, x + 16, y + 7, team);
+        // V2, ligne 4 : murs, conteneur, tourelle Givre, convoyeur blindé avec virage et jonction
+        put(MCBlocks.steelWall, x, y + 10, team);
+        put(MCBlocks.steelWallLarge, x + 2, y + 10, team);
+        put(MCBlocks.invarContainer, x + 5, y + 10, team);
+        put(MCBlocks.frost, x + 8, y + 10, team);
+        for(int i = 0; i < 4; i++) putRotated(MCBlocks.platedConveyor, x + 10 + i, y + 10, 0, team);
+        putRotated(MCBlocks.platedConveyor, x + 14, y + 10, 1, team);  // virage vers le haut
+        putRotated(MCBlocks.platedConveyor, x + 14, y + 11, 1, team);
+        putRotated(MCBlocks.reinforcedConveyor, x + 12, y + 9, 1, team); // entrée latérale par le bas
+        putRotated(MCBlocks.reinforcedConveyor, x + 12, y + 11, 3, team); // entrée latérale par le haut
+    }
+
+    private static void putRotated(mindustry.world.Block block, int x, int y, int rotation, mindustry.game.Team team){
+        var t = world.tile(x, y);
+        if(t != null) t.setNet(block, team, rotation);
     }
 
     private void spawnDemoUnits(){
@@ -260,6 +307,13 @@ public final class SelfTest{
         MCUnits.aid.spawn(state.rules.defaultTeam, wx - 8f, wy + 8f);
         MCUnits.marauder.spawn(state.rules.waveTeam, wx + 16f, wy);
         MCUnits.wasp.spawn(state.rules.waveTeam, wx + 32f, wy + 8f);
+        float vy = wy + 7 * tilesize;
+        MCUnits.sentinel.spawn(state.rules.defaultTeam, wx - 40f, vy);
+        MCUnits.bastion.spawn(state.rules.defaultTeam, wx - 16f, vy);
+        MCUnits.relay.spawn(state.rules.defaultTeam, wx + 4f, vy + 10f);
+        MCUnits.ravager.spawn(state.rules.waveTeam, wx + 30f, vy);
+        MCUnits.hornet.spawn(state.rules.waveTeam, wx + 52f, vy + 10f);
+        MCUnits.brute.spawn(state.rules.waveTeam, wx + 80f, vy);
     }
 
     private static boolean free(int x, int y, int w, int h){

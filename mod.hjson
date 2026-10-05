@@ -10,7 +10,7 @@ main: "minclaude.MinClaudeMod"
 
 description: "Gestion des ressources dans le temps (graphiques, débits, prévisions, alertes), dashboard, et nouveau contenu pour Serpulo."
 
-version: "0.2.0"
+version: "0.3.0"
 
 #build minimale du jeu
 minGameVersion: 160.4

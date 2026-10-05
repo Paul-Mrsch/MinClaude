@@ -25,15 +25,22 @@ src/main/java/minclaude/
 │   ├── DefenseReport        tourelles, unités, prochaine vague
 │   ├── TargetScorer         note des cibles de l'IA ennemie + profil par difficulté
 │   ├── OreScatter           répartition déterministe des gisements (bruit de valeur)
-│   └── EnemyWavePlan        vagues des ennemis du mod selon la difficulté
+│   ├── EnemyWavePlan        vagues des ennemis du mod selon la difficulté
+│   ├── DifficultyProfile    PV / dégâts de l'équipe des vagues selon la difficulté
+│   ├── SquadPlanner         escouades : regroupement, flanquement, retraite
+│   ├── ProductionModel      capacité installée / demande installée par ressource
+│   └── StockGoals           objectifs de stock du joueur (+ format de sauvegarde)
 ├── tracking/                Liaison avec le jeu
 │   ├── ResourceTracker      observe le noyau, alimente l'historique, orchestre scanner et alertes
 │   ├── BaseScanner          relevé de la base chaque seconde (énergie historisée, usines, défense, vague)
-│   └── HistoryChunk         chunk de sauvegarde « minclaude-history »
+│   ├── HistoryChunk         chunk de sauvegarde « minclaude-history »
+│   └── GoalsChunk           chunk de sauvegarde « minclaude-goals »
 ├── debug/SelfTest.java      autotest de l'UI dans le vrai client (actif seulement avec MINCLAUDE_SELFTEST)
 ├── ai/                      IA ennemie
-│   ├── SmartGroundAI        GroundAI + ciblage intelligent (repli vanilla si désactivée ou bloquée)
-│   └── SmartAI              installation sur les unités terrestres, profil lu dans les options
+│   ├── SmartGroundAI        GroundAI + ordres d'escouade + ciblage intelligent (repli vanilla si désactivée ou bloquée)
+│   ├── SmartFlyingAI        FlyingAI + ciblage intelligent (les targetFlags de l'unité restent prioritaires)
+│   ├── SquadManager         ordres d'escouade recalculés chaque seconde pour les unités des vagues
+│   └── SmartAI              installation sur les unités armées (hors navals, mineurs, constructeurs)
 ├── world/WorldSetup.java    nouvelle partie : gisements + vagues ennemies (une seule fois, marqueur dans les règles)
 ├── ui/                      Interface (Arc scene2d)
 │   ├── LineGraph            graphique en courbes (couleurs rendues lisibles)
@@ -41,7 +48,7 @@ src/main/java/minclaude/
 │   ├── DashboardDialog      dashboard plein écran, gère les onglets
 │   └── tabs/                DashboardTab (base), ResourcesTab, PowerTab, IndustryTab, DefenseTab
 └── content/                 Contenu du jeu
-    ├── MCItems, MCBlocks, MCUnits  déclarations (listes `all`, `ores`, `allies`, `enemies` utilisées par les tests)
+    ├── MCItems, MCLiquids, MCBlocks, MCUnits  déclarations (listes `all`, `ores`, `allies`, `enemies` utilisées par les tests)
     └── MCTechTree           branchement dans le tech tree de Serpulo
 src/tools/java/              Générateur de sprites (hors jar)
 src/test/java/               Tests unitaires (logique pure + fichiers du mod)
@@ -122,8 +129,16 @@ Une fois par seconde de jeu, après l'enregistrement des ressources, `BaseScanne
 
 `SmartGroundAI`, toutes les 45 ticks : elle note les bâtiments ennemis dans le rayon de recherche (`Units.nearbyBuildings`) avec `TargetScorer.score(type, distance, PV, à portée)`. Elle s'approche de la meilleure cible et la désigne comme cible de tir (`findMainTarget`). Si elle reste bloquée 2 s, elle abandonne pendant 5 s et reprend `GroundAI.updateMovement` (chemin vers le noyau). Avec un profil désactivé (Facile ou option décochée), elle se comporte comme `GroundAI`.
 
+## V2 : tactiques de groupe, difficulté, objectifs
+
+- **Escouades** : `SquadManager` (sur `Trigger.update`, une fois par seconde de jeu) rassemble les unités de l'équipe des vagues pilotées par `SmartGroundAI`, en parcourant `Groups.unit` car `team.data().units` n'est à jour qu'à la frame suivante. Il appelle `SquadPlanner.plan(membres, noyau, tactiques, temps)`. Les escouades sont les composantes connexes à moins de `squadRadius` cases. Leur âge, qui borne le regroupement, est suivi par la plus petite id d'unité. Les ailes sont le premier et le dernier tiers selon la projection sur la perpendiculaire à la ligne d'attaque.
+- **Application** : `SmartGroundAI.updateMovement` suit d'abord l'ordre d'escouade (`moveTo` vers le point). Un flanc atteint rend la main à l'assaut normal. Un blocage abandonne l'ordre pendant 5 s.
+- **Difficulté** : `WorldSetup.applyDifficulty` multiplie `rules.teams.get(waveTeam).unitHealthMultiplier` et `unitDamageMultiplier` au `Trigger.newGame`. Ces valeurs sont enregistrées avec les règles.
+- **Capacité installée** : `BaseScanner.addProduction` calcule, pour chaque usine, `sorties × 60 / craftTime` (GenericCrafter), une moyenne pondérée des résultats (Separator) ou `60 × dominantItems / getDrillTime` (Drill). La consommation vient des `ConsumeItems`. Chaque valeur est ensuite pondérée par `efficiency` pour la part réellement utilisée.
+- **Objectifs** : `StockGoals` dans `ResourceTracker`, vérifiés chaque seconde (alerte `GOAL_REACHED`). Ils sont sauvegardés par le chunk `minclaude-goals` (format `MCG1` v1), lu comme l'historique après le `WorldLoadEvent`.
+- **Noms internes** : ils ne doivent pas reprendre un nom de contenu vanilla, même d'Erekir. En test, le préfixe du mod n'est pas appliqué et le démarrage échoue (`Two content objects defined with the same name`).
+
 ## Points d'extension prévus
 
-- **Tactiques de groupe (V2)** : coordination entre `SmartGroundAI` d'une même vague (point de ralliement, flanquement), avec une logique pure dans `logic/`.
 - **Adaptation (V3)** : `EnemyWavePlan` recevra un résumé de la défense du joueur (via `DefenseReport`) pour ajuster la composition des vagues.
-- **Difficulté (V2)** : PV et dégâts des ennemis selon `ModSettings.difficulty()`.
+- **Mesure exacte des flux (V3)** : intercepter les transferts vers le noyau pour remplacer `DeltaAccumulator`.

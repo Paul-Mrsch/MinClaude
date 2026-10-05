@@ -40,6 +40,7 @@ class ContentIT{
     private static Seq<UnlockableContent> all(){
         Seq<UnlockableContent> all = new Seq<>();
         all.addAll(MCItems.all);
+        all.addAll(MCLiquids.all);
         all.addAll(MCBlocks.all);
         all.addAll(MCUnits.all);
         return all;
@@ -47,10 +48,11 @@ class ContentIT{
 
     @Test
     void contentIsRegistered(){
-        assertEquals(6, MCItems.all.size);
-        assertEquals(4, MCBlocks.ores.size);
-        assertEquals(2, MCUnits.allies.size);
-        assertEquals(2, MCUnits.enemies.size);
+        assertEquals(9, MCItems.all.size);
+        assertEquals(2, MCLiquids.all.size);
+        assertEquals(5, MCBlocks.ores.size);
+        assertEquals(5, MCUnits.allies.size);
+        assertEquals(5, MCUnits.enemies.size);
         for(UnlockableContent c : all()){
             assertSame(c, content.getByName(c.getContentType(), c.name), c.name);
         }
@@ -74,6 +76,12 @@ class ContentIT{
         assertSame(MCItems.cobalt, ((GenericCrafter)MCBlocks.cobaltSmelter).outputItem.item);
         assertSame(MCItems.aluminum, ((GenericCrafter)MCBlocks.aluminumSmelter).outputItem.item);
         assertSame(MCItems.brass, ((GenericCrafter)MCBlocks.brassFoundry).outputItem.item);
+        assertSame(MCItems.steel, ((GenericCrafter)MCBlocks.steelFurnace).outputItem.item);
+        assertSame(MCItems.invar, ((GenericCrafter)MCBlocks.alloyPress).outputItem.item);
+        assertSame(MCItems.chrome, ((GenericCrafter)MCBlocks.electrolyzer).outputItem.item);
+        assertSame(MCLiquids.brine, ((GenericCrafter)MCBlocks.brineMixer).outputLiquid.liquid);
+        assertSame(MCLiquids.nitrogen, ((GenericCrafter)MCBlocks.cryogenizer).outputLiquid.liquid);
+        assertTrue(MCLiquids.nitrogen.heatCapacity > mindustry.content.Liquids.cryofluid.heatCapacity, "meilleur refroidissant que le cryofluide");
         assertTrue(((Drill)MCBlocks.percussionDrill).tier >= MCItems.cobalt.hardness, "la foreuse à percussion extrait le cobalt");
         for(OreBlock ore : MCBlocks.ores){
             assertNotNull(ore.itemDrop);
@@ -93,11 +101,22 @@ class ContentIT{
     }
 
     @Test
-    void smartAiIsInstalledOnGroundUnitsOnly(){
+    void alliedTiersAreUpgradedInVanillaReconstructors(){
+        var additive = (mindustry.world.blocks.units.Reconstructor)Blocks.additiveReconstructor;
+        var multiplicative = (mindustry.world.blocks.units.Reconstructor)Blocks.multiplicativeReconstructor;
+        assertTrue(additive.upgrades.contains(u -> u[0] == MCUnits.warden && u[1] == MCUnits.sentinel));
+        assertTrue(additive.upgrades.contains(u -> u[0] == MCUnits.aid && u[1] == MCUnits.relay));
+        assertTrue(multiplicative.upgrades.contains(u -> u[0] == MCUnits.sentinel && u[1] == MCUnits.bastion));
+    }
+
+    @Test
+    void smartAiIsInstalledOnGroundAndFlyingUnits(){
         assertInstanceOf(SmartGroundAI.class, UnitTypes.dagger.aiController.get());
         assertInstanceOf(SmartGroundAI.class, MCUnits.marauder.aiController.get());
-        assertFalse(UnitTypes.flare.aiController.get() instanceof SmartGroundAI);
+        assertInstanceOf(minclaude.ai.SmartFlyingAI.class, UnitTypes.flare.aiController.get());
+        assertInstanceOf(minclaude.ai.SmartFlyingAI.class, MCUnits.hornet.aiController.get());
         assertFalse(UnitTypes.mono.aiController.get() instanceof SmartGroundAI, "les mineurs gardent leur IA");
+        assertFalse(UnitTypes.mono.aiController.get() instanceof minclaude.ai.SmartFlyingAI, "les mineurs gardent leur IA");
     }
 
     @Test
