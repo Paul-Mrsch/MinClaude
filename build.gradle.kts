@@ -8,7 +8,7 @@ val mindustryVersion = "v160.5"
 val modsDir = File(System.getProperty("user.home"), "Library/Application Support/Mindustry/mods")
 
 group = "minclaude"
-version = "0.1.0"
+version = "0.2.0"
 
 repositories{
     mavenCentral()
@@ -162,4 +162,12 @@ tasks.register<Exec>("selfTest"){
         println(report.readText())
         if(!report.readText().contains("RÉSULTAT : OK")) throw GradleException("Autotest en jeu en échec, voir $report")
     }
+}
+
+tasks.register<JavaExec>("spriteSheet"){
+    group = "minclaude"
+    description = "Assemble tous les sprites dans docs/images/sprites.png (relecture et documentation)."
+    classpath = sourceSets["tools"].runtimeClasspath
+    mainClass.set("minclaude.tools.SpriteSheet")
+    args(file("assets/sprites").absolutePath, file("docs/images/sprites.png").absolutePath)
 }

@@ -79,6 +79,8 @@ class AnalysisTest{
         assertEquals("2.5M", Format.amount(2_500_000));
         assertEquals("-3k", Format.amount(-3000));
         assertEquals("+120/min", Format.ratePerMinute(2));
+        assertEquals("-54/min", Format.ratePerMinute(-53.7f / 60f), "arrondi dès 10/min");
+        assertEquals("+4.5/min", Format.ratePerMinute(4.5f / 60f));
         assertEquals("-30/min", Format.ratePerMinute(-0.5f));
         assertEquals("0/min", Format.ratePerMinute(0));
         assertEquals("45s", Format.duration(45));

@@ -19,12 +19,16 @@ Une ressource apparaît dès qu'elle entre une première fois dans le noyau.
 
 ### Dashboard (touche `K`)
 
-- **Liste à gauche** : toutes les ressources suivies. Cliquer sur l'une d'elles pour l'afficher.
-- **Plage de temps** : 1 min, 10 min, 1 h, toute la partie.
-- **Graphique du haut** : évolution du stock.
-- **Graphique du bas** : entrées (vert) et sorties (rouge), par minute.
-- **Chiffres** : stock / capacité, entrées, sorties, tendance nette, « épuisé dans », « plein dans ».
-- Les onglets Énergie, Défense et Industries arrivent en V1.
+Quatre onglets, rafraîchis chaque seconde (même en pause) :
+
+| Onglet | Contenu |
+|---|---|
+| **Ressources** | Liste des ressources suivies ; graphiques du stock et des entrées/sorties ; plages 1 min, 10 min, 1 h ou toute la partie ; stock / capacité, entrées, sorties, tendance nette, « épuisé dans », « plein dans » ; nombre d'usines bloquées faute de cette ressource |
+| **Énergie** | Production et consommation dans le temps, énergie stockée et capacité des batteries, solde, part de la demande couverte, nombre de réseaux |
+| **Industries** | Chaque type d'usine (fonderies, foreuses, séparateurs…) : nombre, actives, sans entrée, sans énergie, sortie pleine, rendement ; à droite, les **goulots d'étranglement**, c'est-à-dire les ressources qui bloquent le plus d'usines, avec leur stock |
+| **Défense** | Vague actuelle, temps avant la suivante, ennemis en vie, composition de la prochaine vague ; tourelles (total, sans munitions, endommagées) ; unités alliées par type |
+
+![Onglet Industries](../images/onglet-industries.png)
 
 L'historique est **enregistré dans la sauvegarde** : on le retrouve en rechargeant la partie. Le temps est celui du jeu : rien n'est enregistré pendant la pause.
 
@@ -38,6 +42,10 @@ Des messages s'affichent en haut de l'écran quand :
 - **une ressource passe sous le seuil bas** (5 % de la capacité par défaut), seulement si elle a déjà été abondante ;
 - **le noyau est plein** d'une ressource qui continue d'arriver : ce surplus est perdu.
 
+- **des usines sont arrêtées** faute d'une ressource ;
+- **l'énergie manque** : moins de 75 % de la demande est couverte ;
+- **des tourelles n'ont plus de munitions**.
+
 Une même alerte ne se répète pas tant que la situation dure. Après un retour à la normale, elle ne peut revenir qu'au bout de 2 minutes.
 
 ## Options (Paramètres > MinClaude)
@@ -49,15 +57,59 @@ Une même alerte ne se répète pas tant que la situation dure. Après un retour
 | Alertes de ressources | oui | Active les alertes |
 | Seuil de stock bas | 5 % | En pourcentage de la capacité du noyau |
 | Prévenir avant épuisement | 3 min | Délai de l'alerte d'épuisement |
-| Difficulté / IA ennemie avancée | Normal / oui | Enregistrées dès maintenant, actives à partir de la V2 |
+| Difficulté | Normal | Facile : IA vanilla, ennemis du mod tardifs. Normal → Brutal : IA de plus en plus agressive, ennemis du mod plus tôt et plus nombreux |
+| IA ennemie intelligente | oui | Les ennemis terrestres visent les points faibles (générateurs, tourelles sans munitions, convoyeurs) au lieu du premier mur |
+| Ajouter les ennemis MinClaude aux vagues | oui | Ajoute le maraudeur et la guêpe aux vagues des **nouvelles** parties |
+| Générer les minerais MinClaude | oui | Ajoute des gisements de cobalt, nickel, zinc et bauxite aux **nouvelles** parties |
 
 Le raccourci du dashboard se change dans Paramètres > Commandes > MinClaude.
 
-## Contenu ajouté (V0)
+## Contenu ajouté
 
-| Contenu | Type | Recette / coût | Déblocage |
+![Planche des sprites](../images/sprites.png)
+
+### Ressources
+
+| Ressource | Obtention | Usage |
+|---|---|---|
+| Cobalt | minerai (foreuse à percussion, niveau titane), fonderie de cobalt, laveur | murs en cobalt |
+| Nickel | minerai, laveur | murs en nickel, riveteuse, foreuse à percussion, gardien |
+| Zinc | minerai, laveur | laiton |
+| Bauxite | minerai, laveur | aluminium |
+| Aluminium | fonderie d'aluminium | convoyeur renforcé, nœud en aluminium, munition rapide, secours |
+| Laiton | fonderie de laiton | munition perforante |
+
+Les minerais apparaissent dans les **nouvelles parties** (cartes et secteurs de Serpulo), sur des cases libres, sans jamais remplacer un minerai vanilla. Ils sont aussi générés par défaut dans les cartes personnalisées de l'éditeur.
+
+### Industries
+
+| Bâtiment | Recette | Énergie | Déblocage |
 |---|---|---|---|
-| Cobalt | Ressource | — | sous le plomb |
-| Fonderie de cobalt | Industrie 2×2 | 2 plomb + 1 sable + 36 énergie/s → 1 cobalt / s | sous la fonderie de silicium |
-| Mur en cobalt | Défense 1×1 | 6 cobalt, 520 PV (titane : 440) | sous le mur en titane |
-| Grand mur en cobalt | Défense 2×2 | 24 cobalt, 2080 PV | sous le mur en cobalt |
+| Fonderie de cobalt (2×2) | 2 plomb + 1 sable → 1 cobalt / s | 36/s | sous la fonderie de silicium |
+| Fonderie d'aluminium (2×2) | 2 bauxite + 1 charbon → 1 aluminium / 0,83 s | 48/s | sous la fonderie de silicium |
+| Fonderie de laiton (2×2) | 2 cuivre + 1 zinc → 2 laiton / 1,17 s | 30/s | sous la presse à graphite |
+| Laveur de minerai (2×2) | 1 sable + eau → nickel, zinc, bauxite ou cobalt | 42/s | sous le séparateur |
+| Foreuse à percussion (2×2) | niveau 3 (cobalt, titane), plus rapide que la pneumatique, accélérée par l'eau | 24/s | sous la foreuse pneumatique |
+
+### Bâtiments
+
+| Bâtiment | Caractéristiques | Déblocage |
+|---|---|---|
+| Mur en nickel / grand mur | 380 / 1520 PV, 6 / 24 nickel | sous le mur en cuivre |
+| Mur en cobalt / grand mur | 520 / 2080 PV, 6 / 24 cobalt | sous le mur en titane |
+| Convoyeur renforcé | 13 objets/s (titane : 10) | sous le convoyeur en titane |
+| Riveteuse (tourelle 2×2) | munitions nickel (18), aluminium (12, tir rapide), laiton (26, perforant) ; portée 150 | sous le duo |
+| Nœud en aluminium | portée 9, 12 liaisons, bon marché | sous le nœud électrique |
+
+### Unités
+
+| Unité | Camp | Description | Obtention |
+|---|---|---|---|
+| Gardien | allié | mécha terrestre robuste à deux canons, 320 PV | usine terrestre (15 silicium + 10 nickel) |
+| Secours | allié | drone de soin, répare les unités proches | usine aérienne (15 silicium + 10 aluminium) |
+| Maraudeur | ennemi | mécha blindé à canon explosif, 480 PV | vagues, à partir de la vague 13 en Normal |
+| Guêpe | ennemi | volant rapide qui vise les générateurs | vagues, à partir de la vague 17 en Normal |
+
+### IA ennemie
+
+Avec l'option « IA ennemie intelligente », les ennemis terrestres (vanilla et du mod) choisissent leur cible dans un rayon qui grandit avec la difficulté : 10 cases en Normal, 16 en Difficile, 24 en Brutal. Leur priorité : générateurs, puis tourelles sans munitions, nœuds électriques, usines, tourelles, convoyeurs, noyau. Les murs passent en dernier. Une cible proche ou presque détruite est préférée. Une unité bloquée par un mur abandonne sa cible quelques secondes et reprend le chemin normal vers le noyau. En Facile, ou sans l'option, le comportement reste celui du jeu de base.

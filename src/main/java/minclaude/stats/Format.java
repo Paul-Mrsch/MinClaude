@@ -15,9 +15,10 @@ public final class Format{
         return sign + trim(a);
     }
 
-    /** Débit par minute avec signe explicite : "+120/min". */
+    /** Débit par minute avec signe explicite : "+120/min". Arrondi à l'unité dès 10/min, pour rester court. */
     public static String ratePerMinute(float perSecond){
         float m = perSecond * 60f;
+        if(Math.abs(m) >= 10f && Math.abs(m) < 1000f) m = Math.round(m);
         return (m > 0 ? "+" : "") + amount(m) + "/min";
     }
 

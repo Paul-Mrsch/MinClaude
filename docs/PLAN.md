@@ -27,31 +27,31 @@ Légende : ✅ fait · 🔄 en cours · ⬜ à faire
 | A0.10 | Contenu pilote | Cobalt, fonderie de cobalt, murs en cobalt (petit et grand), tech tree | `ContentIT`, `AssetsTest` | ✅ |
 | A0.11 | Générateur de sprites | `generateSprites` : pixel art déterministe, style vanilla | `AssetsTest` (tailles) | ✅ |
 | A0.12 | Documentation | Plan, état, ToDo, architecture, guides joueur et développeur, référence de modding | — | ✅ |
-| A0.13 | Recette en jeu | Autotest dans le client réel (`selfTest`) + partie jouée par le joueur | `selfTest`, journal du jeu | ✅ auto · 🔄 partie réelle |
+| A0.13 | Recette en jeu | Autotest dans le client réel (`selfTest`) + partie jouée par le joueur | `selfTest`, journal du jeu | ✅ |
 
 ---
 
-## V1 — Dashboard complet et premier lot de contenu
+## V1 — Dashboard complet et premier lot de contenu ✅
 
-| # | Artefact | Contenu | Tests |
-|---|---|---|---|
-| A1.1 | Onglet Énergie | Production, consommation, stockage des batteries, solde, historique (clés `power/*` dans le même historique) | IT : réseau électrique simulé |
-| A1.2 | Onglet Industries | État de chaque usine (active, entrée manquante, sortie pleine, sans énergie), rendement, regroupement par type | IT : usine bloquée détectée |
-| A1.3 | Onglet Défense | Unités par type, tourelles (munitions, PV), prochaine vague et sa composition | IT |
-| A1.4 | Goulots d'étranglement | Pour une ressource, quelles usines en manquent ou en produisent trop. Alerte « usine bloquée » | unitaires + IT |
-| A1.5 | Ressources, lot 1 (5) | Minerais **cobalt, nickel, zinc, bauxite** générés sur les secteurs de Serpulo, et l'**aluminium** | IT : présence dans la génération des cartes |
-| A1.6 | Industries, lot 1 (5) | Broyeur de bauxite, fonderie d'aluminium, raffinerie de nickel, laminoir, fonderie de cobalt V2 | IT : recettes |
-| A1.7 | Bâtiments, lot 1 (5) | Convoyeur renforcé, mur nickel (petit et grand), tourelle légère, pylône électrique | IT |
-| A1.8 | Unités alliées, lot 1 (2) | Une unité terrestre et un drone de ravitaillement | IT : spawn, armes |
-| A1.9 | Ennemis, lot 1 (2) | Deux unités ennemies insérées dans les vagues par défaut | IT : vagues |
-| A1.10 | IA : ciblage intelligent | Les ennemis visent les points faibles (générateurs, convoyeurs, tourelles sans munitions), selon la difficulté | unitaires (score de cible) + IT |
-| A1.11 | Sprites V2 | Générateur enrichi : minerais, convoyeurs animés (`-0-0`…`-6-3`), tourelles, unités | `AssetsTest` |
+| # | Artefact | Contenu livré | Tests | Statut |
+|---|---|---|---|---|
+| A1.1 | Onglet Énergie | Production, consommation, stockage, capacité, couverture de la demande, historique (clés `power/*`) | `BaseLogicTest`, `BaseIT` | ✅ |
+| A1.2 | Onglet Industries | État par type d'usine (actives, sans entrée, sans énergie, sortie pleine), rendement | `IndustryTest`, `BaseIT` | ✅ |
+| A1.3 | Onglet Défense | Vague, prochaine vague et sa composition, ennemis en vie, tourelles (sans munitions, endommagées), unités alliées | `BaseLogicTest`, `BaseIT` | ✅ |
+| A1.4 | Goulots d'étranglement | Ressources qui bloquent le plus d'usines (onglets Industries et Ressources) ; alertes usines, énergie, munitions | `IndustryTest`, `BaseIT` | ✅ |
+| A1.5 | Ressources, lot 1 | Cobalt, nickel, zinc, bauxite (minerais générés dans les nouvelles parties), aluminium, laiton | `ContentIT`, `WorldIT`, `WorldLogicTest` | ✅ |
+| A1.6 | Industries, lot 1 | Fonderie d'aluminium, fonderie de laiton, laveur de minerai, foreuse à percussion (+ fonderie de cobalt) | `ContentIT` | ✅ |
+| A1.7 | Bâtiments, lot 1 | Murs en nickel (2), convoyeur renforcé, riveteuse, nœud en aluminium (+ murs en cobalt) | `ContentIT` | ✅ |
+| A1.8 | Unités alliées, lot 1 | Gardien (mécha, usine terrestre), Secours (drone de soin, usine aérienne) | `ContentIT` | ✅ |
+| A1.9 | Ennemis, lot 1 | Maraudeur, Guêpe, ajoutés aux vagues selon la difficulté | `WorldIT`, `WorldLogicTest` | ✅ |
+| A1.10 | IA : ciblage intelligent | `TargetScorer` + `SmartGroundAI` sur toutes les unités terrestres ennemies | `WorldLogicTest`, `WorldIT` | ✅ |
+| A1.11 | Sprites V2 | Minerais, lingots, convoyeur animé, foreuse, tourelle, nœud, méchas, volants, armes ; planche de relecture | `AssetsTest`, `ContentIT` | ✅ |
 
 ## V2 — Expansion (10 éléments par catégorie)
 
 | # | Artefact | Contenu |
 |---|---|---|
-| A2.1 | Ressources, lot 2 | Chrome, laiton, acier, invar, liquides (saumure, azote liquide) |
+| A2.1 | Ressources, lot 2 | Chrome, acier, invar, liquides (saumure, azote liquide) |
 | A2.2 | Industries, lot 2 | Électrolyseur, cryogénisateur, aciérie, presse à alliage, raffinerie chimique |
 | A2.3 | Bâtiments, lot 2 | Convoyeur blindé, routeur filtrant, murs avancés, 2 tourelles, stockage |
 | A2.4 | Unités alliées, lot 2 | Arbre d'évolution d'unités (T1 → T3) dans une usine dédiée |

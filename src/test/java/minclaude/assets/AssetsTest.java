@@ -58,7 +58,8 @@ class AssetsTest{
             count++;
             String name = m.group(2);
             assertTrue(en.containsKey(m.group(1) + ".minclaude-" + name + ".description"), "description manquante : " + key);
-            assertTrue(sprites.contains(name), "sprite manquant pour " + name);
+            // Minerais : variantes 1..3 ; convoyeurs : images d'animation (vérifiées en détail par ContentIT).
+            assertTrue(sprites.contains(name) || sprites.contains(name + "1"), "sprite manquant pour " + name);
         }
         assertTrue(count > 0, "aucun contenu trouvé dans les bundles");
     }
@@ -70,9 +71,18 @@ class AssetsTest{
                 BufferedImage img = ImageIO.read(f.toFile());
                 assertNotNull(img, "PNG illisible : " + f);
                 assertEquals(img.getWidth(), img.getHeight(), "sprite non carré : " + f);
-                assertEquals(0, img.getWidth() % 32, "taille non multiple de 32 : " + f);
+                // Blocs et ressources suivent la grille de 32 px ; les unités ont une taille libre.
+                if(!f.startsWith(SPRITES.resolve("units"))){
+                    assertEquals(0, img.getWidth() % 32, "taille non multiple de 32 : " + f);
+                }
+                assertTrue(hasOpaquePixel(img), "sprite vide : " + f);
             }
         }
+    }
+
+    private static boolean hasOpaquePixel(BufferedImage img){
+        for(int y = 0; y < img.getHeight(); y++) for(int x = 0; x < img.getWidth(); x++) if((img.getRGB(x, y) >>> 24) != 0) return true;
+        return false;
     }
 
     @Test

@@ -91,7 +91,7 @@ public class ResourceOverlay{
             ResourceStats s = stats.get(item);
             rows.image(item.uiIcon).size(24f).padRight(4f);
             rows.add(Format.amount(s.stock())).left().width(54f);
-            rows.add(Format.ratePerMinute(s.slopePerSec())).color(rateColor(s.slopePerSec())).left().width(96f);
+            rows.add(Format.ratePerMinute(s.slopePerSec())).color(rateColor(s.slopePerSec())).left().width(100f).padRight(6f);
             // Temps avant épuisement, seulement si le stock baisse (la police du jeu n'a pas de symbole sablier).
             rows.add(Float.isInfinite(s.secondsToEmpty()) ? "" : Format.duration(s.secondsToEmpty()))
                 .color(Pal.remove).right().growX();
@@ -99,7 +99,7 @@ public class ResourceOverlay{
         }
     }
 
-    static Color rateColor(float slope){
+    public static Color rateColor(float slope){
         if(slope > 0.01f) return Pal.heal;
         if(slope < -0.01f) return Pal.remove;
         return Color.lightGray;

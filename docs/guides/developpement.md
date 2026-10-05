@@ -18,6 +18,7 @@
 | `./gradlew play` | `deployLocal` puis lance Mindustry |
 | `./gradlew selfTest` | Autotest dans le vrai client : captures et rapport dans `build/selftest/out/` |
 | `./gradlew generateSprites` | Régénère `assets/sprites/**` et `icon.png` |
+| `./gradlew spriteSheet` | Planche de tous les sprites dans `docs/images/sprites.png`, pour les relire |
 
 Le journal du jeu se trouve dans `~/Library/Application Support/Mindustry/last_log.txt`. Les lignes du mod commencent par `[MinClaude]`.
 
@@ -27,12 +28,41 @@ Exemple : une nouvelle ressource `nickel`.
 
 1. **Déclaration** : dans `MCItems.load()`, `nickel = add(new Item("nickel", Color.valueOf("…")){{ … }});`. Le préfixe `minclaude-` est ajouté automatiquement.
 2. **Tech tree** : une ligne dans `MCTechTree.load()`, sous un nœud vanilla ou du mod.
-3. **Sprite** : une ligne `Spec` dans `SpriteGenerator.SPECS`, puis `./gradlew generateSprites`. Le nom du fichier est le nom interne **sans** préfixe : `assets/sprites/items/nickel.png`.
+3. **Sprite** : une ligne `Spec` dans `SpriteGenerator.SPECS` (type : `GEM`, `INGOT`, `ORE`, `WALL`, `CRAFTER`, `WASHER`, `DRILL`, `CONVEYOR`, `TURRET`, `NODE`, `MECH`, `FLYER`, `WEAPON`), puis `./gradlew generateSprites spriteSheet` pour relire le résultat. Le nom du fichier est le nom interne **sans** préfixe : `assets/sprites/items/nickel.png`.
 4. **Traductions** : `item.minclaude-nickel.name` et `.description` dans `bundle.properties` **et** `bundle_fr.properties`.
 5. **Tests** : `./gradlew check`. `ContentIT` et `AssetsTest` échouent si le sprite, la taille du sprite, une traduction ou le nœud du tech tree manque.
 6. **Doc** : mettre à jour `Etat.md`, `ToDo.md` et le tableau du contenu dans le guide joueur.
 
 Préfixes des clés de traduction : `item.`, `block.`, `liquid.`, `unit.`, suivis de `minclaude-<nom>`.
+
+### Style graphique
+
+Le générateur suit le style des mods récents (Exogenesis, entre autres) sans reprendre leurs images :
+
+- **aplats par facette**, sans dégradé : 6 tons par matière, donnés par `ramp(couleur)`. Les ombres glissent vers le bleu-violet et se saturent, les lumières glissent vers le jaune et se désaturent ;
+- **angles coupés à 45°** (`Canvas.chamfer`, `octagon`) partout : cadres, plaques, creusets, noyaux ;
+- **biseaux** (`Canvas.bevel`) : bord haut-gauche éclairé, bord bas-droit dans l'ombre (lumière du jeu en haut à gauche) ;
+- **métal gris-bleu** (`M[0..5]`) pour les châssis, **bandes de couleur vive** de la matière (équerres de coin, bandes en X, plaques latérales) ;
+- **motifs symétriques** : anneaux concentriques, rainures d'usinage, boulons octogonaux ;
+- **contour** sombre de 1 px sur les blocs et objets. Pour les unités, le jeu génère le contour lui-même.
+
+Pour relire le résultat : `./gradlew generateSprites spriteSheet`, puis ouvrir `docs/images/sprites.png`. Pour juger dans le jeu : `./gradlew selfTest`, puis ouvrir la capture `13-base-demo.png`.
+
+### Régions de sprites demandées par le jeu
+
+`ContentIT.requiredRegions` liste les noms de fichiers attendus. Le test échoue s'il en manque un.
+
+| Contenu | Fichiers (sans préfixe) |
+|---|---|
+| Ressource, bloc simple, tourelle, nœud | `<nom>` (la base des tourelles vient du vanilla, `block-<taille>`) |
+| Minerai (`OreBlock`) | `<nom>1`, `<nom>2`, `<nom>3` |
+| Convoyeur | `<nom>-<forme 0..6>-<image 0..3>` (28 fichiers) |
+| Foreuse | `<nom>`, `<nom>-rotator`, `<nom>-top` |
+| Unité terrestre (mécha) | `<nom>`, `<nom>-leg`, `<nom>-base` |
+| Unité volante | `<nom>` |
+| Arme nommée `minclaude-x` | `x` (les noms d'armes ne sont pas préfixés automatiquement : on écrit le préfixe dans le code) |
+
+Les unités : `constructor = MechUnit::create` (mécha) ou `UnitEntity::create` (volant), sinon le jeu ne sait pas les créer. Le contour des unités est généré par le jeu.
 
 ## Conventions
 
@@ -54,6 +84,8 @@ Le répertoire de travail des tests est le contenu décompressé d'`assets.jar` 
 Limites : en headless il n'y a ni rendu ni `Vars.ui`. L'interface se vérifie donc en jeu, d'où l'importance de garder la logique hors de `ui/`.
 
 ## Autotest de l'interface dans le vrai client
+
+Le scénario V1 construit aussi une **base de démonstration** près du noyau, avec chaque bâtiment du mod dans un état différent (sans entrée, sans énergie, hors gisement…) et les 4 unités du mod. Il vérifie le relevé, capture les onglets Énergie, Industries et Défense, la base, les minerais et les fiches du nouveau contenu.
 
 `./gradlew selfTest` lance Mindustry (`/Applications/Mindustry.app`) avec **un dossier de données isolé** (`-Dmindustry.data.dir=build/selftest/data`) contenant seulement MinClaude, et la variable `MINCLAUDE_SELFTEST=build/selftest/out`. La classe `minclaude.debug.SelfTest` déroule alors un scénario :
 

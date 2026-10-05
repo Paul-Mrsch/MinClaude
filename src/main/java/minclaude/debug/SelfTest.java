@@ -18,6 +18,7 @@ import mindustry.type.Item;
 
 import static mindustry.Vars.*;
 
+
 /**
  * Recette automatique de l'interface dans le vrai client (rendu réel), sans clic humain.
  * Activée seulement si la variable d'environnement {@code MINCLAUDE_SELFTEST} contient un dossier de sortie.
@@ -125,6 +126,64 @@ public final class SelfTest{
             ui.content.show(MCItems.cobalt);
         });
         step(1.5f, "fiche-cobalt-capture", () -> shot("11-fiche-cobalt"));
+        // ---- V1 : base de démonstration, onglets Énergie / Industries / Défense, contenu en jeu ----
+        step(0.5f, "base-demo", () -> {
+            ui.content.hide();
+            buildDemoBase();
+            spawnDemoUnits();
+            state.set(mindustry.core.GameState.State.playing);
+        });
+        step(3f, "base-pause", () -> {
+            state.set(mindustry.core.GameState.State.paused);
+            MinClaudeMod.tracker.scanNow();
+            var base = MinClaudeMod.tracker.base();
+            check("usines relevées", base.industry().total() >= 4);
+            check("goulot détecté (bauxite)", base.industry().starvedBy(MCItems.bauxite.name) > 0);
+            check("énergie relevée", base.power().networks() > 0);
+            check("tourelle sans munitions relevée", base.defense().turretsNoAmmo() > 0);
+            check("unités alliées du mod relevées", base.defense().units().stream().anyMatch(e -> e.getKey().equals(MCUnits.warden.name)));
+            check("foreuse hors gisement = sans entrée", base.industry().block(MCBlocks.percussionDrill.name) != null
+                && base.industry().block(MCBlocks.percussionDrill.name).count(minclaude.logic.IndustryStatus.NO_INPUT) == 1);
+        });
+        for(String tab : new String[]{"power", "industry", "defense"}){
+            step(0.5f, "onglet-" + tab, () -> {
+                if(!MinClaudeMod.dashboard.isShown()) MinClaudeMod.toggleDashboard();
+                MinClaudeMod.dashboard.showTab(tab);
+                check("onglet " + tab + " affiché", tab.equals(MinClaudeMod.dashboard.currentTab()));
+            });
+            step(1.5f, "onglet-" + tab + "-capture", () -> shot("12-onglet-" + tab));
+        }
+        step(0.5f, "monde-base", () -> {
+            MinClaudeMod.toggleDashboard();
+            lookAt(demoX * tilesize, demoY * tilesize + 2 * tilesize);
+        });
+        step(2f, "monde-base-capture", () -> shot("13-base-demo"));
+        step(0.5f, "monde-minerais", () -> {
+            var ore = nearestModOre();
+            check("minerais du mod présents sur la carte", ore != null);
+            if(ore != null) lookAt(ore.worldx(), ore.worldy());
+        });
+        step(2f, "monde-minerais-capture", () -> shot("14-minerais"));
+        step(0.5f, "fiche-rivet", () -> ui.content.show(MCBlocks.rivet));
+        step(1.5f, "fiche-rivet-capture", () -> shot("15-fiche-riveteuse"));
+        step(0.5f, "fiche-gardien", () -> {
+            ui.content.hide();
+            ui.content.show(MCUnits.warden);
+        });
+        step(1.5f, "fiche-gardien-capture", () -> shot("16-fiche-gardien"));
+        step(0.5f, "fiche-maraudeur", () -> {
+            ui.content.hide();
+            ui.content.show(MCUnits.marauder);
+        });
+        step(1.5f, "fiche-maraudeur-capture", () -> shot("17-fiche-maraudeur"));
+        step(0.5f, "options-v1", () -> {
+            ui.content.hide();
+            ui.settings.show();
+            int category = 4 + ui.settings.getCategories().indexOf(c -> c.name.equals(Core.bundle.get("minclaude.settings")));
+            Reflect.invoke(ui.settings, "visible", new Object[]{category}, int.class);
+        });
+        step(1.5f, "options-v1-capture", () -> shot("18-options-v1"));
+        step(0.5f, "fermeture-options", () -> ui.settings.hide());
         step(1f, "fin", this::finish);
 
         Events.run(Trigger.uiDrawEnd, this::capture);
@@ -154,6 +213,92 @@ public final class SelfTest{
             failures++;
             line("FAIL étape " + s.name + " : " + Strings.getStackTrace(t));
         }
+    }
+
+    private int demoX, demoY;
+
+    /** Un exemplaire de chaque bâtiment du mod près du noyau, dans des états variés (sans entrée, sans énergie…). */
+    private void buildDemoBase(){
+        var core = MinClaudeMod.tracker.core();
+        var team = state.rules.defaultTeam;
+        mindustry.world.Tile spot = null;
+        for(int r = 6; r < 50 && spot == null; r++){
+            for(int dx = -r; dx <= r && spot == null; dx += 2){
+                if(free(core.tile.x + dx, core.tile.y + r, 18, 7)) spot = world.tile(core.tile.x + dx, core.tile.y + r);
+            }
+        }
+        check("zone libre pour la base de démo", spot != null);
+        if(spot == null) return;
+        int x = spot.x, y = spot.y;
+        demoX = x + 9;
+        demoY = y + 3;
+        // Ligne 1 : fonderie d'aluminium sans entrée + panneau solaire (goulot bauxite/charbon)
+        put(MCBlocks.aluminumSmelter, x + 1, y + 1, team);
+        put(mindustry.content.Blocks.solarPanel, x + 3, y + 1, team);
+        put(mindustry.content.Blocks.solarPanel, x + 3, y, team);
+        // fonderie de laiton approvisionnée mais sans énergie
+        var brass = put(MCBlocks.brassFoundry, x + 6, y + 1, team);
+        if(brass != null){
+            brass.items.add(Items.copper, 10);
+            brass.items.add(MCItems.zinc, 10);
+        }
+        put(MCBlocks.oreWasher, x + 9, y + 1, team);
+        put(MCBlocks.percussionDrill, x + 12, y + 1, team);
+        put(MCBlocks.rivet, x + 15, y + 1, team);
+        // Ligne 2 : murs, convoyeur renforcé, nœud
+        put(MCBlocks.nickelWall, x, y + 4, team);
+        put(MCBlocks.cobaltWall, x + 1, y + 4, team);
+        put(MCBlocks.nickelWallLarge, x + 3, y + 4, team);
+        put(MCBlocks.cobaltWallLarge, x + 5, y + 4, team);
+        for(int i = 0; i < 6; i++) put(MCBlocks.reinforcedConveyor, x + 7 + i, y + 4, team);
+        put(MCBlocks.aluminumNode, x + 14, y + 4, team);
+    }
+
+    private void spawnDemoUnits(){
+        float wx = demoX * tilesize, wy = (demoY + 4) * tilesize;
+        MCUnits.warden.spawn(state.rules.defaultTeam, wx - 24f, wy);
+        MCUnits.aid.spawn(state.rules.defaultTeam, wx - 8f, wy + 8f);
+        MCUnits.marauder.spawn(state.rules.waveTeam, wx + 16f, wy);
+        MCUnits.wasp.spawn(state.rules.waveTeam, wx + 32f, wy + 8f);
+    }
+
+    private static boolean free(int x, int y, int w, int h){
+        for(int i = 0; i < w; i++){
+            for(int j = 0; j < h; j++){
+                var t = world.tile(x + i, y + j);
+                if(t == null || t.block() != mindustry.content.Blocks.air || t.floor().isLiquid || t.floor().solid) return false;
+            }
+        }
+        return true;
+    }
+
+    private static mindustry.gen.Building put(mindustry.world.Block block, int x, int y, mindustry.game.Team team){
+        var t = world.tile(x, y);
+        if(t == null) return null;
+        t.setNet(block, team, 0);
+        return t.build;
+    }
+
+    private static mindustry.world.Tile nearestModOre(){
+        var core = MinClaudeMod.tracker.core();
+        mindustry.world.Tile[] best = {null};
+        float[] dst = {Float.MAX_VALUE};
+        world.tiles.eachTile(t -> {
+            if(MCBlocks.ores.contains(o -> o == t.overlay())){
+                float d = core.dst(t);
+                if(d < dst[0]){
+                    dst[0] = d;
+                    best[0] = t;
+                }
+            }
+        });
+        return best[0];
+    }
+
+    /** Centre la vue : la caméra suit l'unité du joueur, on déplace donc les deux. */
+    private static void lookAt(float x, float y){
+        if(player.unit() != null) player.unit().set(x, y);
+        Core.camera.position.set(x, y);
     }
 
     /** 15 min de données artificielles mais réalistes, pour remplir graphiques et mini-panneau. */
