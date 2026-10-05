@@ -88,6 +88,38 @@ public class ResourcesTab extends DashboardTab{
         stat(details, text("minclaude.stat.empty"), Format.duration(s.secondsToEmpty()), Pal.remove);
         stat(details, text("minclaude.stat.full"), Format.duration(s.secondsToFull()), Pal.accent);
 
+        // Capacité installée : ce que les usines construites produisent / consomment à plein régime.
+        var flow = tracker.base().production().flow(selected.name);
+        details.row();
+        if(flow != null && flow.installedOut > 0){
+            stat(details, text("minclaude.prod.installed"), Format.ratePerMinute(flow.installedOut), IN_COLOR);
+            stat(details, text("minclaude.prod.used"), Math.round(flow.utilization() * 100) + "%", flow.utilization() >= 0.9f ? IN_COLOR : Pal.accent);
+        }
+        if(flow != null && flow.installedIn > 0){
+            stat(details, text("minclaude.prod.demand"), Format.ratePerMinute(-flow.installedIn), OUT_COLOR);
+        }
+        if(flow == null || (flow.installedOut <= 0 && flow.installedIn <= 0)){
+            details.add(text("minclaude.prod.none")).color(Color.lightGray).colspan(4).left().padBottom(6f);
+        }
+
+        // Objectif de stock fixé par le joueur.
+        details.row();
+        var goals = tracker.goals();
+        Item item = selected;
+        if(goals.has(item.name)){
+            int goal = goals.get(item.name);
+            float eta = Trend.secondsUntil(s.stock(), s.slopePerSec(), goal);
+            stat(details, text("minclaude.goal.title"), Format.amount(goal) + " (" + Math.round(goals.progress(item.name, s.stock()) * 100) + "%)", Pal.accent);
+            stat(details, text("minclaude.goal.eta"), s.stock() >= goal ? text("minclaude.goal.done") : Format.duration(eta), Pal.accent);
+        }
+        details.button(text(goals.has(item.name) ? "minclaude.goal.edit" : "minclaude.goal.set"), Icon.starSmall, Styles.flatt, () ->
+            mindustry.Vars.ui.showTextInput(text("minclaude.goal.title"), Core.bundle.format("minclaude.goal.prompt", item.localizedName), 7,
+                String.valueOf(Math.max(goals.get(item.name), (int)s.capacity() / 2)), true, value -> {
+                    goals.set(item.name, arc.util.Strings.parseInt(value, 0));
+                    refresh();
+                })
+        ).height(40f).minWidth(200f).left().padTop(4f);
+
         // Goulot : combien d'usines sont arrêtées faute de cette ressource.
         int starved = tracker.base().industry().starvedBy(selected.name);
         if(starved > 0){

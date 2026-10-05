@@ -19,7 +19,9 @@ public final class AlertEngine{
         /** Le réseau électrique ne couvre pas la demande (valeur = part couverte, 0..1). */
         POWER_SHORTAGE,
         /** Des tourelles n'ont plus de munitions (valeur = nombre de tourelles). */
-        TURRETS_NO_AMMO
+        TURRETS_NO_AMMO,
+        /** Un objectif de stock fixé par le joueur est atteint (valeur = objectif). */
+        GOAL_REACHED
     }
 
     public record Alert(String item, Type type, float value){}

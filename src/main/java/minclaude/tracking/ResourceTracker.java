@@ -20,6 +20,7 @@ import static mindustry.Vars.*;
  */
 public final class ResourceTracker{
     public static final String CHUNK_NAME = "minclaude-history";
+    public static final String GOALS_CHUNK_NAME = "minclaude-goals";
     private static final float TICKS_PER_SECOND = 60f;
     /** Alerte d'énergie quand moins de cette part de la demande est couverte. */
     private static final float POWER_SHORTAGE_THRESHOLD = 0.75f;
@@ -28,6 +29,7 @@ public final class ResourceTracker{
     private final DeltaAccumulator deltas = new DeltaAccumulator(64);
     private final AlertEngine alerts = new AlertEngine();
     private final BaseScanner scanner = new BaseScanner();
+    private final minclaude.logic.StockGoals goals = new minclaude.logic.StockGoals();
     private boolean[] tracked = new boolean[64];
     private float tickTimer;
     private Cons<AlertEngine.Alert> alertListener = a -> {};
@@ -69,6 +71,11 @@ public final class ResourceTracker{
         return team().core();
     }
 
+    /** Objectifs de stock du joueur (enregistrés dans la sauvegarde). */
+    public minclaude.logic.StockGoals goals(){
+        return goals;
+    }
+
     /** Relevé immédiat de la base, hors cycle d'une seconde (autotest en jeu). */
     public void scanNow(){
         scanner.scan(team(), history);
@@ -92,6 +99,7 @@ public final class ResourceTracker{
         tracked = new boolean[tracked.length];
         tickTimer = 0f;
         scanner.reset();
+        goals.clear();
     }
 
     private void update(){
@@ -137,6 +145,11 @@ public final class ResourceTracker{
             }
         }
         evaluateBaseAlerts(scanner.last(), h.elapsedSeconds());
+        for(Item item : content.items()){
+            if(isTracked(item) && goals.check(item.name, core().items.get(item))){
+                alertListener.get(new AlertEngine.Alert(item.name, AlertEngine.Type.GOAL_REACHED, goals.get(item.name)));
+            }
+        }
     }
 
     private void evaluateBaseAlerts(BaseScanner.Snapshot base, float now){

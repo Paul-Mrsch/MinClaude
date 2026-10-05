@@ -55,6 +55,9 @@ class BaseIT{
         smelter.items.add(MCItems.bauxite, 10);
         smelter.items.add(Items.coal, 10);
         run(120);
+        var prod = MinClaudeMod.tracker.base().production();
+        assertEquals(60f / 50f, prod.flow(MCItems.aluminum.name).installedOut, 1e-4, "capacité installée de la fonderie");
+        assertEquals(2 * 60f / 50f, prod.flow(MCItems.bauxite.name).installedIn, 1e-4, "demande installée en bauxite");
         var after = MinClaudeMod.tracker.base().industry().block(MCBlocks.aluminumSmelter.name);
         assertEquals(1, after.count(IndustryStatus.ACTIVE), "usine active une fois approvisionnée");
         assertEquals(0, MinClaudeMod.tracker.base().industry().starvedBy(MCItems.bauxite.name));

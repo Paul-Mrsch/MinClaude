@@ -28,8 +28,8 @@ public final class BaseScanner{
     public static final String POWER_SATISFACTION = "power/satisfaction";
 
     /** Dernier instantané, lu par l'interface. */
-    public record Snapshot(PowerAggregator power, IndustryReport industry, DefenseReport defense){
-        public static final Snapshot EMPTY = new Snapshot(new PowerAggregator(), IndustryReport.EMPTY, DefenseReport.EMPTY);
+    public record Snapshot(PowerAggregator power, IndustryReport industry, DefenseReport defense, ProductionModel production){
+        public static final Snapshot EMPTY = new Snapshot(new PowerAggregator(), IndustryReport.EMPTY, DefenseReport.EMPTY, ProductionModel.EMPTY);
     }
 
     private volatile Snapshot last = Snapshot.EMPTY;
@@ -46,6 +46,7 @@ public final class BaseScanner{
         PowerAggregator power = new PowerAggregator();
         IndustryReport industry = new IndustryReport();
         DefenseReport defense = new DefenseReport();
+        ProductionModel production = new ProductionModel();
 
         Seq<Building> buildings = team.data().buildings;
         for(int i = 0; i < buildings.size; i++){
@@ -54,7 +55,10 @@ public final class BaseScanner{
                 var g = b.power.graph;
                 power.add(g.getID(), g.getLastPowerProduced(), g.getLastPowerNeeded(), g.getLastPowerStored(), g.getLastCapacity());
             }
-            if(isIndustry(b)) addIndustry(b, industry);
+            if(isIndustry(b)){
+                addIndustry(b, industry);
+                addProduction(b, production);
+            }
             if(b instanceof TurretBuild t) defense.addTurret(t.hasAmmo(), b.healthf());
         }
 
@@ -69,7 +73,7 @@ public final class BaseScanner{
             history.record(POWER_SATISFACTION, power.satisfaction() * 100f);
         }
 
-        Snapshot s = new Snapshot(power, industry, defense);
+        Snapshot s = new Snapshot(power, industry, defense, production);
         last = s;
         return s;
     }
@@ -86,6 +90,33 @@ public final class BaseScanner{
         // Une foreuse posée hors d'un gisement n'a « rien à produire » : c'est un manque d'entrée, pas une sortie pleine.
         if(b instanceof Drill.DrillBuild d && d.dominantItems == 0) status = IndustryStatus.NO_INPUT;
         report.add(b.block.name, status, b.efficiency, missing);
+    }
+
+    /** Production et consommation théoriques d'une usine (par seconde), pondérées par son rendement actuel. */
+    static void addProduction(Building b, ProductionModel model){
+        float eff = b.efficiency;
+        if(b.block instanceof GenericCrafter gc && gc.craftTime > 0){
+            float perSecond = 60f / gc.craftTime;
+            if(gc.outputItems != null) for(ItemStack s : gc.outputItems) model.produces(s.item.name, s.amount * perSecond, eff);
+            consumption(b, perSecond, model);
+        }else if(b.block instanceof Separator sep && sep.craftTime > 0){
+            float perSecond = 60f / sep.craftTime;
+            int total = 0;
+            for(ItemStack s : sep.results) total += s.amount;
+            for(ItemStack s : sep.results) model.produces(s.item.name, perSecond * s.amount / Math.max(1, total), eff);
+            consumption(b, perSecond, model);
+        }else if(b instanceof Drill.DrillBuild d && d.dominantItem != null && d.dominantItems > 0){
+            Drill drill = (Drill)b.block;
+            model.produces(d.dominantItem.name, 60f / drill.getDrillTime(d.dominantItem) * d.dominantItems, eff);
+        }
+    }
+
+    private static void consumption(Building b, float craftsPerSecond, ProductionModel model){
+        for(Consume c : b.block.nonOptionalConsumers){
+            if(c instanceof ConsumeItems ci){
+                for(ItemStack s : ci.items) model.consumes(s.item.name, s.amount * craftsPerSecond, b.efficiency);
+            }
+        }
     }
 
     /** Ressources exigées par le bloc et absentes de son stock interne. */

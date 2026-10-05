@@ -4,6 +4,7 @@ import arc.Events;
 import arc.util.Log;
 import minclaude.ModSettings;
 import minclaude.content.MCBlocks;
+import minclaude.logic.DifficultyProfile;
 import minclaude.logic.EnemyWavePlan;
 import minclaude.logic.OreScatter;
 import mindustry.content.Blocks;
@@ -40,6 +41,15 @@ public final class WorldSetup{
         if(state.rules.waves && ModSettings.enemies()){
             addEnemyWaves(ModSettings.difficulty());
         }
+        applyDifficulty(ModSettings.difficulty());
+    }
+
+    /** PV et dégâts de l'équipe des vagues, multipliés par ceux de la difficulté (enregistrés avec les règles). */
+    public static void applyDifficulty(int difficulty){
+        DifficultyProfile p = DifficultyProfile.forDifficulty(difficulty);
+        var rule = state.rules.teams.get(state.rules.waveTeam);
+        rule.unitHealthMultiplier *= p.unitHealth();
+        rule.unitDamageMultiplier *= p.unitDamage();
     }
 
     /** Graine stable : même carte ou même secteur = mêmes gisements. */

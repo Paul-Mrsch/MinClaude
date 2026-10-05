@@ -6,6 +6,7 @@ import arc.input.KeyBind;
 import arc.input.KeyCode;
 import arc.util.Log;
 import minclaude.ai.SmartAI;
+import minclaude.ai.SquadManager;
 import minclaude.content.*;
 import minclaude.debug.SelfTest;
 import minclaude.stats.Format;
@@ -22,6 +23,7 @@ import static mindustry.Vars.*;
 /** Point d'entrée du mod MinClaude. */
 public class MinClaudeMod extends Mod{
     public static final ResourceTracker tracker = new ResourceTracker();
+    public static final SquadManager squads = new SquadManager();
     public static DashboardDialog dashboard;
     public static KeyBind dashboardKey;
 
@@ -29,6 +31,8 @@ public class MinClaudeMod extends Mod{
         tracker.register();
         WorldSetup.register();
         SaveVersion.addCustomChunk(ResourceTracker.CHUNK_NAME, new HistoryChunk(tracker));
+        SaveVersion.addCustomChunk(ResourceTracker.GOALS_CHUNK_NAME, new GoalsChunk(tracker.goals()));
+        squads.register();
 
         Events.on(ClientLoadEvent.class, e -> {
             ModSettings.register();
@@ -48,7 +52,7 @@ public class MinClaudeMod extends Mod{
     @Override
     public void init(){
         int smart = SmartAI.install();
-        Log.info("[MinClaude] IA intelligente installée sur @ types d'unités terrestres.", smart);
+        Log.info("[MinClaude] IA intelligente installée sur @ types d'unités.", smart);
         if(headless) return;
         dashboardKey = KeyBind.add("minclaude-dashboard", KeyCode.k, "minclaude");
         dashboardKey.load();
@@ -57,10 +61,11 @@ public class MinClaudeMod extends Mod{
     @Override
     public void loadContent(){
         MCItems.load();
+        MCLiquids.load();
         MCBlocks.load();
         MCUnits.load();
         MCTechTree.load();
-        Log.info("[MinClaude] Contenu chargé : @ ressources, @ blocs, @ unités.", MCItems.all.size, MCBlocks.all.size, MCUnits.all.size);
+        Log.info("[MinClaude] Contenu chargé : @ ressources, @ liquides, @ blocs, @ unités.", MCItems.all.size, MCLiquids.all.size, MCBlocks.all.size, MCUnits.all.size);
     }
 
     public static void toggleDashboard(){
@@ -79,6 +84,7 @@ public class MinClaudeMod extends Mod{
             case INDUSTRY_STARVED -> Core.bundle.format("minclaude.alert.starved", (int)alert.value(), name);
             case POWER_SHORTAGE -> Core.bundle.format("minclaude.alert.power", (int)(alert.value() * 100));
             case TURRETS_NO_AMMO -> Core.bundle.format("minclaude.alert.ammo", (int)alert.value());
+            case GOAL_REACHED -> Core.bundle.format("minclaude.alert.goal", name, Format.amount(alert.value()));
         };
         ui.hudfrag.showToast(Icon.warning, text);
     }

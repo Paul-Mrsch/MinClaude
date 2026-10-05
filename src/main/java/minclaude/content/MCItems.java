@@ -6,7 +6,7 @@ import mindustry.type.Item;
 
 /** Ressources du mod. Le nom interne reçoit automatiquement le préfixe « minclaude- » au chargement du mod. */
 public final class MCItems{
-    public static Item cobalt, nickel, zinc, bauxite, aluminum, brass;
+    public static Item cobalt, nickel, zinc, bauxite, aluminum, brass, chrome, steel, invar;
 
     /** Toutes les ressources du mod, dans l'ordre de déclaration (utilisé par les tests et le générateur de sprites). */
     public static final Seq<Item> all = new Seq<>();
@@ -36,6 +36,17 @@ public final class MCItems{
         }});
         brass = add(new Item("brass", Color.valueOf("e0b84f")){{
             cost = 1.1f;
+        }});
+        chrome = add(new Item("chrome", Color.valueOf("b8c7d9")){{
+            hardness = 3;
+            cost = 1.3f;
+        }});
+        steel = add(new Item("steel", Color.valueOf("8d98a8")){{
+            cost = 1.5f;
+        }});
+        invar = add(new Item("invar", Color.valueOf("a9b49b")){{
+            cost = 1.7f;
+            charge = 0.05f;
         }});
     }
 

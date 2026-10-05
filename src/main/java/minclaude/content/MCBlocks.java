@@ -9,6 +9,10 @@ import mindustry.type.*;
 import mindustry.world.Block;
 import mindustry.world.blocks.defense.Wall;
 import mindustry.world.blocks.defense.turrets.ItemTurret;
+import mindustry.world.blocks.defense.turrets.LiquidTurret;
+import mindustry.world.blocks.storage.StorageBlock;
+import mindustry.entities.bullet.LiquidBulletType;
+import mindustry.world.blocks.distribution.ArmoredConveyor;
 import mindustry.world.blocks.distribution.Conveyor;
 import mindustry.world.blocks.environment.OreBlock;
 import mindustry.world.blocks.power.PowerNode;
@@ -22,11 +26,13 @@ public final class MCBlocks{
     private static final int WALL_HEALTH_MULTIPLIER = 4;
 
     // Minerais (environnement)
-    public static OreBlock oreCobalt, oreNickel, oreZinc, oreBauxite;
+    public static OreBlock oreCobalt, oreNickel, oreZinc, oreBauxite, oreChrome;
     // Industries
-    public static Block cobaltSmelter, aluminumSmelter, brassFoundry, oreWasher, percussionDrill;
+    public static Block cobaltSmelter, aluminumSmelter, brassFoundry, oreWasher, percussionDrill,
+        steelFurnace, alloyPress, brineMixer, cryogenizer, electrolyzer;
     // Bâtiments
-    public static Block cobaltWall, cobaltWallLarge, nickelWall, nickelWallLarge, reinforcedConveyor, rivet, aluminumNode;
+    public static Block cobaltWall, cobaltWallLarge, nickelWall, nickelWallLarge, reinforcedConveyor, rivet, aluminumNode,
+        steelWall, steelWallLarge, platedConveyor, volley, frost, invarContainer;
 
     /** Tous les blocs du mod (tests, générateur de sprites). */
     public static final Seq<Block> all = new Seq<>();
@@ -40,6 +46,7 @@ public final class MCBlocks{
         oreNickel = ore("ore-nickel", MCItems.nickel, 0.85f, 24f);
         oreZinc = ore("ore-zinc", MCItems.zinc, 0.85f, 25f);
         oreBauxite = ore("ore-bauxite", MCItems.bauxite, 0.84f, 23f);
+        oreChrome = ore("ore-chrome", MCItems.chrome, 0.88f, 27f);
 
         cobaltSmelter = add(new GenericCrafter("cobalt-smelter"){{
             requirements(Category.crafting, with(Items.copper, 60, Items.lead, 40, Items.graphite, 20));
@@ -173,6 +180,169 @@ public final class MCBlocks{
             requirements(Category.power, with(Items.lead, 4, MCItems.aluminum, 3));
             maxNodes = 12;
             laserRange = 9f;
+        }});
+
+        loadV2();
+    }
+
+    /** V2 : acier, invar, chrome, liquides, défense et logistique avancées. */
+    private static void loadV2(){
+        steelFurnace = add(new GenericCrafter("steel-furnace"){{
+            requirements(Category.crafting, with(Items.copper, 70, Items.graphite, 40, MCItems.nickel, 30));
+            craftEffect = Fx.smeltsmoke;
+            outputItem = new ItemStack(MCItems.steel, 1);
+            craftTime = 75f;
+            size = 2;
+            hasPower = true;
+            ambientSound = Sounds.loopSmelter;
+            ambientSoundVolume = 0.07f;
+            consumePower(1f);
+            consumeItems(with(Items.scrap, 2, Items.coal, 1));
+        }});
+
+        alloyPress = add(new GenericCrafter("alloy-press"){{
+            requirements(Category.crafting, with(Items.lead, 60, Items.silicon, 30, MCItems.steel, 30));
+            craftEffect = Fx.pulverizeMedium;
+            outputItem = new ItemStack(MCItems.invar, 2);
+            craftTime = 90f;
+            size = 2;
+            hasPower = true;
+            consumePower(1.2f);
+            consumeItems(with(MCItems.nickel, 2, MCItems.steel, 1));
+        }});
+
+        brineMixer = add(new GenericCrafter("brine-mixer"){{
+            requirements(Category.crafting, with(Items.copper, 40, Items.metaglass, 25, MCItems.zinc, 20));
+            outputLiquid = new LiquidStack(MCLiquids.brine, 10f / 60f);
+            craftTime = 60f;
+            size = 2;
+            hasPower = true;
+            hasLiquids = true;
+            outputsLiquid = true;
+            liquidCapacity = 30f;
+            consumePower(0.5f);
+            consumeItem(Items.sand, 1);
+            consumeLiquid(Liquids.water, 10f / 60f);
+        }});
+
+        cryogenizer = add(new GenericCrafter("cryogenizer"){{
+            requirements(Category.crafting, with(Items.lead, 50, Items.silicon, 40, MCItems.aluminum, 40));
+            outputLiquid = new LiquidStack(MCLiquids.nitrogen, 12f / 60f);
+            craftTime = 120f;
+            size = 2;
+            hasPower = true;
+            hasLiquids = true;
+            outputsLiquid = true;
+            liquidCapacity = 30f;
+            consumePower(1.5f);
+            consumeItem(MCItems.aluminum, 1);
+            consumeLiquid(Liquids.water, 12f / 60f);
+        }});
+
+        electrolyzer = add(new GenericCrafter("brine-electrolyzer"){{
+            requirements(Category.crafting, with(Items.copper, 60, Items.silicon, 40, MCItems.brass, 30));
+            craftEffect = Fx.pulverizeMedium;
+            outputItem = new ItemStack(MCItems.chrome, 1);
+            craftTime = 80f;
+            size = 2;
+            hasPower = true;
+            hasLiquids = true;
+            consumePower(1.8f);
+            consumeLiquid(MCLiquids.brine, 12f / 60f);
+        }});
+
+        steelWall = add(new Wall("steel-wall"){{
+            requirements(Category.defense, with(MCItems.steel, 6));
+            health = 160 * WALL_HEALTH_MULTIPLIER;
+            absorbLasers = true;
+        }});
+
+        steelWallLarge = add(new Wall("steel-wall-large"){{
+            requirements(Category.defense, ItemStack.mult(steelWall.requirements, 4));
+            health = 160 * WALL_HEALTH_MULTIPLIER * 4;
+            size = 2;
+            absorbLasers = true;
+        }});
+
+        platedConveyor = add(new ArmoredConveyor("plated-conveyor"){{
+            requirements(Category.distribution, with(MCItems.invar, 1, MCItems.aluminum, 1, Items.metaglass, 1));
+            health = 260;
+            speed = 0.11f;
+            displayedSpeed = 14.5f;
+        }});
+
+        volley = add(new ItemTurret("volley"){{
+            requirements(Category.turret, with(Items.copper, 100, Items.graphite, 60, MCItems.steel, 50));
+            ammo(
+                MCItems.steel, new BasicBulletType(3.5f, 16){{
+                    width = 7f;
+                    height = 10f;
+                    lifetime = 40f;
+                    ammoMultiplier = 3;
+                    hitColor = backColor = trailColor = MCItems.steel.color.cpy().mul(0.8f);
+                    frontColor = Pal.lightishGray;
+                }},
+                MCItems.invar, new BasicBulletType(3.5f, 22){{
+                    width = 8f;
+                    height = 11f;
+                    lifetime = 40f;
+                    ammoMultiplier = 2;
+                    knockback = 1.2f;
+                    hitColor = backColor = trailColor = MCItems.invar.color.cpy().mul(0.8f);
+                    frontColor = MCItems.invar.color;
+                }}
+            );
+            // Fusil : une salve de 5 balles en éventail.
+            shoot.shots = 5;
+            inaccuracy = 14f;
+            velocityRnd = 0.15f;
+            size = 2;
+            range = 130f;
+            reload = 45f;
+            recoil = 2.5f;
+            shootCone = 25f;
+            health = 620;
+            rotateSpeed = 7f;
+            shootSound = Sounds.shootDuo;
+            coolant = consumeCoolant(0.3f);
+            limitRange();
+        }});
+
+        frost = add(new LiquidTurret("frost"){{
+            requirements(Category.turret, with(Items.metaglass, 60, Items.lead, 70, MCItems.aluminum, 40));
+            ammo(
+                MCLiquids.nitrogen, new LiquidBulletType(MCLiquids.nitrogen){{
+                    damage = 6f;
+                    drag = 0.01f;
+                    status = StatusEffects.freezing;
+                    statusDuration = 240f;
+                }},
+                Liquids.cryofluid, new LiquidBulletType(Liquids.cryofluid){{
+                    damage = 3f;
+                    drag = 0.01f;
+                }},
+                Liquids.water, new LiquidBulletType(Liquids.water){{
+                    knockback = 0.6f;
+                    drag = 0.01f;
+                }}
+            );
+            size = 2;
+            recoil = 0f;
+            reload = 4f;
+            inaccuracy = 4f;
+            shootCone = 45f;
+            liquidCapacity = 20f;
+            range = 120f;
+            health = 500;
+            targetAir = true;
+        }});
+
+        invarContainer = add(new StorageBlock("invar-container"){{
+            requirements(Category.effect, with(MCItems.invar, 60, MCItems.steel, 30));
+            size = 2;
+            itemCapacity = 450;
+            health = 900;
+            coreMerge = false;
         }});
     }
 

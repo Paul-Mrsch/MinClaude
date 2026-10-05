@@ -110,12 +110,23 @@ class WorldIT{
     void newGameAddsEnemyWaves(){
         int before = state.rules.spawns.size;
         Events.fire(Trigger.newGame);
-        assertEquals(before + 2, state.rules.spawns.size);
+        assertEquals(before + 5, state.rules.spawns.size);
+        assertTrue(state.rules.spawns.contains(g -> g.type == MCUnits.brute));
         assertTrue(state.rules.spawns.contains(g -> g.type == MCUnits.marauder));
         assertTrue(state.rules.spawns.contains(g -> g.type == MCUnits.wasp));
         var marauder = state.rules.spawns.find(g -> g.type == MCUnits.marauder);
         assertEquals(0, marauder.getSpawned(0), "pas dès la première vague");
         assertTrue(marauder.getSpawned(marauder.begin) > 0);
+    }
+
+    @Test
+    void difficultyScalesEnemyHealthAndDamage(){
+        Core.settings.put(ModSettings.DIFFICULTY, 4);
+        float health = state.rules.unitHealth(state.rules.waveTeam), damage = state.rules.unitDamage(state.rules.waveTeam);
+        Events.fire(Trigger.newGame);
+        assertEquals(health * 1.7f, state.rules.unitHealth(state.rules.waveTeam), 1e-4);
+        assertEquals(damage * 1.35f, state.rules.unitDamage(state.rules.waveTeam), 1e-4);
+        assertEquals(1f, state.rules.unitHealth(state.rules.defaultTeam), 1e-4, "le joueur n'est pas concerné");
     }
 
     @Test

@@ -23,7 +23,7 @@ Quatre onglets, rafraîchis chaque seconde (même en pause) :
 
 | Onglet | Contenu |
 |---|---|
-| **Ressources** | Liste des ressources suivies ; graphiques du stock et des entrées/sorties ; plages 1 min, 10 min, 1 h ou toute la partie ; stock / capacité, entrées, sorties, tendance nette, « épuisé dans », « plein dans » ; nombre d'usines bloquées faute de cette ressource |
+| **Ressources** | Liste des ressources suivies ; graphiques du stock et des entrées/sorties ; plages 1 min, 10 min, 1 h ou toute la partie ; stock / capacité, entrées, sorties, tendance nette, « épuisé dans », « plein dans » ; **production installée** (ce que vos usines produiraient à plein régime) et part utilisée, **demande installée** ; **objectif de stock** (bouton « Fixer un objectif » : progression, échéance, alerte une fois atteint) ; nombre d'usines bloquées faute de cette ressource |
 | **Énergie** | Production et consommation dans le temps, énergie stockée et capacité des batteries, solde, part de la demande couverte, nombre de réseaux |
 | **Industries** | Chaque type d'usine (fonderies, foreuses, séparateurs…) : nombre, actives, sans entrée, sans énergie, sortie pleine, rendement ; à droite, les **goulots d'étranglement**, c'est-à-dire les ressources qui bloquent le plus d'usines, avec leur stock |
 | **Défense** | Vague actuelle, temps avant la suivante, ennemis en vie, composition de la prochaine vague ; tourelles (total, sans munitions, endommagées) ; unités alliées par type |
@@ -44,7 +44,8 @@ Des messages s'affichent en haut de l'écran quand :
 
 - **des usines sont arrêtées** faute d'une ressource ;
 - **l'énergie manque** : moins de 75 % de la demande est couverte ;
-- **des tourelles n'ont plus de munitions**.
+- **des tourelles n'ont plus de munitions** ;
+- **un objectif de stock est atteint**. Il est réarmé si le stock repasse sous 90 % de l'objectif.
 
 Une même alerte ne se répète pas tant que la situation dure. Après un retour à la normale, elle ne peut revenir qu'au bout de 2 minutes.
 
@@ -57,8 +58,8 @@ Une même alerte ne se répète pas tant que la situation dure. Après un retour
 | Alertes de ressources | oui | Active les alertes |
 | Seuil de stock bas | 5 % | En pourcentage de la capacité du noyau |
 | Prévenir avant épuisement | 3 min | Délai de l'alerte d'épuisement |
-| Difficulté | Normal | Facile : IA vanilla, ennemis du mod tardifs. Normal → Brutal : IA de plus en plus agressive, ennemis du mod plus tôt et plus nombreux |
-| IA ennemie intelligente | oui | Les ennemis terrestres visent les points faibles (générateurs, tourelles sans munitions, convoyeurs) au lieu du premier mur |
+| Difficulté | Normal | Facile : IA vanilla, ennemis du mod tardifs, ennemis à 75 % de PV. Normal → Brutal : IA de plus en plus agressive (rayon de recherche, escouades plus grandes, retraite à partir de Difficile), ennemis du mod plus tôt et plus nombreux, PV des ennemis ×1 / ×1,3 / ×1,7 et dégâts ×1 / ×1,15 / ×1,35. PV et dégâts sont fixés au début de la partie |
+| IA ennemie intelligente | oui | Les ennemis (au sol et volants) visent les points faibles (générateurs, tourelles sans munitions, convoyeurs) au lieu du premier mur, et attaquent en escouades |
 | Ajouter les ennemis MinClaude aux vagues | oui | Ajoute le maraudeur et la guêpe aux vagues des **nouvelles** parties |
 | Générer les minerais MinClaude | oui | Ajoute des gisements de cobalt, nickel, zinc et bauxite aux **nouvelles** parties |
 
@@ -110,6 +111,37 @@ Les minerais apparaissent dans les **nouvelles parties** (cartes et secteurs de 
 | Maraudeur | ennemi | mécha blindé à canon explosif, 480 PV | vagues, à partir de la vague 13 en Normal |
 | Guêpe | ennemi | volant rapide qui vise les générateurs | vagues, à partir de la vague 17 en Normal |
 
+### Contenu V2
+
+| Contenu | Type | Recette / caractéristiques | Déblocage |
+|---|---|---|---|
+| Chrome | ressource | minerai (niveau titane) ou électrolyse de la saumure | sous le titane |
+| Acier | ressource | four à acier : 2 ferraille + 1 charbon → 1 acier / 1,25 s, 60 énergie/s | sous la ferraille |
+| Invar | ressource | presse à alliage : 2 nickel + 1 acier → 2 invar / 1,5 s, 72 énergie/s | sous l'acier |
+| Saumure | liquide | mélangeur de saumure : 1 sable + eau → saumure, 30 énergie/s | sous l'eau |
+| Azote liquide | liquide | cryogénisateur : 1 aluminium + eau → azote, 90 énergie/s. Meilleur refroidissant que le cryofluide, gèle | sous l'eau |
+| Électrolyseur | industrie 2×2 | saumure → 1 chrome / 1,33 s, 108 énergie/s | sous le mélangeur |
+| Mur en acier / grand mur | défense | 640 / 2560 PV, absorbent les lasers | sous le mur en cobalt |
+| Convoyeur blindé | logistique | 14,5 objets/s, n'accepte que les objets venant d'un convoyeur placé derrière lui | sous le convoyeur renforcé |
+| Salve (2×2) | tourelle | fusil, 5 balles par tir ; acier (16) ou invar (22, recul) | sous la Riveteuse |
+| Givre (2×2) | tourelle | projette un liquide ; l'azote liquide gèle et ralentit | sous la Vague |
+| Conteneur en invar (2×2) | stockage | 450 objets, très solide, ne fusionne pas avec le noyau | sous le conteneur |
+| Sentinelle / Bastion | alliés | mécha à rafales (650 PV) / mécha à mortier (1400 PV) | reconstructeurs additif / multiplicatif à partir du Gardien |
+| Relais | allié | volant de soin, champ de réparation puissant | reconstructeur additif à partir du Secours |
+| Ravageur | ennemi | mécha blindé à fusil, 950 PV | vagues, à partir de la vague 23 en Normal |
+| Frelon | ennemi | bombardier, vise usines et générateurs | à partir de la vague 27 |
+| Brute | ennemi (mini-boss) | 2600 PV, canon de siège ; rare | à partir de la vague 36, une vague sur 10 |
+
+Les convoyeurs du mod ont maintenant leurs vraies formes de virage et de jonction.
+
 ### IA ennemie
 
 Avec l'option « IA ennemie intelligente », les ennemis terrestres (vanilla et du mod) choisissent leur cible dans un rayon qui grandit avec la difficulté : 10 cases en Normal, 16 en Difficile, 24 en Brutal. Leur priorité : générateurs, puis tourelles sans munitions, nœuds électriques, usines, tourelles, convoyeurs, noyau. Les murs passent en dernier. Une cible proche ou presque détruite est préférée. Une unité bloquée par un mur abandonne sa cible quelques secondes et reprend le chemin normal vers le noyau. En Facile, ou sans l'option, le comportement reste celui du jeu de base.
+
+Les **volants** (guêpe, frelon, flare, horizon…) utilisent la même notation dans un rayon 1,5 fois plus grand. Leurs cibles préférées de base, comme les générateurs pour la guêpe, restent prioritaires.
+
+**Tactiques de groupe** (à partir de Normal) : chaque seconde, les ennemis au sol proches les uns des autres forment des escouades.
+
+- Une escouade trop petite (3, 4 ou 5 unités selon la difficulté) **se regroupe** avant d'attaquer, au plus 10, 15 ou 20 s.
+- À l'assaut, les unités des **ailes contournent** par les côtés de la ligne d'attaque, tandis que le centre avance directement.
+- À partir de Difficile, une unité très abîmée **recule** quelques secondes derrière son escouade.
