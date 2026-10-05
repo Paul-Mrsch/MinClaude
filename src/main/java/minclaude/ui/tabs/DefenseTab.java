@@ -21,6 +21,7 @@ public class DefenseTab extends DashboardTab{
     private final Table wave = new Table();
     private final Table turrets = new Table();
     private final Table units = new Table();
+    private final Table adaptation = new Table();
 
     public DefenseTab(ResourceTracker tracker){
         super("defense", Icon.defense, tracker);
@@ -33,7 +34,9 @@ public class DefenseTab extends DashboardTab{
             left.add(text("minclaude.defense.wave")).color(Pal.accent).left().row();
             left.add(wave).growX().left().padBottom(16f).row();
             left.add(text("minclaude.defense.turrets")).color(Pal.accent).left().row();
-            left.add(turrets).growX().left();
+            left.add(turrets).growX().left().padBottom(16f).row();
+            left.add(text("minclaude.defense.adaptation")).color(Pal.accent).left().row();
+            left.add(adaptation).growX().left();
         }).width(520f).growY().top();
         body.table(right -> {
             right.top().left();
@@ -59,6 +62,19 @@ public class DefenseTab extends DashboardTab{
         stat(turrets, text("minclaude.defense.total"), String.valueOf(d.turrets()), Color.white);
         stat(turrets, text("minclaude.defense.noammo"), String.valueOf(d.turretsNoAmmo()), d.turretsNoAmmo() > 0 ? Pal.remove : Color.lightGray);
         stat(turrets, text("minclaude.defense.damaged"), String.valueOf(d.turretsDamaged()), d.turretsDamaged() > 0 ? Color.orange : Color.lightGray);
+
+        adaptation.clear();
+        adaptation.left();
+        var a = minclaude.MinClaudeMod.waves.current();
+        if(!a.any()){
+            adaptation.add(text("minclaude.defense.adapt.none")).color(Color.lightGray).wrap().width(480f).left();
+        }else{
+            for(var f : minclaude.logic.AdaptiveWaves.Family.values()){
+                int n = a.bonus(f);
+                if(n <= 0) continue;
+                adaptation.add(Core.bundle.format("minclaude.defense.adapt." + f.name().toLowerCase(), n)).color(Pal.remove).wrap().width(480f).left().row();
+            }
+        }
 
         units.clear();
         units.top().left();

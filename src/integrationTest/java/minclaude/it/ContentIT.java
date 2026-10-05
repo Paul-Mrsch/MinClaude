@@ -48,11 +48,15 @@ class ContentIT{
 
     @Test
     void contentIsRegistered(){
-        assertEquals(9, MCItems.all.size);
-        assertEquals(2, MCLiquids.all.size);
+        // Objectif du cahier des charges : au moins 15 par catégorie.
+        assertTrue(MCItems.all.size + MCLiquids.all.size >= 15, "ressources");
         assertEquals(5, MCBlocks.ores.size);
-        assertEquals(5, MCUnits.allies.size);
-        assertEquals(5, MCUnits.enemies.size);
+        assertTrue(MCUnits.allies.size >= 15, "unités alliées : " + MCUnits.allies.size);
+        assertTrue(MCUnits.enemies.size >= 15, "ennemis : " + MCUnits.enemies.size);
+        long factories = MCBlocks.all.count(b -> b instanceof GenericCrafter || b instanceof mindustry.world.blocks.production.Separator || b instanceof Drill);
+        assertTrue(factories >= 15, "industries : " + factories);
+        long buildings = MCBlocks.all.size - MCBlocks.ores.size - factories;
+        assertTrue(buildings >= 15, "bâtiments : " + buildings);
         for(UnlockableContent c : all()){
             assertSame(c, content.getByName(c.getContentType(), c.name), c.name);
         }
@@ -82,6 +86,13 @@ class ContentIT{
         assertSame(MCLiquids.brine, ((GenericCrafter)MCBlocks.brineMixer).outputLiquid.liquid);
         assertSame(MCLiquids.nitrogen, ((GenericCrafter)MCBlocks.cryogenizer).outputLiquid.liquid);
         assertTrue(MCLiquids.nitrogen.heatCapacity > mindustry.content.Liquids.cryofluid.heatCapacity, "meilleur refroidissant que le cryofluide");
+        assertSame(MCItems.duralumin, ((GenericCrafter)MCBlocks.duraluminForge).outputItem.item);
+        assertSame(MCLiquids.acid, ((GenericCrafter)MCBlocks.acidPlant).outputLiquid.liquid);
+        assertSame(MCItems.cermet, ((GenericCrafter)MCBlocks.cermetKiln).outputItem.item);
+        assertSame(MCItems.carbonFiber, ((GenericCrafter)MCBlocks.carbonWeaver).outputItem.item);
+        assertSame(MCItems.quantumCrystal, ((GenericCrafter)MCBlocks.quantumResonator).outputItem.item);
+        assertEquals(3, MCBlocks.quantumResonator.size);
+        assertEquals(3, MCBlocks.railgun.size);
         assertTrue(((Drill)MCBlocks.percussionDrill).tier >= MCItems.cobalt.hardness, "la foreuse à percussion extrait le cobalt");
         for(OreBlock ore : MCBlocks.ores){
             assertNotNull(ore.itemDrop);
@@ -107,6 +118,14 @@ class ContentIT{
         assertTrue(additive.upgrades.contains(u -> u[0] == MCUnits.warden && u[1] == MCUnits.sentinel));
         assertTrue(additive.upgrades.contains(u -> u[0] == MCUnits.aid && u[1] == MCUnits.relay));
         assertTrue(multiplicative.upgrades.contains(u -> u[0] == MCUnits.sentinel && u[1] == MCUnits.bastion));
+        var exponential = (mindustry.world.blocks.units.Reconstructor)Blocks.exponentialReconstructor;
+        var tetrative = (mindustry.world.blocks.units.Reconstructor)Blocks.tetrativeReconstructor;
+        assertTrue(exponential.upgrades.contains(u -> u[0] == MCUnits.bastion && u[1] == MCUnits.citadel));
+        assertTrue(tetrative.upgrades.contains(u -> u[0] == MCUnits.citadel && u[1] == MCUnits.colossus));
+        assertTrue(tetrative.upgrades.contains(u -> u[0] == MCUnits.sanctum && u[1] == MCUnits.halo));
+        assertTrue(((UnitFactory)Blocks.navalFactory).plans.contains(p -> p.unit == MCUnits.skiff));
+        assertTrue(MCUnits.frigate.naval, "les navires sont reconnus comme navals par le jeu");
+        assertTrue(multiplicative.upgrades.contains(u -> u[0] == MCUnits.corvette && u[1] == MCUnits.frigate));
     }
 
     @Test
@@ -151,13 +170,18 @@ class ContentIT{
             r.add(c.name + "-top");
         }else if(c instanceof UnitType u){
             r.add(c.name);
-            if(!u.flying){
+            if(!u.flying && !u.naval){
                 r.add(c.name + "-leg");
                 r.add(c.name + "-base");
             }
             for(Weapon w : u.weapons){
                 if(!w.name.isEmpty()) r.add(w.name.replaceFirst("^minclaude-", ""));
             }
+        }else if(c instanceof mindustry.world.blocks.distribution.ItemBridge){
+            r.add(c.name);
+            r.add(c.name + "-end");
+            r.add(c.name + "-bridge");
+            r.add(c.name + "-arrow");
         }else{
             r.add(c.name);
         }

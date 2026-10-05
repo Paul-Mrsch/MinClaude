@@ -20,14 +20,16 @@ import java.util.List;
  */
 public final class SpriteGenerator{
     enum Kind{ GEM, NUGGET, INGOT, LIQUID, ORE, WALL, CRAFTER, FOUNDRY, WASHER, PRESS, TANK, CRYO, ELECTRO, DRILL, CONVEYOR, ARMORED_CONVEYOR,
-        TURRET, SHOTGUN, NOZZLE, CONTAINER, NODE, MECH, FLYER, BOMBER, WEAPON }
+        TURRET, SHOTGUN, NOZZLE, CONTAINER, NODE, MECH, FLYER, BOMBER, WEAPON,
+        FIBER, WEAVER, RESONATOR, BRIDGE, RAIL, NAVAL }
 
     /** @param size taille en pixels (côté) */
     record Spec(String folder, String name, Kind kind, int size, Color color){}
 
     private static final Color COBALT = hex("4a7cf0"), NICKEL = hex("c9c29a"), ZINC = hex("8fc3d6"), BAUXITE = hex("c4643a"),
         ALUMINUM = hex("dde6ee"), BRASS = hex("e8b844"), ALLY = hex("ffc857"), ENEMY = hex("f0503c"), WATER = hex("4fa3ff"), HEAL = hex("6ee6a0"),
-        CHROME = hex("c3d2e6"), STEEL = hex("93a0b3"), INVAR = hex("aebb9c"), BRINE = hex("7fb9c9"), NITROGEN = hex("bfeaff");
+        CHROME = hex("c3d2e6"), STEEL = hex("93a0b3"), INVAR = hex("aebb9c"), BRINE = hex("7fb9c9"), NITROGEN = hex("bfeaff"),
+        DURALUMIN = hex("b4c6d8"), CERMET = hex("d08c58"), CARBON = hex("5a6070"), QUANTUM = hex("b26bff"), ACID = hex("d6e04a"), BOSS = hex("ff2f5a");
 
     /** Une ligne par contenu. Nom = nom interne sans le préfixe du mod. */
     static final List<Spec> SPECS = List.of(
@@ -90,7 +92,57 @@ public final class SpriteGenerator{
         new Spec("units/weapons", "sentinel-gun", Kind.WEAPON, 28, ALLY),
         new Spec("units/weapons", "bastion-mortar", Kind.WEAPON, 32, ALLY),
         new Spec("units/weapons", "ravager-shotgun", Kind.WEAPON, 30, ENEMY),
-        new Spec("units/weapons", "brute-cannon", Kind.WEAPON, 36, ENEMY)
+        new Spec("units/weapons", "brute-cannon", Kind.WEAPON, 36, ENEMY),
+
+        // ---- V3 ----
+        new Spec("items", "duralumin", Kind.INGOT, 32, DURALUMIN),
+        new Spec("items", "cermet", Kind.NUGGET, 32, CERMET),
+        new Spec("items", "carbon-fiber", Kind.FIBER, 32, CARBON),
+        new Spec("items", "quantum-crystal", Kind.GEM, 32, QUANTUM),
+        new Spec("liquids", "sulfuric-acid", Kind.LIQUID, 32, ACID),
+        new Spec("blocks", "duralumin-forge", Kind.CRAFTER, 64, DURALUMIN),
+        new Spec("blocks", "acid-plant", Kind.TANK, 64, ACID),
+        new Spec("blocks", "cermet-kiln", Kind.FOUNDRY, 64, CERMET),
+        new Spec("blocks", "carbon-weaver", Kind.WEAVER, 64, CARBON),
+        new Spec("blocks", "quantum-resonator", Kind.RESONATOR, 96, QUANTUM),
+        new Spec("blocks", "cermet-wall", Kind.WALL, 32, CERMET),
+        new Spec("blocks", "cermet-wall-large", Kind.WALL, 64, CERMET),
+        new Spec("blocks", "duralumin-bridge", Kind.BRIDGE, 32, DURALUMIN),
+        new Spec("blocks", "railgun", Kind.RAIL, 96, QUANTUM),
+        new Spec("units", "scout", Kind.MECH, 36, ALLY),
+        new Spec("units", "engineer", Kind.MECH, 36, hex("7fd0ff")),
+        new Spec("units", "citadel", Kind.MECH, 72, ALLY),
+        new Spec("units", "colossus", Kind.MECH, 88, ALLY),
+        new Spec("units", "beacon", Kind.FLYER, 56, HEAL),
+        new Spec("units", "sanctum", Kind.FLYER, 72, HEAL),
+        new Spec("units", "halo", Kind.FLYER, 96, HEAL),
+        new Spec("units", "skiff", Kind.NAVAL, 40, ALLY),
+        new Spec("units", "corvette", Kind.NAVAL, 52, ALLY),
+        new Spec("units", "frigate", Kind.NAVAL, 64, ALLY),
+        new Spec("units", "swarmling", Kind.MECH, 28, ENEMY),
+        new Spec("units", "sapper", Kind.MECH, 40, hex("ff8a3d")),
+        new Spec("units", "siegebreaker", Kind.MECH, 56, ENEMY),
+        new Spec("units", "shocker", Kind.MECH, 44, hex("9b7bff")),
+        new Spec("units", "juggernaut", Kind.MECH, 72, hex("c2362a")),
+        new Spec("units", "stalker", Kind.MECH, 44, ENEMY),
+        new Spec("units", "phantom", Kind.FLYER, 32, hex("ff7a9a")),
+        new Spec("units", "gunship", Kind.FLYER, 56, ENEMY),
+        new Spec("units", "dreadwing", Kind.BOMBER, 72, hex("c2362a")),
+        new Spec("units", "warlord", Kind.MECH, 96, BOSS),
+        new Spec("units", "leviathan", Kind.BOMBER, 104, BOSS),
+        new Spec("units/weapons", "scout-gun", Kind.WEAPON, 20, ALLY),
+        new Spec("units/weapons", "engineer-gun", Kind.WEAPON, 20, hex("7fd0ff")),
+        new Spec("units/weapons", "citadel-cannon", Kind.WEAPON, 40, ALLY),
+        new Spec("units/weapons", "colossus-cannon", Kind.WEAPON, 48, ALLY),
+        new Spec("units/weapons", "skiff-gun", Kind.WEAPON, 20, ALLY),
+        new Spec("units/weapons", "corvette-gun", Kind.WEAPON, 24, ALLY),
+        new Spec("units/weapons", "frigate-mortar", Kind.WEAPON, 28, ALLY),
+        new Spec("units/weapons", "sapper-gun", Kind.WEAPON, 24, hex("ff8a3d")),
+        new Spec("units/weapons", "siegebreaker-mortar", Kind.WEAPON, 32, ENEMY),
+        new Spec("units/weapons", "shocker-coil", Kind.WEAPON, 26, hex("9b7bff")),
+        new Spec("units/weapons", "juggernaut-cannon", Kind.WEAPON, 36, hex("c2362a")),
+        new Spec("units/weapons", "stalker-shotgun", Kind.WEAPON, 26, ENEMY),
+        new Spec("units/weapons", "warlord-cannon", Kind.WEAPON, 48, BOSS)
     );
 
     private static final Color OUTLINE = hex("23232b");
@@ -130,6 +182,17 @@ public final class SpriteGenerator{
             case NOZZLE -> out.put(spec.name, nozzle(spec.size, r));
             case CONTAINER -> out.put(spec.name, container(spec.size, r));
             case BOMBER -> out.put(spec.name, bomber(spec.size, r));
+            case FIBER -> out.put(spec.name, fiber(spec.size, r));
+            case WEAVER -> out.put(spec.name, weaver(spec.size, r));
+            case RESONATOR -> out.put(spec.name, resonator(spec.size, r));
+            case RAIL -> out.put(spec.name, railgun(spec.size, r));
+            case NAVAL -> out.put(spec.name, naval(spec.size, r));
+            case BRIDGE -> {
+                out.put(spec.name, bridgeBase(spec.size, r, 12));
+                out.put(spec.name + "-end", bridgeBase(spec.size, r, 8));
+                out.put(spec.name + "-bridge", bridgeBeam(spec.size, r));
+                out.put(spec.name + "-arrow", bridgeArrow(spec.size, r));
+            }
             case ARMORED_CONVEYOR -> {
                 for(int shape = 0; shape < 7; shape++){
                     for(int frame = 0; frame < 4; frame++) out.put(spec.name + "-" + shape + "-" + frame, conveyor(spec.size, r, Math.min(shape, 4), frame, true));
@@ -628,24 +691,161 @@ public final class SpriteGenerator{
         return c.img;
     }
 
-    /** Bombardier : ailes larges en flèche, soute centrale et deux réacteurs. */
-    private static BufferedImage bomber(int size, Color[] r){
+    /** Rouleau de fibre de carbone : feuille tressée en losanges, bord enroulé. */
+    private static BufferedImage fiber(int size, Color[] r){
+        Canvas c = new Canvas(size);
+        Polygon sheet = Canvas.chamfer(5, 7, 22, 18, 3);
+        c.fill(sheet, r[1]);
+        for(int y = 8; y < 25; y++){
+            for(int x = 6; x < 27; x++){
+                if(sheet.contains(x + 0.5, y + 0.5) && ((x + y) % 4 == 0 || (x - y + 40) % 4 == 0)) c.set(x, y, r[3]);
+            }
+        }
+        c.bevel(sheet, r[4], r[0], 1);
+        c.circle(r[2], 25, 16, 5);
+        c.circle(r[0], 25, 16, 2);
+        c.rect(r[4], 23, 11, 2, 1);
+        c.outline();
+        return c.img;
+    }
+
+    /** Tisseuse : deux bobines et les fils tendus entre elles, sur châssis. */
+    private static BufferedImage weaver(int size, Color[] r){
+        Canvas c = frame(size);
+        cornerBrackets(c, size, ramp(DURALUMIN));
+        int m = size / 2;
+        for(int i = 0; i < 6; i++) c.rect(i % 2 == 0 ? r[3] : r[2], 18, m - 9 + i * 3, size - 36, 1);
+        for(int x : new int[]{16, size - 16}){
+            c.circle(M[0], x, m, 9);
+            c.circle(r[1], x, m, 7);
+            c.circle(r[3], x - 1, m - 1, 4);
+            c.octagon(M[3], x, m, 2);
+        }
+        c.rect(M[0], m - 2, 12, 4, size - 24);
+        c.rect(ramp(ACID)[3], m - 1, 14, 2, size - 28);
+        c.outline();
+        return c.img;
+    }
+
+    /** Résonateur 3x3 : chambre octogonale avec un grand cristal, quatre émetteurs reliés par des rayons. */
+    private static BufferedImage resonator(int size, Color[] r){
+        Canvas c = frame(size);
+        cornerBrackets(c, size, r);
+        grooves(c, size);
+        int m = size / 2;
+        c.octagon(M[0], m, m, 30);
+        c.octagon(M[3], m, m, 28);
+        c.octagon(M[0], m, m, 25);
+        for(int i = 0; i < 4; i++){
+            AffineTransform t = AffineTransform.getRotateInstance(i * Math.PI / 2, m, m);
+            c.poly(t, r[3], m - 1, m - 24, m + 1, m - 24, m + 1, m - 10, m - 1, m - 10);
+        }
+        for(int[] e : new int[][]{{m, 14}, {m, size - 15}, {14, m}, {size - 15, m}}){
+            c.octagon(M[0], e[0], e[1], 5);
+            c.octagon(r[2], e[0], e[1], 3);
+            c.octagon(r[5], e[0], e[1], 1);
+        }
+        // grand cristal central, mêmes facettes que l'objet
+        int bx = m, by = m + 12, h = 26, w = 14;
+        c.poly(r[3], bx, by - h, bx - w / 2, by - h * 2 / 3, bx - w / 2, by, bx, by);
+        c.poly(r[1], bx, by - h, bx, by, bx + w / 2, by, bx + w / 2, by - h * 2 / 3);
+        c.poly(r[4], bx, by - h, bx - w / 2, by - h * 2 / 3, bx - w / 4, by - h * 2 / 3 + 2, bx, by - h * 2 / 3 - 1);
+        c.set(bx - 1, by - h + 4, r[5]);
+        c.outline();
+        return c.img;
+    }
+
+    /** Socle de pont (et extrémité, plus petite) : plaque chanfreinée et anneau de couleur. */
+    private static BufferedImage bridgeBase(int size, Color[] r, int ring){
         Canvas c = new Canvas(size);
         int m = size / 2;
-        c.poly(r[3], m, 8, m - 22, m + 6, m - 20, m + 12, m - 6, m + 8, m, m + 6);
-        c.poly(r[1], m, 8, m, m + 6, m + 6, m + 8, m + 20, m + 12, m + 22, m + 6);
-        c.poly(r[4], m - 22, m + 6, m - 20, m + 12, m - 18, m + 8);
-        Polygon hull = Canvas.chamfer(m - 6, 4, 12, size - 10, 4);
-        c.fill(hull, M[2]);
-        c.bevel(hull, M[4], M[0], 1);
-        c.rect(M[0], m - 3, m - 2, 6, 10);
-        c.rect(r[2], m - 2, m - 1, 4, 2);
-        c.rect(r[2], m - 2, m + 4, 4, 2);
+        Polygon pad = Canvas.chamfer(m - ring - 2, m - ring - 2, 2 * ring + 4, 2 * ring + 4, ring / 2);
+        c.fill(pad, M[2]);
+        c.bevel(pad, M[4], M[1], 2);
+        c.octagon(M[0], m, m, ring - 3);
+        c.octagon(r[2], m, m, ring - 5);
+        c.octagon(r[4], m - 1, m - 1, Math.max(1, ring - 9));
+        c.outline();
+        return c.img;
+    }
+
+    /** Poutre du pont, horizontale (le jeu l'étire et la tourne entre les deux socles). */
+    private static BufferedImage bridgeBeam(int size, Color[] r){
+        Canvas c = new Canvas(size);
+        int m = size / 2;
+        c.rect(M[1], 0, m - 5, size, 10);
+        c.rect(r[2], 0, m - 3, size, 6);
+        c.rect(r[4], 0, m - 3, size, 1);
+        c.rect(r[0], 0, m + 2, size, 1);
+        for(int x = 2; x < size; x += 8) c.rect(M[0], x, m - 1, 3, 2);
+        return c.img;
+    }
+
+    private static BufferedImage bridgeArrow(int size, Color[] r){
+        Canvas c = new Canvas(size);
+        int m = size / 2;
+        c.poly(r[4], m - 4, m - 6, m + 4, m, m - 4, m + 6, m - 2, m);
+        c.outline();
+        return c.img;
+    }
+
+    /** Canon électrique 3x3 : deux rails parallèles sur toute la longueur, condensateurs lumineux, corps blindé. */
+    private static BufferedImage railgun(int size, Color[] r){
+        Canvas c = new Canvas(size);
+        int m = size / 2;
         for(int dir : new int[]{-1, 1}){
-            c.octagon(M[0], m + dir * 12, m + 12, 3);
-            c.octagon(r[4], m + dir * 12, m + 12, 1);
+            int x = m + dir * 7 - (dir < 0 ? 4 : 0);
+            c.rect(M[3], x, 2, 4, m + 10);
+            c.rect(dir < 0 ? M[5] : M[1], dir < 0 ? x : x + 3, 2, 1, m + 10);
         }
-        c.octagon(r[4], m, 9, 2);
+        c.rect(M[0], m - 3, 4, 6, m + 6);
+        for(int y = 8; y < m + 6; y += 6) c.rect(r[3], m - 2, y, 4, 2);
+        Polygon body = Canvas.chamfer(m - 26, m - 4, 52, 46, 14);
+        c.fill(body, M[2]);
+        c.bevel(body, M[4], M[1], 2);
+        for(int dir : new int[]{-1, 1}){
+            for(int i = 0; i < 3; i++){
+                int cx = m + dir * 18, cy = m + 4 + i * 11;
+                c.octagon(M[0], cx, cy, 4);
+                c.octagon(r[2], cx, cy, 3);
+                c.octagon(r[5], cx - 1, cy - 1, 1);
+            }
+        }
+        c.octagon(M[0], m, m + 16, 10);
+        c.octagon(r[1], m, m + 16, 8);
+        c.octagon(r[3], m, m + 16, 5);
+        c.octagon(r[5], m - 1, m + 15, 2);
+        c.outline();
+        return c.img;
+    }
+
+    /** Navire vu de dessus, proue vers le haut : coque facettée, pont métallique, bande de couleur. */
+    private static BufferedImage naval(int size, Color[] r){
+        Canvas c = new Canvas(size);
+        int m = size / 2;
+        float k = size / 40f;
+        int w = Math.round(11 * k), bow = Math.round(3 * k), stern = size - Math.round(4 * k);
+        c.poly(M[3], m, bow, m - w, bow + Math.round(12 * k), m - w, stern - Math.round(3 * k), m, stern);
+        c.poly(M[1], m, bow, m, stern, m + w, stern - Math.round(3 * k), m + w, bow + Math.round(12 * k));
+        int dw = Math.round(7 * k);
+        Polygon deck = Canvas.chamfer(m - dw, bow + Math.round(12 * k), 2 * dw, stern - bow - Math.round(18 * k), Math.round(3 * k));
+        c.fill(deck, M[2]);
+        c.bevel(deck, M[4], M[0], 1);
+        c.rect(r[2], m - w + 1, bow + Math.round(14 * k), Math.round(2 * k), Math.round(14 * k));
+        c.rect(r[1], m + w - Math.round(2 * k), bow + Math.round(14 * k), Math.round(2 * k), Math.round(14 * k));
+        c.octagon(M[0], m, m + Math.round(6 * k), Math.round(3 * k));
+        c.octagon(r[3], m, m + Math.round(6 * k), Math.round(2 * k));
+        if(k > 1.2f){
+            // Navires plus grands : passerelle et seconde tourelle à l'avant.
+            Polygon bridge = Canvas.chamfer(m - Math.round(4 * k), m - Math.round(3 * k), Math.round(8 * k), Math.round(5 * k), 2);
+            c.fill(bridge, M[4]);
+            c.bevel(bridge, M[5], M[2], 1);
+            c.octagon(M[0], m, bow + Math.round(15 * k), Math.round(2.5f * k));
+            c.octagon(r[3], m, bow + Math.round(15 * k), Math.round(1.5f * k));
+        }
+        if(k > 1.5f){
+            for(int dir : new int[]{-1, 1}) c.rect(r[4], m + dir * Math.round(9 * k) - 1, stern - Math.round(10 * k), 2, Math.round(6 * k));
+        }
         return c.img;
     }
 
@@ -750,6 +950,18 @@ public final class SpriteGenerator{
         c.octagon(r[3], m, m + 5, Math.round(3 * k) - 1);
         c.set(m - 1, m + 4, r[5]);
         for(int i = -1; i <= 1; i++) c.rect(M[1], m + i * 4 - 1, m + th - 4, 2, 2);
+        if(k > 1.5f){
+            // Grandes unités : plaques de blindage supplémentaires, feux d'épaule et bande de visière plus large.
+            for(int dir : new int[]{-1, 1}){
+                Polygon plate = Canvas.chamfer(m + dir * (tw - 4) - (dir < 0 ? 6 : 0), m - 3, 6, Math.round(8 * k), 2);
+                c.fill(plate, M[3]);
+                c.bevel(plate, M[5], M[1], 1);
+                c.octagon(M[0], m + dir * (sh - 3), m - th + Math.round(9 * k), Math.round(1.5f * k));
+                c.octagon(r[4], m + dir * (sh - 3), m - th + Math.round(9 * k), Math.max(1, Math.round(0.8f * k)));
+            }
+            c.rect(M[0], m - Math.round(6 * k), m - th + 2, Math.round(12 * k), 3);
+            c.rect(r[5], m - Math.round(5 * k), m - th + 3, Math.round(10 * k), 1);
+        }
         return c.img;
     }
 
@@ -774,21 +986,57 @@ public final class SpriteGenerator{
         return c.img;
     }
 
-    /** Aile delta en couches : ailes colorées facettées, fuselage métallique, verrière et réacteur lumineux. */
+    /** Aile delta en couches : ailes colorées facettées, fuselage métallique, verrière et réacteur. Proportionnel à la taille. */
     private static BufferedImage flyer(int size, Color[] r){
         Canvas c = new Canvas(size);
         int m = size / 2;
-        c.poly(r[3], m, 5, m - 17, m + 12, m - 12, m + 14, m, m + 6);
-        c.poly(r[1], m, 5, m, m + 6, m + 12, m + 14, m + 17, m + 12);
-        c.poly(r[4], m - 17, m + 12, m - 12, m + 14, m - 11, m + 11);
-        c.poly(r[2], m - 9, m + 2, m - 14, m + 11, m - 10, m + 12, m - 6, m + 4);
-        c.poly(r[0], m + 9, m + 2, m + 14, m + 11, m + 10, m + 12, m + 6, m + 4);
-        c.poly(M[3], m, 2, m - 5, m + 4, m - 4, m + 16, m, m + 18);
-        c.poly(M[1], m, 2, m, m + 18, m + 4, m + 16, m + 5, m + 4);
-        c.octagon(M[0], m, m - 3, 3);
-        c.octagon(r[4], m, m - 3, 2);
-        c.rect(r[5], m - 2, m + 16, 4, 2);
-        c.rect(r[3], m - 1, m + 18, 2, 1);
+        float k = size / 40f;
+        int w = Math.round(17 * k), tail = Math.round(12 * k), nose = Math.round(5 * k), mid = Math.round(6 * k);
+        c.poly(r[3], m, nose, m - w, m + tail, m - w + Math.round(5 * k), m + tail + Math.round(2 * k), m, m + mid);
+        c.poly(r[1], m, nose, m, m + mid, m + w - Math.round(5 * k), m + tail + Math.round(2 * k), m + w, m + tail);
+        c.poly(r[4], m - w, m + tail, m - w + Math.round(5 * k), m + tail + Math.round(2 * k), m - w + Math.round(6 * k), m + tail - Math.round(1 * k));
+        c.poly(r[2], m - Math.round(9 * k), m + Math.round(2 * k), m - Math.round(14 * k), m + Math.round(11 * k), m - Math.round(10 * k), m + Math.round(12 * k), m - Math.round(6 * k), m + Math.round(4 * k));
+        c.poly(r[0], m + Math.round(9 * k), m + Math.round(2 * k), m + Math.round(14 * k), m + Math.round(11 * k), m + Math.round(10 * k), m + Math.round(12 * k), m + Math.round(6 * k), m + Math.round(4 * k));
+        int fw = Math.max(3, Math.round(5 * k)), fl = Math.round(18 * k);
+        c.poly(M[3], m, Math.round(2 * k), m - fw, m + Math.round(4 * k), m - fw + 1, m + fl - 2, m, m + fl);
+        c.poly(M[1], m, Math.round(2 * k), m, m + fl, m + fw - 1, m + fl - 2, m + fw, m + Math.round(4 * k));
+        if(k > 1.3f){
+            // Grandes unités : plaques et lumières supplémentaires.
+            for(int dir : new int[]{-1, 1}){
+                c.octagon(M[0], m + dir * Math.round(10 * k), m + Math.round(8 * k), Math.round(2 * k));
+                c.octagon(r[4], m + dir * Math.round(10 * k), m + Math.round(8 * k), Math.max(1, Math.round(k)));
+            }
+        }
+        c.octagon(M[0], m, m - Math.round(3 * k), Math.round(3 * k));
+        c.octagon(r[4], m, m - Math.round(3 * k), Math.round(2 * k));
+        c.rect(r[5], m - Math.round(2 * k), m + fl - 2, Math.round(4 * k), Math.round(2 * k));
+        return c.img;
+    }
+
+    /** Bombardier : ailes larges en flèche, soute centrale et deux réacteurs. Proportionnel à la taille. */
+    private static BufferedImage bomber(int size, Color[] r){
+        Canvas c = new Canvas(size);
+        int m = size / 2;
+        float k = size / 48f;
+        int w = Math.round(22 * k), top = Math.round(8 * k);
+        c.poly(r[3], m, top, m - w, m + Math.round(6 * k), m - w + Math.round(2 * k), m + Math.round(12 * k), m - Math.round(6 * k), m + Math.round(8 * k), m, m + Math.round(6 * k));
+        c.poly(r[1], m, top, m, m + Math.round(6 * k), m + Math.round(6 * k), m + Math.round(8 * k), m + w - Math.round(2 * k), m + Math.round(12 * k), m + w, m + Math.round(6 * k));
+        c.poly(r[4], m - w, m + Math.round(6 * k), m - w + Math.round(2 * k), m + Math.round(12 * k), m - w + Math.round(4 * k), m + Math.round(8 * k));
+        Polygon hull = Canvas.chamfer(m - Math.round(6 * k), Math.round(4 * k), Math.round(12 * k), size - Math.round(10 * k), Math.round(4 * k));
+        c.fill(hull, M[2]);
+        c.bevel(hull, M[4], M[0], Math.max(1, Math.round(k)));
+        c.rect(M[0], m - Math.round(3 * k), m - Math.round(2 * k), Math.round(6 * k), Math.round(10 * k));
+        c.rect(r[2], m - Math.round(2 * k), m - Math.round(1 * k), Math.round(4 * k), Math.round(2 * k));
+        c.rect(r[2], m - Math.round(2 * k), m + Math.round(4 * k), Math.round(4 * k), Math.round(2 * k));
+        for(int dir : new int[]{-1, 1}){
+            c.octagon(M[0], m + dir * Math.round(12 * k), m + Math.round(12 * k), Math.round(3 * k));
+            c.octagon(r[4], m + dir * Math.round(12 * k), m + Math.round(12 * k), Math.max(1, Math.round(k)));
+            if(k > 1.3f){
+                c.octagon(M[0], m + dir * Math.round(18 * k), m + Math.round(10 * k), Math.round(2 * k));
+                c.octagon(r[4], m + dir * Math.round(18 * k), m + Math.round(10 * k), Math.max(1, Math.round(k)));
+            }
+        }
+        c.octagon(r[4], m, Math.round(9 * k), Math.round(2 * k));
         return c.img;
     }
 

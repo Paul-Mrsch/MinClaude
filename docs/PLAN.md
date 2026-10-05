@@ -61,18 +61,18 @@ Légende : ✅ fait · 🔄 en cours · ⬜ à faire
 | A2.8 | Prévisions avancées | Objectifs de stock (progression, échéance, alerte, sauvegardés) ; capacité installée et demande installée par ressource (`ProductionModel`) | `V2LogicTest`, `BaseIT`, `TrackingIT` | ✅ |
 | A2.9 | Convoyeurs | Les 5 formes vanilla (droit, virage, entrée latérale, jonction, double entrée) pour les deux convoyeurs | `ContentIT` (régions), capture `13b-base-demo-v2` | ✅ |
 
-## V3 — Contenu complet (15 éléments ou plus par catégorie)
+## V3 — Contenu complet (15 éléments ou plus par catégorie) ✅
 
-| # | Artefact | Contenu |
-|---|---|---|
-| A3.1 | Ressources, lot 3 | Duralumin, cermet, fibre de carbone, pâte de nanites, cristal quantique… (au moins 15 au total) |
-| A3.2 | Industries, lot 3 | Chaînes de fin de jeu (au moins 15 au total) |
-| A3.3 | Bâtiments, lot 3 | Logistique avancée (pont, transport de masse), tourelles lourdes (au moins 15 au total) |
-| A3.4 | Unités alliées, lot 3 | Au moins 15 au total, dont des unités navales |
-| A3.5 | Ennemis, lot 3 | Au moins 15 au total, dont des boss |
-| A3.6 | IA : adaptation | La composition des vagues s'adapte aux défenses du joueur (anti-aérien faible → plus d'aérien, etc.) |
-| A3.7 | Mesure exacte des flux | Intercepter les transferts vers le noyau pour remplacer l'estimation des entrées/sorties |
-| A3.8 | Performance | Coût par tick du tracker, du scanner et des escouades sur une grosse base ; test « partie longue » (1 h simulée) |
+| # | Artefact | Contenu livré | Tests | Statut |
+|---|---|---|---|---|
+| A3.1 | Ressources, lot 3 | Duralumin, cermet, fibre de carbone, cristal quantique ; acide sulfurique. Total : 13 objets + 3 liquides | `ContentIT` (≥ 15) | ✅ |
+| A3.2 | Industries, lot 3 | Forge à duralumin, usine d'acide, four à cermet, tisseuse de carbone, résonateur quantique (3x3). Total : 15 | `ContentIT` (≥ 15, recettes) | ✅ |
+| A3.3 | Bâtiments, lot 3 | Murs en cermet (2, isolés), pont en duralumin, canon électrique (3x3, perforant). Total : 17 | `ContentIT` (≥ 15) | ✅ |
+| A3.4 | Unités alliées, lot 3 | Éclaireur, Ingénieur (construit et mine), Citadelle T4, Colosse T5, Balise T3, Sanctuaire T4, Halo T5, Esquif, Corvette, Frégate (navals). Total : 15 | `ContentIT` (reconstructeurs T4/T5, usine navale) | ✅ |
+| A3.5 | Ennemis, lot 3 | Essaimeur, Sapeur, Brise-siège, Électrocuteur, Mastodonte, Traqueur, Fantôme, Cannonière, Aile-terreur, et deux boss : Seigneur de guerre, Léviathan. Total : 16 | `WorldIT` (effet boss), `V3LogicTest` | ✅ |
+| A3.6 | IA : adaptation | Bonus d'unités par famille (volants, siège, blindés, essaims) selon la défense du joueur, recalculé à chaque vague, plafonné par la difficulté | `V3LogicTest`, `V3IT` (bonus puis retour exact à la base) | ✅ |
+| A3.7 | Mesure exacte des flux | Noyaux vanilla instrumentés : entrées exactes, sorties exactes (par le stock), objets perdus quand le noyau est plein | `V3LogicTest`, `V3IT` (entrée et sortie dans le même tick, pertes) | ✅ |
+| A3.8 | Performance | Suivi : 0,01 ms par tick ; relevé + escouades : 0,4 ms par seconde (160 bâtiments, 150 unités) ; 1 h de partie = 25 Ko de sauvegarde | `V3IT` (seuils) | ✅ |
 
 ## V4 — Version 1.0
 

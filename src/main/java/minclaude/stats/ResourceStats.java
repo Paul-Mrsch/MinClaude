@@ -29,6 +29,11 @@ public record ResourceStats(float stock, float capacity, float inPerSec, float o
         return "item/" + item + "/out";
     }
 
+    /** Objets détruits faute de place dans le noyau (mesure exacte seulement). */
+    public static String lostKey(String item){
+        return "item/" + item + "/lost";
+    }
+
     public static ResourceStats compute(MetricHistory history, String item, float capacity, int windowSeconds){
         TieredSeries stock = history.get(stockKey(item)), in = history.get(inKey(item)), out = history.get(outKey(item));
         if(stock == null) return new ResourceStats(0, capacity, 0, 0, 0, Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY);

@@ -15,7 +15,11 @@ public final class EnemyWavePlan{
      * @param scaling  vagues nécessaires pour ajouter une unité
      * @param max      plafond d'unités par point d'apparition
      */
-    public record Group(String unit, int begin, int spacing, int amount, float scaling, int max){}
+    public record Group(String unit, int begin, int spacing, int amount, float scaling, int max, boolean boss){
+        public Group(String unit, int begin, int spacing, int amount, float scaling, int max){
+            this(unit, begin, spacing, amount, scaling, max, false);
+        }
+    }
 
     private EnemyWavePlan(){}
 
@@ -36,7 +40,20 @@ public final class EnemyWavePlan{
             new Group("ravager", 22 + shift, 4, 1, scaling * 1.5f, max / 2),
             new Group("hornet", 26 + shift, 5, 1, scaling * 1.5f, max / 2),
             // Mini-boss : rare et plafonné bas.
-            new Group("brute", 35 + shift, 10, 1, scaling * 4f, Math.max(1, d - 1))
+            new Group("brute", 35 + shift, 10, 1, scaling * 4f, Math.max(1, d - 1)),
+            // V3
+            new Group("swarmling", 8 + shift, 2, 3, scaling / 2f, max * 2),
+            new Group("phantom", 14 + shift, 3, 2, scaling, max),
+            new Group("stalker", 18 + shift, 3, 1, scaling, max),
+            new Group("sapper", 20 + shift, 4, 1, scaling * 1.5f, max / 2),
+            new Group("shocker", 28 + shift, 4, 1, scaling * 1.5f, max / 2),
+            new Group("siegebreaker", 30 + shift, 5, 1, scaling * 2f, max / 2),
+            new Group("gunship", 32 + shift, 5, 1, scaling * 2f, max / 2),
+            new Group("juggernaut", 40 + shift, 8, 1, scaling * 3f, Math.max(1, d)),
+            new Group("dreadwing", 45 + shift, 8, 1, scaling * 3f, Math.max(1, d)),
+            // Boss : un seul à la fois, avec l'effet « boss » du jeu (barre de vie, protection).
+            new Group("warlord", 60 + shift, 15, 1, 1000f, 1, true),
+            new Group("leviathan", 70 + shift, 15, 1, 1000f, 1, true)
         );
     }
 }

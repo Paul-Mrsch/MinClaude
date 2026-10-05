@@ -12,7 +12,9 @@ import mindustry.world.blocks.defense.turrets.ItemTurret;
 import mindustry.world.blocks.defense.turrets.LiquidTurret;
 import mindustry.world.blocks.storage.StorageBlock;
 import mindustry.entities.bullet.LiquidBulletType;
+import mindustry.entities.bullet.RailBulletType;
 import mindustry.world.blocks.distribution.ArmoredConveyor;
+import mindustry.world.blocks.distribution.BufferedItemBridge;
 import mindustry.world.blocks.distribution.Conveyor;
 import mindustry.world.blocks.environment.OreBlock;
 import mindustry.world.blocks.power.PowerNode;
@@ -29,10 +31,12 @@ public final class MCBlocks{
     public static OreBlock oreCobalt, oreNickel, oreZinc, oreBauxite, oreChrome;
     // Industries
     public static Block cobaltSmelter, aluminumSmelter, brassFoundry, oreWasher, percussionDrill,
-        steelFurnace, alloyPress, brineMixer, cryogenizer, electrolyzer;
+        steelFurnace, alloyPress, brineMixer, cryogenizer, electrolyzer,
+        duraluminForge, acidPlant, cermetKiln, carbonWeaver, quantumResonator;
     // Bâtiments
     public static Block cobaltWall, cobaltWallLarge, nickelWall, nickelWallLarge, reinforcedConveyor, rivet, aluminumNode,
-        steelWall, steelWallLarge, platedConveyor, volley, frost, invarContainer;
+        steelWall, steelWallLarge, platedConveyor, volley, frost, invarContainer,
+        cermetWall, cermetWallLarge, duraluminBridge, railgun;
 
     /** Tous les blocs du mod (tests, générateur de sprites). */
     public static final Seq<Block> all = new Seq<>();
@@ -183,6 +187,139 @@ public final class MCBlocks{
         }});
 
         loadV2();
+        loadV3();
+    }
+
+    /** V3 : chimie et matériaux de fin de jeu, pont longue portée, tourelle lourde. */
+    private static void loadV3(){
+        duraluminForge = add(new GenericCrafter("duralumin-forge"){{
+            requirements(Category.crafting, with(Items.silicon, 60, MCItems.steel, 50, MCItems.chrome, 30));
+            craftEffect = Fx.smeltsmoke;
+            outputItem = new ItemStack(MCItems.duralumin, 2);
+            craftTime = 80f;
+            size = 2;
+            hasPower = true;
+            consumePower(1.6f);
+            consumeItems(with(MCItems.aluminum, 3, Items.copper, 1, MCItems.chrome, 1));
+        }});
+
+        acidPlant = add(new GenericCrafter("acid-plant"){{
+            requirements(Category.crafting, with(Items.metaglass, 50, Items.silicon, 40, MCItems.invar, 30));
+            outputLiquid = new LiquidStack(MCLiquids.acid, 8f / 60f);
+            craftTime = 60f;
+            size = 2;
+            hasPower = true;
+            hasLiquids = true;
+            outputsLiquid = true;
+            liquidCapacity = 30f;
+            consumePower(1f);
+            consumeItem(Items.pyratite, 1);
+            consumeLiquid(Liquids.water, 8f / 60f);
+        }});
+
+        cermetKiln = add(new GenericCrafter("cermet-kiln"){{
+            requirements(Category.crafting, with(Items.silicon, 70, MCItems.duralumin, 40, MCItems.invar, 40));
+            craftEffect = Fx.smeltsmoke;
+            outputItem = new ItemStack(MCItems.cermet, 1);
+            craftTime = 70f;
+            size = 2;
+            hasPower = true;
+            hasLiquids = true;
+            consumePower(2f);
+            consumeItems(with(Items.silicon, 1, MCItems.chrome, 1, Items.titanium, 1));
+            consumeLiquid(MCLiquids.acid, 4f / 60f);
+        }});
+
+        carbonWeaver = add(new GenericCrafter("carbon-weaver"){{
+            requirements(Category.crafting, with(Items.plastanium, 40, MCItems.duralumin, 40, MCItems.chrome, 30));
+            craftEffect = Fx.pulverizeMedium;
+            outputItem = new ItemStack(MCItems.carbonFiber, 1);
+            craftTime = 90f;
+            size = 2;
+            hasPower = true;
+            hasLiquids = true;
+            consumePower(2.2f);
+            consumeItems(with(Items.graphite, 3, Items.plastanium, 1));
+            consumeLiquid(MCLiquids.acid, 4f / 60f);
+        }});
+
+        quantumResonator = add(new GenericCrafter("quantum-resonator"){{
+            requirements(Category.crafting, with(Items.surgeAlloy, 40, MCItems.cermet, 60, MCItems.carbonFiber, 40));
+            craftEffect = Fx.smeltsmoke;
+            outputItem = new ItemStack(MCItems.quantumCrystal, 1);
+            craftTime = 150f;
+            size = 3;
+            hasPower = true;
+            hasLiquids = true;
+            consumePower(6f);
+            consumeItems(with(Items.phaseFabric, 1, MCItems.cobalt, 2, MCItems.cermet, 1));
+            consumeLiquid(MCLiquids.nitrogen, 6f / 60f);
+        }});
+
+        cermetWall = add(new Wall("cermet-wall"){{
+            requirements(Category.defense, with(MCItems.cermet, 6));
+            health = 200 * WALL_HEALTH_MULTIPLIER;
+            insulated = true;
+            absorbLasers = true;
+        }});
+
+        cermetWallLarge = add(new Wall("cermet-wall-large"){{
+            requirements(Category.defense, ItemStack.mult(cermetWall.requirements, 4));
+            health = 200 * WALL_HEALTH_MULTIPLIER * 4;
+            size = 2;
+            insulated = true;
+            absorbLasers = true;
+        }});
+
+        duraluminBridge = add(new BufferedItemBridge("duralumin-bridge"){{
+            requirements(Category.distribution, with(Items.lead, 8, MCItems.duralumin, 6));
+            fadeIn = moveArrows = false;
+            range = 7;
+            speed = 80f;
+            arrowSpacing = 6f;
+            bufferCapacity = 16;
+        }});
+
+        railgun = add(new ItemTurret("railgun"){{
+            requirements(Category.turret, with(Items.surgeAlloy, 80, MCItems.duralumin, 120, MCItems.cermet, 80, MCItems.carbonFiber, 60));
+            ammo(
+                MCItems.duralumin, new RailBulletType(){{
+                    length = 320f;
+                    damage = 320f;
+                    pierceDamageFactor = 0.5f;
+                    hitColor = MCItems.duralumin.color;
+                    hitEffect = endEffect = Fx.hitBulletColor;
+                    shootEffect = Fx.instShoot;
+                    smokeEffect = Fx.smokeCloud;
+                    pointEffect = Fx.railTrail;
+                    pointEffectSpace = 20f;
+                }},
+                MCItems.quantumCrystal, new RailBulletType(){{
+                    length = 360f;
+                    damage = 620f;
+                    pierceDamageFactor = 0.6f;
+                    status = StatusEffects.shocked;
+                    hitColor = MCItems.quantumCrystal.color;
+                    hitEffect = endEffect = Fx.hitBulletColor;
+                    shootEffect = Fx.instShoot;
+                    smokeEffect = Fx.smokeCloud;
+                    pointEffect = Fx.railTrail;
+                    pointEffectSpace = 18f;
+                }}
+            );
+            size = 3;
+            range = 300f;
+            reload = 140f;
+            recoil = 6f;
+            shake = 4f;
+            shootCone = 2f;
+            rotateSpeed = 2.4f;
+            health = 2200;
+            targetAir = true;
+            shootSound = Sounds.shootArtillery;
+            coolant = consumeCoolant(0.5f);
+            consumePower(8f);
+        }});
     }
 
     /** V2 : acier, invar, chrome, liquides, défense et logistique avancées. */

@@ -41,7 +41,8 @@ public class ResourcesTab extends DashboardTab{
             right.add(stockGraph).grow().pad(4f).row();
             right.table(legend -> {
                 legend.add("■ " + text("minclaude.stat.in")).color(IN_COLOR).padRight(16f);
-                legend.add("■ " + text("minclaude.stat.out")).color(OUT_COLOR);
+                legend.add("■ " + text("minclaude.stat.out")).color(OUT_COLOR).padRight(16f);
+                legend.label(() -> text(tracker.exactFlows() ? "minclaude.stat.exact" : "minclaude.stat.estimated")).color(Color.gray);
             }).left().row();
             right.add(flowGraph).growX().pad(4f).row();
             right.add(details).growX().pad(4f);
@@ -84,6 +85,9 @@ public class ResourcesTab extends DashboardTab{
         stat(details, text("minclaude.stat.in"), Format.ratePerMinute(s.inPerSec()), IN_COLOR);
         stat(details, text("minclaude.stat.out"), Format.ratePerMinute(-s.outPerSec()), OUT_COLOR);
         stat(details, text("minclaude.stat.net"), Format.ratePerMinute(s.slopePerSec()), ResourceOverlay.rateColor(s.slopePerSec()));
+        var lostSeries = h.get(ResourceStats.lostKey(selected.name));
+        float lost = lostSeries == null ? 0f : Trend.mean(lostSeries.recent(ResourceStats.DEFAULT_WINDOW));
+        if(lost > 0f) stat(details, text("minclaude.stat.lost"), Format.ratePerMinute(-lost), Pal.remove);
         details.row();
         stat(details, text("minclaude.stat.empty"), Format.duration(s.secondsToEmpty()), Pal.remove);
         stat(details, text("minclaude.stat.full"), Format.duration(s.secondsToFull()), Pal.accent);

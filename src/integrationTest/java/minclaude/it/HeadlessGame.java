@@ -46,7 +46,13 @@ public final class HeadlessGame{
                 world = new World();
                 content.createBaseContent();
                 mod = new MinClaudeMod();
-                mod.loadContent();
+                try{
+                    mod.loadContent();
+                }catch(IllegalArgumentException e){
+                    // En test, le préfixe du mod n'est pas appliqué : un nom identique au vanilla provoque ce conflit.
+                    throw new AssertionError("Nom de contenu déjà utilisé par le jeu de base (renommer le contenu du mod) : "
+                        + e.getMessage(), e);
+                }
                 add(logic = new Logic());
                 content.init();
                 mod.init();

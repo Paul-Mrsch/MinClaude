@@ -23,6 +23,11 @@ public final class MCTechTree{
         node(steel, MCItems.invar, ItemStack.empty);
         node(Liquids.water.techNode, MCLiquids.brine, ItemStack.empty);
         node(Liquids.water.techNode, MCLiquids.nitrogen, ItemStack.empty);
+        node(Liquids.water.techNode, MCLiquids.acid, ItemStack.empty);
+        TechNode duralumin = node(MCItems.aluminum.techNode, MCItems.duralumin, ItemStack.empty);
+        node(duralumin, MCItems.cermet, ItemStack.empty);
+        node(Items.plastanium.techNode, MCItems.carbonFiber, ItemStack.empty);
+        node(Items.phaseFabric.techNode, MCItems.quantumCrystal, ItemStack.empty);
 
         // Industries
         node(Blocks.siliconSmelter.techNode, MCBlocks.cobaltSmelter);
@@ -35,6 +40,11 @@ public final class MCTechTree{
         TechNode mixer = node(MCBlocks.oreWasher.techNode, MCBlocks.brineMixer);
         node(mixer, MCBlocks.electrolyzer);
         node(MCBlocks.aluminumSmelter.techNode, MCBlocks.cryogenizer);
+        node(furnace, MCBlocks.duraluminForge);
+        TechNode acid = node(mixer, MCBlocks.acidPlant);
+        TechNode kiln = node(acid, MCBlocks.cermetKiln);
+        node(acid, MCBlocks.carbonWeaver);
+        node(kiln, MCBlocks.quantumResonator);
 
         // Défense
         TechNode wall = node(Blocks.titaniumWall.techNode, MCBlocks.cobaltWall);
@@ -46,19 +56,33 @@ public final class MCTechTree{
         node(Blocks.wave.techNode, MCBlocks.frost);
         TechNode steelWall = node(MCBlocks.cobaltWall.techNode, MCBlocks.steelWall);
         node(steelWall, MCBlocks.steelWallLarge);
+        TechNode cermetWall = node(steelWall, MCBlocks.cermetWall);
+        node(cermetWall, MCBlocks.cermetWallLarge);
+        node(Blocks.ripple.techNode, MCBlocks.railgun);
 
         // Logistique et énergie
         node(Blocks.titaniumConveyor.techNode, MCBlocks.reinforcedConveyor);
         node(Blocks.powerNode.techNode, MCBlocks.aluminumNode);
         node(MCBlocks.reinforcedConveyor.techNode, MCBlocks.platedConveyor);
         node(Blocks.container.techNode, MCBlocks.invarContainer);
+        node(Blocks.itemBridge.techNode, MCBlocks.duraluminBridge);
 
         // Unités alliées (les ennemies ne sont pas recherchables)
         node(UnitTypes.dagger.techNode, MCUnits.warden);
         TechNode aid = node(UnitTypes.flare.techNode, MCUnits.aid);
         TechNode sentinel = node(MCUnits.warden.techNode, MCUnits.sentinel);
         node(sentinel, MCUnits.bastion);
-        node(aid, MCUnits.relay);
+        TechNode relay = node(aid, MCUnits.relay);
+        TechNode scout = node(MCUnits.warden.techNode, MCUnits.scout);
+        node(scout, MCUnits.engineer);
+        TechNode citadel = node(MCUnits.bastion.techNode, MCUnits.citadel);
+        node(citadel, MCUnits.colossus);
+        TechNode beacon = node(relay, MCUnits.beacon);
+        TechNode sanctum = node(beacon, MCUnits.sanctum);
+        node(sanctum, MCUnits.halo);
+        TechNode skiff = node(UnitTypes.risso.techNode, MCUnits.skiff);
+        TechNode corvette = node(skiff, MCUnits.corvette);
+        node(corvette, MCUnits.frigate);
     }
 
     private static TechNode node(TechNode parent, UnlockableContent content){

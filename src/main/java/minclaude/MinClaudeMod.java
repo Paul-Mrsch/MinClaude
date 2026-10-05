@@ -7,6 +7,7 @@ import arc.input.KeyCode;
 import arc.util.Log;
 import minclaude.ai.SmartAI;
 import minclaude.ai.SquadManager;
+import minclaude.ai.WaveAdapter;
 import minclaude.content.*;
 import minclaude.debug.SelfTest;
 import minclaude.stats.Format;
@@ -24,6 +25,7 @@ import static mindustry.Vars.*;
 public class MinClaudeMod extends Mod{
     public static final ResourceTracker tracker = new ResourceTracker();
     public static final SquadManager squads = new SquadManager();
+    public static final WaveAdapter waves = new WaveAdapter();
     public static DashboardDialog dashboard;
     public static KeyBind dashboardKey;
 
@@ -33,6 +35,7 @@ public class MinClaudeMod extends Mod{
         SaveVersion.addCustomChunk(ResourceTracker.CHUNK_NAME, new HistoryChunk(tracker));
         SaveVersion.addCustomChunk(ResourceTracker.GOALS_CHUNK_NAME, new GoalsChunk(tracker.goals()));
         squads.register();
+        waves.register();
 
         Events.on(ClientLoadEvent.class, e -> {
             ModSettings.register();
@@ -51,6 +54,8 @@ public class MinClaudeMod extends Mod{
 
     @Override
     public void init(){
+        int cores = CoreFlowHook.install();
+        Log.info("[MinClaude] Mesure exacte des flux sur @ types de noyau.", cores);
         int smart = SmartAI.install();
         Log.info("[MinClaude] IA intelligente installée sur @ types d'unités.", smart);
         if(headless) return;
