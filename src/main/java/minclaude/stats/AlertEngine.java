@@ -13,7 +13,13 @@ public final class AlertEngine{
         /** Le stock est passé sous le seuil bas. */
         LOW_STOCK,
         /** Le noyau est plein alors que des ressources arrivent : elles sont perdues. */
-        CORE_FULL
+        CORE_FULL,
+        /** Des usines sont arrêtées faute de cette ressource (valeur = nombre d'usines). */
+        INDUSTRY_STARVED,
+        /** Le réseau électrique ne couvre pas la demande (valeur = part couverte, 0..1). */
+        POWER_SHORTAGE,
+        /** Des tourelles n'ont plus de munitions (valeur = nombre de tourelles). */
+        TURRETS_NO_AMMO
     }
 
     public record Alert(String item, Type type, float value){}
@@ -60,6 +66,16 @@ public final class AlertEngine{
         check(item, Type.DEPLETING, depleting, s.secondsToEmpty(), now, result);
         check(item, Type.LOW_STOCK, lowStock, s.stock(), now, result);
         check(item, Type.CORE_FULL, full, s.inPerSec(), now, result);
+        return result;
+    }
+
+    /**
+     * Règle générique : déclenche {@code type} pour {@code key} au moment où {@code condition} devient vraie,
+     * avec la même logique anti-répétition que les alertes de ressources.
+     */
+    public List<Alert> evaluateCondition(String key, Type type, boolean condition, float value, float now){
+        List<Alert> result = new ArrayList<>(1);
+        check(key, type, condition, value, now, result);
         return result;
     }
 

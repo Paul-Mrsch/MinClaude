@@ -74,6 +74,42 @@ public final class HeadlessGame{
         }
     }
 
+    /** Fait avancer toute la simulation (bâtiments, réseaux électriques, unités, tracker) de {@code ticks} ticks. */
+    public static void run(int ticks){
+        for(int i = 0; i < ticks; i++) logic.update();
+    }
+
+    /** Case libre (sol praticable, sans bloc) au coin bas-gauche d'une zone {@code w}x{@code h}, en partant du noyau. */
+    public static mindustry.world.Tile freeArea(int w, int h){
+        var core = state.rules.defaultTeam.core();
+        int cx = core.tile.x, cy = core.tile.y;
+        for(int r = 4; r < 60; r++){
+            for(int dx = -r; dx <= r; dx++){
+                for(int dy = -r; dy <= r; dy++){
+                    if(Math.max(Math.abs(dx), Math.abs(dy)) != r) continue;
+                    if(areaFree(cx + dx, cy + dy, w, h)) return world.tile(cx + dx, cy + dy);
+                }
+            }
+        }
+        throw new AssertionError("aucune zone libre " + w + "x" + h);
+    }
+
+    private static boolean areaFree(int x, int y, int w, int h){
+        for(int i = -1; i <= w; i++){
+            for(int j = -1; j <= h; j++){
+                var t = world.tile(x + i, y + j);
+                if(t == null || t.block() != mindustry.content.Blocks.air || t.floor().isLiquid || t.floor().solid || t.build != null) return false;
+            }
+        }
+        return true;
+    }
+
+    /** Pose un bloc ; pour un bloc de taille paire, (x, y) est la case de référence du jeu. */
+    public static mindustry.gen.Building place(mindustry.world.Block block, mindustry.game.Team team, int x, int y){
+        world.tile(x, y).setBlock(block, team, 0);
+        return world.tile(x, y).build;
+    }
+
     /** Racine du projet (fichiers du mod), transmise par Gradle. */
     public static Path projectDir(){
         return Path.of(System.getProperty("minclaude.projectDir", "."));

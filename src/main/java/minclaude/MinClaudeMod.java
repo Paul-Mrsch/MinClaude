@@ -5,11 +5,13 @@ import arc.Events;
 import arc.input.KeyBind;
 import arc.input.KeyCode;
 import arc.util.Log;
+import minclaude.ai.SmartAI;
 import minclaude.content.*;
 import minclaude.debug.SelfTest;
 import minclaude.stats.Format;
 import minclaude.tracking.*;
 import minclaude.ui.*;
+import minclaude.world.WorldSetup;
 import mindustry.game.EventType.*;
 import mindustry.gen.Icon;
 import mindustry.io.SaveVersion;
@@ -25,6 +27,7 @@ public class MinClaudeMod extends Mod{
 
     public MinClaudeMod(){
         tracker.register();
+        WorldSetup.register();
         SaveVersion.addCustomChunk(ResourceTracker.CHUNK_NAME, new HistoryChunk(tracker));
 
         Events.on(ClientLoadEvent.class, e -> {
@@ -44,6 +47,8 @@ public class MinClaudeMod extends Mod{
 
     @Override
     public void init(){
+        int smart = SmartAI.install();
+        Log.info("[MinClaude] IA intelligente installée sur @ types d'unités terrestres.", smart);
         if(headless) return;
         dashboardKey = KeyBind.add("minclaude-dashboard", KeyCode.k, "minclaude");
         dashboardKey.load();
@@ -53,8 +58,9 @@ public class MinClaudeMod extends Mod{
     public void loadContent(){
         MCItems.load();
         MCBlocks.load();
+        MCUnits.load();
         MCTechTree.load();
-        Log.info("[MinClaude] Contenu chargé : @ ressources, @ blocs.", MCItems.all.size, MCBlocks.all.size);
+        Log.info("[MinClaude] Contenu chargé : @ ressources, @ blocs, @ unités.", MCItems.all.size, MCBlocks.all.size, MCUnits.all.size);
     }
 
     public static void toggleDashboard(){
@@ -70,6 +76,9 @@ public class MinClaudeMod extends Mod{
             case DEPLETING -> Core.bundle.format("minclaude.alert.depleting", name, Format.duration(alert.value()));
             case LOW_STOCK -> Core.bundle.format("minclaude.alert.low", name, Format.amount(alert.value()));
             case CORE_FULL -> Core.bundle.format("minclaude.alert.full", name);
+            case INDUSTRY_STARVED -> Core.bundle.format("minclaude.alert.starved", (int)alert.value(), name);
+            case POWER_SHORTAGE -> Core.bundle.format("minclaude.alert.power", (int)(alert.value() * 100));
+            case TURRETS_NO_AMMO -> Core.bundle.format("minclaude.alert.ammo", (int)alert.value());
         };
         ui.hudfrag.showToast(Icon.warning, text);
     }

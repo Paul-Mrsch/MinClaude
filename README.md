@@ -17,3 +17,6 @@ Mod Java pour **Mindustry v160** (PC). Il suit les ressources dans le temps (gra
 | [docs/guides/utilisation.md](docs/guides/utilisation.md) | Guide du joueur |
 | [docs/guides/developpement.md](docs/guides/developpement.md) | Guide du développeur : build, tests, ajout de contenu |
 | [docs/reference/modding-mindustry.md](docs/reference/modding-mindustry.md) | Référence de l'API de modding Mindustry v160.5 |
+| [docs/images/](docs/images/) | Captures du jeu et planche des sprites |
+
+![Dashboard, onglet Industries](docs/images/onglet-industries.png)

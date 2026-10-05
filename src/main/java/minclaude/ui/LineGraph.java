@@ -86,11 +86,12 @@ public class LineGraph extends Element{
             if(v.length < 2) continue;
             // Une série plus courte que la plage se termine quand même sur le bord droit.
             float span = duration <= 0 ? 1f : duration;
+            // Le point i couvre l'intervalle qui se termine à startX + dx*(i+1) : le dernier tombe sur le bord droit.
             float startX = gx + gw * (1f - l.view.durationSeconds() / span);
             float dx = gw * l.view.stepSeconds() / span;
             Draw.color(l.color, parentAlpha);
             for(int i = 1; i < v.length; i++){
-                Lines.line(startX + dx * (i - 1), gy + gh * v[i - 1] / max, startX + dx * i, gy + gh * v[i] / max);
+                Lines.line(startX + dx * i, gy + gh * v[i - 1] / max, startX + dx * (i + 1), gy + gh * v[i] / max);
             }
         }
 

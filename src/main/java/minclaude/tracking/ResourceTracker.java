@@ -6,6 +6,7 @@ import arc.util.Time;
 import minclaude.ModSettings;
 import minclaude.stats.*;
 import mindustry.game.EventType.*;
+import mindustry.game.Team;
 import mindustry.gen.Building;
 import mindustry.type.Item;
 import mindustry.world.blocks.storage.CoreBlock.CoreBuild;
@@ -20,10 +21,13 @@ import static mindustry.Vars.*;
 public final class ResourceTracker{
     public static final String CHUNK_NAME = "minclaude-history";
     private static final float TICKS_PER_SECOND = 60f;
+    /** Alerte d'énergie quand moins de cette part de la demande est couverte. */
+    private static final float POWER_SHORTAGE_THRESHOLD = 0.75f;
 
     private volatile MetricHistory history = new MetricHistory();
     private final DeltaAccumulator deltas = new DeltaAccumulator(64);
     private final AlertEngine alerts = new AlertEngine();
+    private final BaseScanner scanner = new BaseScanner();
     private boolean[] tracked = new boolean[64];
     private float tickTimer;
     private Cons<AlertEngine.Alert> alertListener = a -> {};
@@ -56,9 +60,23 @@ public final class ResourceTracker{
         return item.id < tracked.length && tracked[item.id];
     }
 
-    /** Noyau suivi : celui de l'équipe du joueur, ou de l'équipe par défaut sans joueur (tests headless). */
+    /** Équipe suivie : celle du joueur, ou l'équipe par défaut sans joueur (tests headless). */
+    public Team team(){
+        return player != null ? player.team() : state.rules.defaultTeam;
+    }
+
     public CoreBuild core(){
-        return player != null ? player.team().core() : state.rules.defaultTeam.core();
+        return team().core();
+    }
+
+    /** Relevé immédiat de la base, hors cycle d'une seconde (autotest en jeu). */
+    public void scanNow(){
+        scanner.scan(team(), history);
+    }
+
+    /** Dernier relevé de la base (énergie, usines, défense), mis à jour chaque seconde. */
+    public BaseScanner.Snapshot base(){
+        return scanner.last();
     }
 
     public ResourceStats stats(Item item){
@@ -73,6 +91,7 @@ public final class ResourceTracker{
         alerts.reset();
         tracked = new boolean[tracked.length];
         tickTimer = 0f;
+        scanner.reset();
     }
 
     private void update(){
@@ -101,6 +120,7 @@ public final class ResourceTracker{
             h.record(ResourceStats.inKey(item.name), deltas.takeIn(item.id));
             h.record(ResourceStats.outKey(item.name), deltas.takeOut(item.id));
         }
+        scanner.scan(team(), h);
         h.tick();
         if(ModSettings.alerts()) evaluateAlerts(h);
     }
@@ -116,6 +136,20 @@ public final class ResourceTracker{
                 alertListener.get(alert);
             }
         }
+        evaluateBaseAlerts(scanner.last(), h.elapsedSeconds());
+    }
+
+    private void evaluateBaseAlerts(BaseScanner.Snapshot base, float now){
+        var emit = (java.util.function.Consumer<java.util.List<AlertEngine.Alert>>)list -> list.forEach(alertListener::get);
+        for(Item item : content.items()){
+            int starved = base.industry().starvedBy(item.name);
+            emit.accept(alerts.evaluateCondition(item.name, AlertEngine.Type.INDUSTRY_STARVED, starved > 0, starved, now));
+        }
+        var power = base.power();
+        boolean shortage = power.networks() > 0 && power.consumedPerSecond() > 0 && power.satisfaction() < POWER_SHORTAGE_THRESHOLD;
+        emit.accept(alerts.evaluateCondition("power", AlertEngine.Type.POWER_SHORTAGE, shortage, power.satisfaction(), now));
+        int dry = base.defense().turretsNoAmmo();
+        emit.accept(alerts.evaluateCondition("turrets", AlertEngine.Type.TURRETS_NO_AMMO, dry > 0, dry, now));
     }
 
     private void markTracked(int id){

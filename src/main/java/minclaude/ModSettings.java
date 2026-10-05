@@ -13,6 +13,8 @@ public final class ModSettings{
     public static final String DEPLETING_MINUTES = "minclaude-depleting-minutes";
     public static final String DIFFICULTY = "minclaude-difficulty";
     public static final String SMART_AI = "minclaude-smart-ai";
+    public static final String ORES = "minclaude-ores";
+    public static final String ENEMIES = "minclaude-enemies";
 
     private ModSettings(){}
 
@@ -23,9 +25,10 @@ public final class ModSettings{
             t.checkPref(ALERTS, true);
             t.sliderPref(LOW_PERCENT, 5, 1, 50, 1, i -> i + "%");
             t.sliderPref(DEPLETING_MINUTES, 3, 1, 15, 1, i -> i + " min");
-            // Préparé pour V2 (IA) : stocké dès maintenant pour que la valeur choisie soit conservée.
             t.sliderPref(DIFFICULTY, 2, 1, 4, 1, i -> Core.bundle.get("minclaude.difficulty." + i));
             t.checkPref(SMART_AI, true);
+            t.checkPref(ENEMIES, true);
+            t.checkPref(ORES, true);
         });
     }
 
@@ -43,6 +46,24 @@ public final class ModSettings{
 
     public static float lowFraction(){
         return Core.settings.getInt(LOW_PERCENT, 5) / 100f;
+    }
+
+    public static int difficulty(){
+        return Core.settings.getInt(DIFFICULTY, 2);
+    }
+
+    public static boolean smartAi(){
+        return Core.settings.getBool(SMART_AI, true);
+    }
+
+    /** Ajouter les ennemis du mod aux vagues des nouvelles parties. */
+    public static boolean enemies(){
+        return Core.settings.getBool(ENEMIES, true);
+    }
+
+    /** Générer les gisements du mod dans les nouvelles parties. */
+    public static boolean ores(){
+        return Core.settings.getBool(ORES, true);
     }
 
     public static float depletingSeconds(){
