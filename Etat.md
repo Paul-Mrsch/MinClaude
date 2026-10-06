@@ -1,10 +1,10 @@
 # MinClaude — État du projet
 
-_Mis à jour le 2026-10-05 · version du mod **1.0.0** (V4)_
+_Mis à jour le 2026-10-06 · version du mod **1.0.0** (V4)_
 
 ## Résumé
 
-**La version 1.0 est terminée** sur la branche `dev`. Tout le cahier des charges est couvert :
+**La version 1.0 est publiée** sur `main` (tag `v1.0.0`). Tout le cahier des charges est couvert :
 
 - **Gestion des ressources dans le temps** (priorité 1) : historique sauvegardé, graphiques, flux exacts du noyau, prévisions, objectifs, alertes.
 - **Dashboard** : Ressources, Énergie, Industries avec les goulots, Défense avec l'adaptation ennemie ; mini-panneau permanent, raccourci `K`, bouton dans le HUD.
@@ -15,7 +15,7 @@ La V4 a apporté l'équilibrage (rapport automatique et simulation), les animati
 
 Tous les tests passent : 69 unitaires, 38 d'intégration headless, l'autotest en jeu, et l'autotest avec les autres mods.
 
-Versions publiées sur `main` : `v0.1.0` à `v0.4.0`.
+Versions publiées sur `main` : `v0.1.0` à `v0.4.0`, puis `v1.0.0`.
 
 ## Versions et environnement
 
@@ -40,7 +40,7 @@ Le plan détaillé est dans [docs/PLAN.md](docs/PLAN.md), et le journal des vers
 | V1 (`v0.2.0`) | Dashboard complet, contenu lot 1, IA ciblage, refonte graphique | ✅ publié |
 | V2 (`v0.3.0`) | Contenu lot 2, tactiques de groupe, difficulté, objectifs, convoyeurs | ✅ publié |
 | V3 (`v0.4.0`) | Contenu complet, adaptation de l'IA, flux exacts, performance | ✅ publié |
-| V4 (`1.0.0`) | Équilibrage, animations, performance réelle, compatibilité, publication | ✅ sur `dev` |
+| V4 (`v1.0.0`) | Équilibrage, animations, performance réelle, compatibilité, publication | ✅ publié |
 
 ### V4 — détail
 
@@ -72,7 +72,7 @@ Le détail est dans le [guide du joueur](docs/guides/utilisation.md), et les chi
 |---|---|---|---|
 | Unitaires (logique pure + fichiers du mod) | `./gradlew test` | 69 | ✅ 69/69 |
 | Intégration headless (vrai jeu v160.5) | `./gradlew integrationTest` | 38 | ✅ 38/38 |
-| Autotest en jeu (client réel 160.4) | `./gradlew selfTest` | ~40 captures + vérifications | ✅ OK |
+| Autotest en jeu (client réel 160.4) | `./gradlew selfTest` | ~40 captures, 105 vérifications | ✅ OK (6 passes sur 6) |
 | Autotest avec les autres mods du joueur | `./gradlew selfTestCompat` | idem | ✅ OK |
 
 ### Performance
@@ -89,6 +89,12 @@ Le détail est dans le [guide du joueur](docs/guides/utilisation.md), et les chi
 - **Équilibrage** : le premier rapport comparait les usines à une règle absolue (« ne pas perdre de valeur »), qui signalait 8 usines. Le vanilla perd aussi de la valeur selon cette mesure (médiane 0,50), car l'énergie et les liquides ne sont pas valorisés. La règle compare donc maintenant le mod au vanilla : seule la fonderie de laiton reste trop généreuse, et elle est corrigée.
 - **Compatibilité** : une fenêtre d'actualités de New Horizon restée ouverte se voyait à travers le dashboard. Le fond du dashboard est maintenant plus opaque.
 - La planche des sprites exclut les calques blancs de lueur et de chaleur, illisibles sur la planche.
+
+## Campagne de tests globale avant publication (2026-10-06)
+
+- **Problème trouvé** : l'autotest échouait environ une fois sur trois (« zone libre pour la démo V3 », puis « adaptation des vagues » qui en dépend). Les rochers décoratifs, placés au hasard à chaque chargement de Ground Zero, occupaient parfois toutes les zones candidates. Le commit `5cb3c2a` avait été poussé sur `dev` alors que l'autotest échouait ainsi.
+- **Correction** : la zone de démo V3 est cherchée sur toute la carte, au plus près du noyau, sans chevaucher la première démo ; les rochers remplaçables comptent comme libres (pas les murs de roche).
+- **Résultat** : `clean check` sans cache (69 + 38 tests), 6 passes de `selfTest` sur 6, `selfTestCompat` avec Exogenesis et New Horizon (118 i/s), jar vérifié (mod.hjson, icône, traductions, 221 images).
 
 ## Limitations connues
 
