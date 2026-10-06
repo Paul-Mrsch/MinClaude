@@ -28,7 +28,7 @@ Versions publiées sur `main` : `v0.1.0` à `v0.4.0`, puis `v1.0.0`.
 | Tests | JUnit 5.13 |
 | Plateforme | PC (macOS testé). Pas de build Android, pas de multijoueur |
 | Mods testés ensemble | Exogenesis (aureusstratus), New Horizon (yuria-shikibe) |
-| Dépôt | [github.com/Paul-Mrsch/MinClaude](https://github.com/Paul-Mrsch/MinClaude) (privé) : `main` = versions publiées, `dev` = développement |
+| Dépôt | [github.com/Paul-Mrsch/MinClaude](https://github.com/Paul-Mrsch/MinClaude) (public, sujet `mindustry-mod` : visible dans le navigateur de mods du jeu) : `main` = versions publiées, `dev` = développement |
 
 ## Avancement
 
