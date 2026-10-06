@@ -10,7 +10,7 @@ Branches : on développe sur `dev`, on fusionne dans `main` à chaque version pu
 - [ ] Noter les retours d'équilibrage ci-dessous : ils alimentent une 1.0.1
 - [x] Campagne de tests globale (unitaires, intégration, 6 autotests, autotest avec les autres mods)
 - [x] Fusionner `dev` dans `main`, tag `v1.0.0`, pousser
-- [ ] (Si souhaité) Créer une release GitHub `v1.0.0` avec `MinClaude.jar` en pièce jointe
+- [x] Release GitHub `v1.0.0` avec `MinClaude.jar` : https://github.com/Paul-Mrsch/MinClaude/releases/tag/v1.0.0
 
 ## Retours d'équilibrage du joueur
 
