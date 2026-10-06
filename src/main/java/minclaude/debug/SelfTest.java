@@ -236,6 +236,25 @@ public final class SelfTest{
             ui.content.show(MCUnits.frigate);
         });
         step(1.5f, "fiche-fregate-capture", () -> shot("25-fiche-fregate"));
+        // ---- V4 : performance dans le client réel, base de démo en combat ----
+        step(0.5f, "perf-debut", () -> {
+            ui.content.hide();
+            frames.clear();
+            measuring = true;
+            state.set(mindustry.core.GameState.State.playing);
+        });
+        step(5f, "perf-fin", () -> {
+            measuring = false;
+            state.set(mindustry.core.GameState.State.paused);
+            frames.sort();
+            float avg = 0;
+            for(int i = 0; i < frames.size; i++) avg += frames.get(i);
+            avg /= Math.max(1, frames.size);
+            float p95 = frames.isEmpty() ? 0 : frames.get((int)(frames.size * 0.95f));
+            line(String.format(java.util.Locale.ROOT, "info perf : %d images, %.1f ms en moyenne (%.0f i/s), 95e centile %.1f ms, %d unités, %d bâtiments",
+                frames.size, avg * 1000, 1f / Math.max(avg, 1e-4f), p95 * 1000, mindustry.gen.Groups.unit.size(), mindustry.gen.Groups.build.size()));
+            check("fluidité en combat (≥ 30 i/s en moyenne)", avg > 0 && 1f / avg >= 30f);
+        });
         step(0.5f, "options-v1", () -> {
             ui.content.hide();
             ui.settings.show();
@@ -259,7 +278,11 @@ public final class SelfTest{
         steps.add(new Step(delay, name, action));
     }
 
+    private final arc.struct.FloatSeq frames = new arc.struct.FloatSeq();
+    private boolean measuring;
+
     private void tick(){
+        if(measuring) frames.add(Core.graphics.getDeltaTime());
         if(index >= steps.size) return;
         timer += Core.graphics.getDeltaTime();
         Step s = steps.get(index);
@@ -338,14 +361,17 @@ public final class SelfTest{
     private void buildDemoBaseV3(){
         var core = MinClaudeMod.tracker.core();
         var team = state.rules.defaultTeam;
-        for(int r = 6; r < 60 && v3X < 0; r++){
-            for(int dx = -r; dx <= r && v3X < 0; dx += 2){
-                for(int dy : new int[]{-r, r}){
-                    int x = core.tile.x + dx, y = core.tile.y + dy;
-                    if(v3X < 0 && free(x, y, 22, 9) && (y + 9 < demoY - 4 || y > demoY + 12 || x + 22 < demoX - 10 || x > demoX + 10)){
-                        v3X = x;
-                        v3Y = y;
-                    }
+        // Toute la carte, de la plus proche du noyau à la plus lointaine, sans chevaucher la première démo (18x12).
+        float best = Float.MAX_VALUE;
+        for(int x = 1; x < world.width() - 23; x++){
+            for(int y = 1; y < world.height() - 10; y++){
+                boolean overlaps = x < demoX - 9 + 18 + 2 && x + 22 + 2 > demoX - 9 && y < demoY - 3 + 12 + 2 && y + 9 + 2 > demoY - 3;
+                if(overlaps) continue;
+                float d = core.tile.dst(world.tile(x, y));
+                if(d < best && free(x, y, 22, 9)){
+                    best = d;
+                    v3X = x;
+                    v3Y = y;
                 }
             }
         }
@@ -401,7 +427,10 @@ public final class SelfTest{
             for(int j = 0; j < h; j++){
                 var t = world.tile(x + i, y + j);
                 // Hors des zones sombres du bord de carte, où rien n'est visible.
-                if(t == null || t.block() != mindustry.content.Blocks.air || t.floor().isLiquid || t.floor().solid
+                // Les rochers décoratifs (placés au hasard au chargement) comptent comme libres : la pose les remplace.
+                // Pas les murs de roche (StaticWall hérite de Prop mais n'est pas remplaçable).
+                boolean freeBlock = t != null && (t.block() == mindustry.content.Blocks.air || (t.block() instanceof mindustry.world.blocks.environment.Prop && t.block().alwaysReplace));
+                if(t == null || !freeBlock || t.floor().isLiquid || t.floor().solid
                     || t.floor() == mindustry.content.Blocks.empty || world.getDarkness(x + i, y + j) > 0) return false;
             }
         }

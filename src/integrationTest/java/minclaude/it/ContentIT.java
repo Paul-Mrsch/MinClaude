@@ -185,6 +185,8 @@ class ContentIT{
         }else{
             r.add(c.name);
         }
+        if(c instanceof Block b && MCBlocks.glowing.contains(b)) r.add(c.name + "-glow");
+        if(c instanceof mindustry.world.blocks.defense.turrets.ItemTurret) r.add(c.name + "-heat");
         return r;
     }
 

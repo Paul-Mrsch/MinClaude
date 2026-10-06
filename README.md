@@ -1,6 +1,20 @@
 # MinClaude
 
-Mod Java pour **Mindustry v160** (PC). Il suit les ressources dans le temps (graphiques, débits, prévisions, alertes), propose un dashboard de gestion et ajoute du contenu à Serpulo.
+Mod Java pour **Mindustry v160** (PC), version **1.0.0**.
+
+- **Gestion** : suivi des ressources dans le temps (graphiques, flux exacts du noyau, prévisions, objectifs, alertes) et dashboard (énergie, industries et goulots, défense).
+- **Contenu Serpulo** : au moins 15 ressources, industries, bâtiments, unités alliées et ennemis, dont 2 boss.
+- **IA ennemie** : elle vise vos points faibles, attaque en escouades et adapte ses vagues à vos défenses.
+
+## Installer (joueur)
+
+1. Récupérer `MinClaude.jar` (`./gradlew jar` → `build/libs/MinClaude.jar`).
+2. Le copier dans `~/Library/Application Support/Mindustry/mods/` (macOS), ou passer par Mindustry > Mods > Importer.
+3. Lancer Mindustry 160.4 ou plus récent. Le dashboard s'ouvre avec la touche `K`.
+
+Voir le [guide du joueur](docs/guides/utilisation.md) et le [journal des versions](CHANGELOG.md).
+
+## Développer
 
 ```bash
 ./gradlew check        # tous les tests (unitaires + jeu headless)
@@ -18,5 +32,7 @@ Mod Java pour **Mindustry v160** (PC). Il suit les ressources dans le temps (gra
 | [docs/guides/developpement.md](docs/guides/developpement.md) | Guide du développeur : build, tests, ajout de contenu |
 | [docs/reference/modding-mindustry.md](docs/reference/modding-mindustry.md) | Référence de l'API de modding Mindustry v160.5 |
 | [docs/images/](docs/images/) | Captures du jeu et planche des sprites |
+| [docs/equilibrage.md](docs/equilibrage.md) | Rapport d'équilibrage, généré automatiquement depuis le jeu |
+| [CHANGELOG.md](CHANGELOG.md) | Journal des versions |
 
 ![Dashboard, onglet Industries](docs/images/onglet-industries.png)

@@ -84,7 +84,7 @@ public final class MCBlocks{
             size = 2;
             hasPower = true;
             consumePower(0.5f);
-            consumeItems(with(Items.copper, 2, MCItems.zinc, 1));
+            consumeItems(with(Items.copper, 3, MCItems.zinc, 1));
         }});
 
         oreWasher = add(new Separator("ore-washer"){{
@@ -188,6 +188,30 @@ public final class MCBlocks{
 
         loadV2();
         loadV3();
+
+        // V4 : lueur animée (région -glow) des fours et réacteurs, qui pulse quand l'usine tourne.
+        glow(cobaltSmelter, MCItems.cobalt.color);
+        glow(aluminumSmelter, arc.graphics.Color.valueOf("ffd9a0"));
+        glow(brassFoundry, MCItems.brass.color);
+        glow(steelFurnace, arc.graphics.Color.valueOf("ff8a3d"));
+        glow(alloyPress, arc.graphics.Color.valueOf("ff8a3d"));
+        glow(electrolyzer, arc.graphics.Color.valueOf("bfe9ff"));
+        glow(duraluminForge, MCItems.duralumin.color);
+        glow(cermetKiln, MCItems.cermet.color);
+        glow(quantumResonator, MCItems.quantumCrystal.color);
+    }
+
+    /** Blocs dont le sprite a une région « -glow » (vérifié par ContentIT). */
+    public static final Seq<Block> glowing = new Seq<>();
+
+    private static void glow(Block block, arc.graphics.Color color){
+        var crafter = (GenericCrafter)block;
+        crafter.drawer = new mindustry.world.draw.DrawMulti(new mindustry.world.draw.DrawDefault(), new mindustry.world.draw.DrawGlowRegion(){{
+            this.color = color.cpy();
+            glowScale = 8f;
+            glowIntensity = 0.4f;
+        }});
+        glowing.add(block);
     }
 
     /** V3 : chimie et matériaux de fin de jeu, pont longue portée, tourelle lourde. */

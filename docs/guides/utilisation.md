@@ -1,5 +1,7 @@
 # Guide du joueur
 
+> Les valeurs d'équilibrage (PV, dégâts, coûts, rendements) et leur comparaison au jeu de base sont dans [equilibrage.md](../equilibrage.md), généré automatiquement depuis le jeu.
+
 ## Installation
 
 1. Copier `MinClaude.jar` dans le dossier des mods : sur macOS, `~/Library/Application Support/Mindustry/mods/`. On peut aussi passer par Mindustry > Mods > Importer un mod.
@@ -88,7 +90,7 @@ Les minerais apparaissent dans les **nouvelles parties** (cartes et secteurs de 
 |---|---|---|---|
 | Fonderie de cobalt (2×2) | 2 plomb + 1 sable → 1 cobalt / s | 36/s | sous la fonderie de silicium |
 | Fonderie d'aluminium (2×2) | 2 bauxite + 1 charbon → 1 aluminium / 0,83 s | 48/s | sous la fonderie de silicium |
-| Fonderie de laiton (2×2) | 2 cuivre + 1 zinc → 2 laiton / 1,17 s | 30/s | sous la presse à graphite |
+| Fonderie de laiton (2×2) | 3 cuivre + 1 zinc → 2 laiton / 1,17 s | 30/s | sous la presse à graphite |
 | Laveur de minerai (2×2) | 1 sable + eau → nickel, zinc, bauxite ou cobalt | 42/s | sous le séparateur |
 | Foreuse à percussion (2×2) | niveau 3 (cobalt, titane), plus rapide que la pneumatique, accélérée par l'eau | 24/s | sous la foreuse pneumatique |
 
@@ -99,7 +101,7 @@ Les minerais apparaissent dans les **nouvelles parties** (cartes et secteurs de 
 | Mur en nickel / grand mur | 380 / 1520 PV, 6 / 24 nickel | sous le mur en cuivre |
 | Mur en cobalt / grand mur | 520 / 2080 PV, 6 / 24 cobalt | sous le mur en titane |
 | Convoyeur renforcé | 13 objets/s (titane : 10) | sous le convoyeur en titane |
-| Riveteuse (tourelle 2×2) | munitions nickel (18), aluminium (12, tir rapide), laiton (26, perforant) ; portée 150 | sous le duo |
+| Riveteuse (tourelle 2×2) | munitions nickel (18), aluminium (12, tir rapide), laiton (26, perforant) ; portée ≈ 19 cases | sous le duo |
 | Nœud en aluminium | portée 9, 12 liaisons, bon marché | sous le nœud électrique |
 
 ### Unités
@@ -130,7 +132,7 @@ Les minerais apparaissent dans les **nouvelles parties** (cartes et secteurs de 
 | Relais | allié | volant de soin, champ de réparation puissant | reconstructeur additif à partir du Secours |
 | Ravageur | ennemi | mécha blindé à fusil, 950 PV | vagues, à partir de la vague 23 en Normal |
 | Frelon | ennemi | bombardier, vise usines et générateurs | à partir de la vague 27 |
-| Brute | ennemi (mini-boss) | 2600 PV, canon de siège ; rare | à partir de la vague 36, une vague sur 10 |
+| Brute | ennemi (mini-boss) | 6000 PV, canon de siège ; rare | à partir de la vague 36, une vague sur 10 |
 
 Les convoyeurs du mod ont maintenant leurs vraies formes de virage et de jonction.
 

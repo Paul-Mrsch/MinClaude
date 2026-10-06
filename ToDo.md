@@ -1,35 +1,28 @@
 # MinClaude — À faire
 
-_Mis à jour le 2026-10-05._ Chaque tâche cite son artefact (voir [docs/PLAN.md](docs/PLAN.md)).
+_Mis à jour le 2026-10-06._ Chaque tâche cite son artefact (voir [docs/PLAN.md](docs/PLAN.md)).
 Une tâche n'est terminée que si ses **tests** et sa **doc** sont faits, et si `./gradlew check selfTest` passe.
-Branches : on développe sur `dev`, on fusionne dans `main` à chaque version publiée (tag `v0.x.0`).
+Branches : on développe sur `dev`, on fusionne dans `main` à chaque version publiée (tag `v0.x.0` puis `v1.x.y`).
 
-## Maintenant : clôturer la V3
+## Maintenant : après la publication de la 1.0
 
-- [ ] **Partie réelle** (à faire par le joueur) :
-  - [ ] Chaîne de fin de jeu : pyratite + eau → acide → cermet et fibre de carbone → cristal quantique (résonateur, azote liquide)
-  - [ ] Canon électrique : portée, transpercement, consommation d'énergie
-  - [ ] Lignées T4/T5 (reconstructeurs exponentiel et tétratif) et navals (carte avec de l'eau)
-  - [ ] Ingénieur : construction et minage
-  - [ ] Onglet Défense : construire une défense sans anti-aérien, puis vérifier l'adaptation « +N volants » à la vague suivante
-  - [ ] Onglet Ressources : « mesure exacte », et pertes affichées quand le noyau est plein
-  - [ ] Vagues 60+ : boss Seigneur de guerre et Léviathan
-  - [ ] Noter les retours d'équilibrage dans ce fichier
-- [ ] Fusionner `dev` dans `main`, tag `v0.4.0`, pousser
+- [ ] **Partie réelle** (à faire par le joueur) : une partie complète sur Serpulo, de Ground Zero au contenu de fin de jeu, en Normal puis en Brutal
+- [ ] Noter les retours d'équilibrage ci-dessous : ils alimentent une 1.0.1
+- [x] Campagne de tests globale (unitaires, intégration, 6 autotests, autotest avec les autres mods)
+- [x] Fusionner `dev` dans `main`, tag `v1.0.0`, pousser
+- [ ] (Si souhaité) Créer une release GitHub `v1.0.0` avec `MinClaude.jar` en pièce jointe
 
-## V4 — Version 1.0
+## Retours d'équilibrage du joueur
 
-- [ ] **A4.1 Équilibrage** : tableau des coûts, temps de production, PV et dégâts comparés au vanilla (doc) ; ajuster selon les retours du joueur ; simulation automatique de vagues contre une défense type (test d'intégration) pour détecter les ennemis trop forts ou trop faibles
-- [ ] **A4.2 Performance** : mesure dans le client réel (avec rendu) sur une grosse partie ; profil des escouades sur 500+ unités
-- [ ] **A4.3 Qualité des sprites** : animations (foreuse, creusets lumineux, région `-heat` des tourelles), variantes des grands blocs, revue complète de la planche
-- [ ] **A4.4 Compatibilité** : vérifier la dernière version de Mindustry à cette date, monter `mindustryVersion`, tester avec Exogenesis et New Horizon installés (conflits, performances)
-- [ ] **A4.5 Publication** : notes de version, page du mod, captures, `README` joueur, `mod.hjson` final
+_À compléter après les parties réelles. Chaque retour devient une correction et, si possible, une borne dans `BalanceIT`._
 
-## Idées et questions ouvertes
+## Après la 1.0 (idées)
 
-- Export CSV de l'historique (non retenu au cahier des charges, possible en bonus)
-- Afficher plusieurs ressources sur le même graphique pour les comparer
+- Export CSV de l'historique
+- Plusieurs ressources sur le même graphique
 - Panneau déplaçable par glisser-déposer
-- Dans l'onglet Industries, cliquer sur une usine bloquée pour centrer la caméra dessus
-- Objectifs de stock : proposer un objectif par défaut selon la demande installée
-- Adaptation : ajouter des familles « anti-unités » (contre les armées alliées nombreuses)
+- Onglet Industries : clic sur une usine bloquée pour centrer la caméra dessus
+- Objectifs de stock proposés selon la demande installée
+- Adaptation : famille « anti-unités » contre les armées alliées nombreuses
+- Build Android (`jarAndroid` du template) si le mod doit tourner sur mobile
+- Animations supplémentaires : pistons de la presse, rotation du laveur, bobines de la tisseuse

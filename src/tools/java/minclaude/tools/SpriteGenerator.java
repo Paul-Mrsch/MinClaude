@@ -165,8 +165,75 @@ public final class SpriteGenerator{
         }
     }
 
+    /** Blocs qui reçoivent une région « -glow » (doit correspondre à MCBlocks.glowing). */
+    static final Set<String> GLOWING = Set.of("cobalt-smelter", "aluminum-smelter", "brass-foundry", "steel-furnace", "alloy-press",
+        "brine-electrolyzer", "duralumin-forge", "cermet-kiln", "quantum-resonator");
+
     /** Nom de fichier (sans .png) -> image. Certains contenus demandent plusieurs régions. */
     static Map<String, BufferedImage> render(Spec spec){
+        Map<String, BufferedImage> out = renderBase(spec);
+        if(GLOWING.contains(spec.name)) out.put(spec.name + "-glow", glow(spec));
+        if(spec.kind == Kind.TURRET || spec.kind == Kind.SHOTGUN || spec.kind == Kind.RAIL) out.put(spec.name + "-heat", heat(spec));
+        return out;
+    }
+
+    /**
+     * Région de lueur : blanc sur transparent, teinté et pulsé par le jeu en mode additif. Elle reprend les zones
+     * « chaudes » du sprite : creusets, fente de la presse, arcs, cristal.
+     */
+    static BufferedImage glow(Spec spec){
+        Canvas c = new Canvas(spec.size);
+        int m = spec.size / 2;
+        Color w = Color.WHITE, soft = new Color(255, 255, 255, 140);
+        switch(spec.kind){
+            case CRAFTER -> {
+                c.octagon(soft, m, m, 9);
+                c.octagon(w, m, m, 5);
+            }
+            case FOUNDRY -> {
+                for(int dx : new int[]{-12, 12}){
+                    c.octagon(soft, m + dx, m, 6);
+                    c.octagon(w, m + dx, m, 3);
+                }
+            }
+            case PRESS -> {
+                c.rect(soft, 14, m - 2, spec.size - 28, 4);
+                c.rect(w, 18, m - 1, spec.size - 36, 2);
+            }
+            case ELECTRO -> {
+                for(int i = 0; i < 3; i++){
+                    int y = m - 8 + i * 8;
+                    c.line(m - 6, y, m - 2, y + 3, w);
+                    c.line(m - 2, y + 3, m + 3, y, w);
+                }
+            }
+            case RESONATOR -> {
+                c.poly(soft, m, m - 16, m - 8, m - 6, m - 8, m + 13, m + 8, m + 13, m + 8, m - 6);
+                for(int[] e : new int[][]{{m, 14}, {m, spec.size - 15}, {14, m}, {spec.size - 15, m}}) c.octagon(w, e[0], e[1], 2);
+            }
+            default -> c.octagon(soft, m, m, 6);
+        }
+        return c.img;
+    }
+
+    /** Région de chaleur des tourelles : les canons, teintés en rouge par le jeu après chaque tir. */
+    static BufferedImage heat(Spec spec){
+        Canvas c = new Canvas(spec.size);
+        int m = spec.size / 2;
+        switch(spec.kind){
+            case TURRET -> {
+                for(int bx : new int[]{m - 7, m + 3}) c.rect(Color.WHITE, bx, 2, 4, 14);
+            }
+            case SHOTGUN -> c.rect(Color.WHITE, m - 12, 4, 24, 10);
+            default -> {
+                c.rect(Color.WHITE, m - 11, 2, 4, 30);
+                c.rect(Color.WHITE, m + 7, 2, 4, 30);
+            }
+        }
+        return c.img;
+    }
+
+    static Map<String, BufferedImage> renderBase(Spec spec){
         Map<String, BufferedImage> out = new LinkedHashMap<>();
         Color[] r = ramp(spec.color);
         switch(spec.kind){

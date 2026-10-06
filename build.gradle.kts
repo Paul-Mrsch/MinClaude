@@ -8,7 +8,7 @@ val mindustryVersion = "v160.5"
 val modsDir = File(System.getProperty("user.home"), "Library/Application Support/Mindustry/mods")
 
 group = "minclaude"
-version = "0.4.0"
+version = "1.0.0"
 
 repositories{
     mavenCentral()
@@ -133,36 +133,49 @@ tasks.register<Exec>("play"){
     commandLine("open", "-a", "Mindustry")
 }
 
-// Recette automatique de l'interface dans le vrai client (rendu réel), dans un dossier de données isolé :
-// les sauvegardes, options et autres mods du joueur ne sont pas touchés. Captures et rapport dans build/selftest/out.
-tasks.register<Exec>("selfTest"){
-    group = "verification"
-    description = "Lance Mindustry avec MinClaude seul, parcourt l'interface, enregistre captures et rapport, puis quitte."
-    dependsOn(tasks.jar)
-    val game = File("/Applications/Mindustry.app/Contents/Resources")
-    val root = layout.buildDirectory.dir("selftest").get().asFile
-    workingDir = game
-    doFirst{
-        delete(root)
-        File(root, "data/mods").mkdirs()
-        File(root, "out").mkdirs()
-        copy{
-            from(tasks.jar)
-            into(File(root, "data/mods"))
+// Dossier de données isolé : les sauvegardes, options et mods du joueur ne sont pas touchés. Captures et rapport dans build/<tâche>/out.
+// Recette automatique de l'interface dans le vrai client. `withOtherMods` ajoute les autres mods du joueur (compatibilité).
+fun registerSelfTest(taskName: String, withOtherMods: Boolean){
+    tasks.register<Exec>(taskName){
+        group = "verification"
+        description = if(withOtherMods) "Autotest en jeu avec les autres mods installés du joueur (compatibilité)."
+            else "Lance Mindustry avec MinClaude seul, parcourt l'interface, enregistre captures et rapport, puis quitte."
+        dependsOn(tasks.jar)
+        val game = File("/Applications/Mindustry.app/Contents/Resources")
+        val root = layout.buildDirectory.dir(taskName).get().asFile
+        workingDir = game
+        doFirst{
+            delete(root)
+            File(root, "data/mods").mkdirs()
+            File(root, "out").mkdirs()
+            copy{
+                from(tasks.jar)
+                into(File(root, "data/mods"))
+            }
+            if(withOtherMods){
+                copy{
+                    from(modsDir)
+                    exclude("MinClaude.jar")
+                    into(File(root, "data/mods"))
+                }
+            }
+        }
+        environment("MINCLAUDE_SELFTEST", File(root, "out").absolutePath)
+        commandLine(
+            File(game, "jre/bin/java").absolutePath, "-XstartOnFirstThread", "-XX:+UseCompactObjectHeaders",
+            "--enable-native-access=ALL-UNNAMED", "-Dmindustry.data.dir=" + File(root, "data").absolutePath,
+            "-jar", "desktop.jar"
+        )
+        doLast{
+            val report = File(root, "out/report.txt")
+            println(report.readText())
+            if(!report.readText().contains("RÉSULTAT : OK")) throw GradleException("Autotest en jeu en échec, voir $report")
         }
     }
-    environment("MINCLAUDE_SELFTEST", File(root, "out").absolutePath)
-    commandLine(
-        File(game, "jre/bin/java").absolutePath, "-XstartOnFirstThread", "-XX:+UseCompactObjectHeaders",
-        "--enable-native-access=ALL-UNNAMED", "-Dmindustry.data.dir=" + File(root, "data").absolutePath,
-        "-jar", "desktop.jar"
-    )
-    doLast{
-        val report = File(root, "out/report.txt")
-        println(report.readText())
-        if(!report.readText().contains("RÉSULTAT : OK")) throw GradleException("Autotest en jeu en échec, voir $report")
-    }
 }
+
+registerSelfTest("selfTest", false)
+registerSelfTest("selfTestCompat", true)
 
 tasks.register<JavaExec>("spriteSheet"){
     group = "minclaude"

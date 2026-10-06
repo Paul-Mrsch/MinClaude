@@ -46,6 +46,8 @@ public class DashboardDialog extends BaseDialog{
                     .group(group).checked(b -> current == tab);
             }
         }).left().row();
+        // Fond plus opaque que les fenêtres vanilla : lisible au-dessus de la partie et des fenêtres d'autres mods.
+        body.background(Styles.black8);
         cont.add(body).grow();
         buildCurrent();
     }

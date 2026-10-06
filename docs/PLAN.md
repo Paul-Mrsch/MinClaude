@@ -74,10 +74,17 @@ Légende : ✅ fait · 🔄 en cours · ⬜ à faire
 | A3.7 | Mesure exacte des flux | Noyaux vanilla instrumentés : entrées exactes, sorties exactes (par le stock), objets perdus quand le noyau est plein | `V3LogicTest`, `V3IT` (entrée et sortie dans le même tick, pertes) | ✅ |
 | A3.8 | Performance | Suivi : 0,01 ms par tick ; relevé + escouades : 0,4 ms par seconde (160 bâtiments, 150 unités) ; 1 h de partie = 25 Ko de sauvegarde | `V3IT` (seuils) | ✅ |
 
-## V4 — Version 1.0
+## V4 — Version 1.0 ✅
 
-| # | Artefact | Contenu |
-|---|---|---|
+| # | Artefact | Contenu livré | Tests | Statut |
+|---|---|---|---|---|
+| A4.1 | Équilibrage | Rapport [docs/equilibrage.md](equilibrage.md) généré depuis le jeu : murs (PV par coût), tourelles (DPS par coût), usines (rendement), unités (puissance par rang, lignées croissantes), simulation de combat face à une défense type. 8 corrections : Brute, Mastodonte, Seigneur de guerre, Sapeur, Électrocuteur, Essaimeur renforcés ; fonderie de laiton moins généreuse | `BalanceIT` (5 tests, bornes) | ✅ |
+| A4.2 | Performance | Mesure dans le client réel en combat : 117 i/s (8,6 ms par image) ; headless : 0,01 ms par tick | `selfTest` (≥ 30 i/s), `V3IT` | ✅ |
+| A4.3 | Qualité des sprites | Lueur animée des fours et réacteurs (régions `-glow`), chaleur des canons (régions `-heat`) | `ContentIT` (régions exigées) | ✅ |
+| A4.4 | Compatibilité | Dernière version de Mindustry vérifiée (v160.5). Autotest avec Exogenesis et New Horizon : aucune erreur, 18 types de noyau instrumentés, IA sur 122 types d'unités, 240 i/s | `selfTestCompat` | ✅ |
+| A4.5 | Publication | Version 1.0.0, [CHANGELOG.md](../CHANGELOG.md), `mod.hjson` final, README joueur | — | ✅ |
+
+---|---|---|
 | A4.1 | Équilibrage | Coûts, temps de production, PV et dégâts comparés au vanilla, tableau d'équilibrage dans la doc |
 | A4.2 | Performance | Mesure du coût par tick (suivi, IA, UI) sur une grosse base, optimisation |
 | A4.3 | Qualité des sprites | Retouche du générateur, ombres, animations |
