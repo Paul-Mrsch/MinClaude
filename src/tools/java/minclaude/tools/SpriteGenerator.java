@@ -21,7 +21,8 @@ import java.util.List;
 public final class SpriteGenerator{
     enum Kind{ GEM, NUGGET, INGOT, LIQUID, ORE, WALL, CRAFTER, FOUNDRY, WASHER, PRESS, TANK, CRYO, ELECTRO, DRILL, CONVEYOR, ARMORED_CONVEYOR,
         TURRET, SHOTGUN, NOZZLE, CONTAINER, NODE, MECH, FLYER, BOMBER, WEAPON,
-        FIBER, WEAVER, RESONATOR, BRIDGE, RAIL, NAVAL }
+        FIBER, WEAVER, RESONATOR, BRIDGE, RAIL, NAVAL,
+        BATTERY, TURBINE, OSMOTIC, PYLON, BIG_TANK, TEMPEST, DOME }
 
     /** @param size taille en pixels (côté) */
     record Spec(String folder, String name, Kind kind, int size, Color color){}
@@ -142,7 +143,16 @@ public final class SpriteGenerator{
         new Spec("units/weapons", "shocker-coil", Kind.WEAPON, 26, hex("9b7bff")),
         new Spec("units/weapons", "juggernaut-cannon", Kind.WEAPON, 36, hex("c2362a")),
         new Spec("units/weapons", "stalker-shotgun", Kind.WEAPON, 26, ENEMY),
-        new Spec("units/weapons", "warlord-cannon", Kind.WEAPON, 48, BOSS)
+        new Spec("units/weapons", "warlord-cannon", Kind.WEAPON, 48, BOSS),
+        // ===== V5 : énergie et bâtiments utilitaires =====
+        new Spec("blocks", "invar-battery", Kind.BATTERY, 64, INVAR),
+        new Spec("blocks", "quantum-capacitor", Kind.BATTERY, 96, QUANTUM),
+        new Spec("blocks", "industrial-turbine", Kind.TURBINE, 96, STEEL),
+        new Spec("blocks", "brine-generator", Kind.OSMOTIC, 64, BRINE),
+        new Spec("blocks", "long-range-node", Kind.PYLON, 64, DURALUMIN),
+        new Spec("blocks", "large-liquid-tank", Kind.BIG_TANK, 128, INVAR),
+        new Spec("blocks", "tempest", Kind.TEMPEST, 96, CERMET),
+        new Spec("blocks", "restoration-dome", Kind.DOME, 96, HEAL)
     );
 
     private static final Color OUTLINE = hex("23232b");
@@ -167,13 +177,13 @@ public final class SpriteGenerator{
 
     /** Blocs qui reçoivent une région « -glow » (doit correspondre à MCBlocks.glowing). */
     static final Set<String> GLOWING = Set.of("cobalt-smelter", "aluminum-smelter", "brass-foundry", "steel-furnace", "alloy-press",
-        "brine-electrolyzer", "duralumin-forge", "cermet-kiln", "quantum-resonator");
+        "brine-electrolyzer", "duralumin-forge", "cermet-kiln", "quantum-resonator", "brine-generator");
 
     /** Nom de fichier (sans .png) -> image. Certains contenus demandent plusieurs régions. */
     static Map<String, BufferedImage> render(Spec spec){
         Map<String, BufferedImage> out = renderBase(spec);
         if(GLOWING.contains(spec.name)) out.put(spec.name + "-glow", glow(spec));
-        if(spec.kind == Kind.TURRET || spec.kind == Kind.SHOTGUN || spec.kind == Kind.RAIL) out.put(spec.name + "-heat", heat(spec));
+        if(spec.kind == Kind.TURRET || spec.kind == Kind.SHOTGUN || spec.kind == Kind.RAIL || spec.kind == Kind.TEMPEST) out.put(spec.name + "-heat", heat(spec));
         return out;
     }
 
@@ -211,6 +221,10 @@ public final class SpriteGenerator{
                 c.poly(soft, m, m - 16, m - 8, m - 6, m - 8, m + 13, m + 8, m + 13, m + 8, m - 6);
                 for(int[] e : new int[][]{{m, 14}, {m, spec.size - 15}, {14, m}, {spec.size - 15, m}}) c.octagon(w, e[0], e[1], 2);
             }
+            case OSMOTIC -> {
+                c.rect(soft, m - 3, 13, 6, spec.size - 26);
+                c.rect(w, m - 1, 15, 2, spec.size - 30);
+            }
             default -> c.octagon(soft, m, m, 6);
         }
         return c.img;
@@ -225,6 +239,9 @@ public final class SpriteGenerator{
                 for(int bx : new int[]{m - 7, m + 3}) c.rect(Color.WHITE, bx, 2, 4, 14);
             }
             case SHOTGUN -> c.rect(Color.WHITE, m - 12, 4, 24, 10);
+            case TEMPEST -> {
+                for(int dx : new int[]{-9, 0, 9}) c.rect(Color.WHITE, m + dx - 2, 3, 5, 26);
+            }
             default -> {
                 c.rect(Color.WHITE, m - 11, 2, 4, 30);
                 c.rect(Color.WHITE, m + 7, 2, 4, 30);
@@ -254,6 +271,25 @@ public final class SpriteGenerator{
             case RESONATOR -> out.put(spec.name, resonator(spec.size, r));
             case RAIL -> out.put(spec.name, railgun(spec.size, r));
             case NAVAL -> out.put(spec.name, naval(spec.size, r));
+            case BATTERY -> {
+                out.put(spec.name, batteryBase(spec.size));
+                out.put(spec.name + "-top", batteryTop(spec.size, r));
+            }
+            case TURBINE -> {
+                out.put(spec.name, turbine(spec.size, r));
+                out.put(spec.name + "-rotator", turbineRotor(spec.size, r));
+            }
+            case OSMOTIC -> out.put(spec.name, osmotic(spec.size, r));
+            case PYLON -> out.put(spec.name, pylon(spec.size, r));
+            case BIG_TANK -> {
+                out.put(spec.name, bigTank(spec.size, r));
+                out.put(spec.name + "-bottom", tankBottom(spec.size));
+            }
+            case TEMPEST -> out.put(spec.name, tempest(spec.size, r));
+            case DOME -> {
+                out.put(spec.name, dome(spec.size, r));
+                out.put(spec.name + "-top", domeTop(spec.size));
+            }
             case BRIDGE -> {
                 out.put(spec.name, bridgeBase(spec.size, r, 12));
                 out.put(spec.name + "-end", bridgeBase(spec.size, r, 8));
@@ -916,6 +952,233 @@ public final class SpriteGenerator{
         return c.img;
     }
 
+    // ================= V5 : énergie et bâtiments utilitaires =================
+
+    /** Fond de batterie : le jeu le recouvre d'une couleur selon la charge, visible par les fenêtres du dessus. */
+    private static BufferedImage batteryBase(int size){
+        Canvas c = new Canvas(size);
+        Polygon body = Canvas.chamfer(0, 0, size, size, 7);
+        c.fill(body, M[1]);
+        c.fill(Canvas.chamfer(6, 6, size - 12, size - 12, 5), M[0]);
+        return c.img;
+    }
+
+    /** Dessus de batterie : châssis opaque, fenêtres transparentes (cellules) où s'affiche la charge. */
+    private static BufferedImage batteryTop(int size, Color[] r){
+        Canvas c = frame(size);
+        cornerBrackets(c, size, r);
+        int m = size / 2;
+        if(size <= 64){
+            // Trois cellules verticales.
+            for(int i = 0; i < 3; i++){
+                Polygon cell = Canvas.chamfer(15 + i * 12, 15, 9, size - 30, 2);
+                c.fill(cell, M[0]);
+                c.clear(Canvas.chamfer(16 + i * 12, 16, 7, size - 32, 2));
+            }
+            c.rect(r[2], 13, 11, size - 26, 2);
+            c.rect(r[4], 13, 11, size - 26, 1);
+            c.rect(r[1], 13, size - 13, size - 26, 2);
+        }else{
+            // Condensateur : grande chambre octogonale divisée en quatre, bornes aux quatre côtés.
+            c.octagon(M[0], m, m, 30);
+            c.octagon(r[1], m, m, 28);
+            c.octagon(M[0], m, m, 25);
+            c.clear(Canvas.chamfer(m - 23, m - 23, 47, 47, 10));
+            c.rect(M[2], m - 2, m - 24, 4, 48);
+            c.rect(M[2], m - 24, m - 2, 48, 4);
+            c.octagon(M[0], m, m, 5);
+            c.octagon(r[3], m, m, 3);
+            c.octagon(r[5], m - 1, m - 1, 1);
+            for(int[] e : new int[][]{{m, 9}, {m, size - 10}, {9, m}, {size - 10, m}}){
+                c.octagon(M[0], e[0], e[1], 4);
+                c.octagon(r[2], e[0], e[1], 2);
+            }
+        }
+        c.outline();
+        return c.img;
+    }
+
+    /** Turbine 3x3 : carter, conduites d'eau, puits circulaire où tourne le rotor. */
+    private static BufferedImage turbine(int size, Color[] r){
+        Canvas c = frame(size);
+        cornerBrackets(c, size, ramp(INVAR));
+        grooves(c, size);
+        int m = size / 2;
+        for(int[] p : new int[][]{{m - 4, 4, 8, 12}, {m - 4, size - 16, 8, 12}, {4, m - 4, 12, 8}, {size - 16, m - 4, 12, 8}}){
+            c.rect(M[3], p[0], p[1], p[2], p[3]);
+            c.rect(ramp(WATER)[1], p[0] + 2, p[1] + 2, p[2] - 4, p[3] - 4);
+        }
+        c.circle(M[0], m, m, 30);
+        c.circle(r[1], m, m, 28);
+        c.circle(M[0], m, m, 26);
+        for(int i = 0; i < 8; i++){
+            double a = i * Math.PI / 4;
+            c.octagon(r[3], m + (int)Math.round(Math.cos(a) * 28), m + (int)Math.round(Math.sin(a) * 28), 1);
+        }
+        c.outline();
+        return c.img;
+    }
+
+    /** Rotor de turbine (tourne autour du centre) : six pales inclinées et moyeu. */
+    private static BufferedImage turbineRotor(int size, Color[] r){
+        Canvas c = new Canvas(size);
+        int m = size / 2;
+        for(int i = 0; i < 6; i++){
+            AffineTransform t = AffineTransform.getRotateInstance(i * Math.PI / 3, m, m);
+            c.poly(t, M[3], m - 3, m - 6, m + 3, m - 6, m + 8, m - 24, m - 1, m - 25);
+            c.poly(t, M[5], m - 3, m - 6, m - 1, m - 6, m + 1, m - 25, m - 1, m - 25);
+        }
+        c.octagon(M[0], m, m, 8);
+        c.octagon(r[2], m, m, 6);
+        c.octagon(r[4], m - 1, m - 1, 2);
+        c.outline();
+        return c.img;
+    }
+
+    /** Générateur osmotique : deux bassins de saumure séparés par une membrane lumineuse. */
+    private static BufferedImage osmotic(int size, Color[] r){
+        Canvas c = frame(size);
+        cornerBrackets(c, size, ramp(ZINC));
+        int m = size / 2;
+        for(int dir : new int[]{-1, 1}){
+            int x = dir < 0 ? 12 : m + 4;
+            Polygon basin = Canvas.chamfer(x, 13, m - 16, size - 26, 4);
+            c.fill(basin, M[0]);
+            c.fill(Canvas.chamfer(x + 2, 15, m - 20, size - 30, 3), dir < 0 ? r[1] : r[2]);
+            c.rect(dir < 0 ? r[3] : r[4], x + 4, 17, m - 24, 2);
+        }
+        c.rect(M[3], m - 3, 11, 6, size - 22);
+        c.rect(r[5], m - 1, 13, 2, size - 26);
+        c.outline();
+        return c.img;
+    }
+
+    /** Pylône 2x2 vu de dessus : pieds en croix, isolateurs empilés, tête colorée. */
+    private static BufferedImage pylon(int size, Color[] r){
+        Canvas c = new Canvas(size);
+        int m = size / 2;
+        for(int i = 0; i < 4; i++){
+            AffineTransform t = AffineTransform.getRotateInstance(Math.PI / 4 + i * Math.PI / 2, m, m);
+            c.poly(t, M[3], m - 4, m - 2, m + 4, m - 2, m + 3, 4, m - 3, 4);
+            c.poly(t, M[5], m - 4, m - 2, m - 2, m - 2, m - 2, 4, m - 3, 4);
+        }
+        Polygon base = Canvas.chamfer(m - 14, m - 14, 28, 28, 8);
+        c.fill(base, M[2]);
+        c.bevel(base, M[4], M[1], 2);
+        c.octagon(M[0], m, m, 11);
+        c.octagon(r[1], m, m, 9);
+        c.octagon(M[0], m, m, 7);
+        c.octagon(r[3], m, m, 5);
+        c.octagon(r[5], m - 1, m - 1, 2);
+        c.outline();
+        return c.img;
+    }
+
+    /** Fond de la grande cuve : plancher sombre, sous le liquide dessiné par le jeu. */
+    private static BufferedImage tankBottom(int size){
+        Canvas c = new Canvas(size);
+        c.fill(Canvas.chamfer(0, 0, size, size, 7), M[1]);
+        c.fill(Canvas.chamfer(10, 10, size - 20, size - 20, 12), M[0]);
+        return c.img;
+    }
+
+    /** Grande cuve 4x4 : châssis épais, grande fenêtre octogonale (le liquide se voit dessous), entretoises. */
+    private static BufferedImage bigTank(int size, Color[] r){
+        Canvas c = frame(size);
+        cornerBrackets(c, size, r);
+        int m = size / 2;
+        for(int[] p : new int[][]{{m - 6, 3, 12, 10}, {m - 6, size - 13, 12, 10}, {3, m - 6, 10, 12}, {size - 13, m - 6, 10, 12}}){
+            c.rect(M[3], p[0], p[1], p[2], p[3]);
+            c.rect(M[1], p[0] + 2, p[1] + 2, p[2] - 4, p[3] - 4);
+        }
+        Polygon rim = Canvas.chamfer(14, 14, size - 28, size - 28, 22);
+        c.fill(rim, r[1]);
+        c.bevel(rim, r[3], r[0], 2);
+        c.clear(Canvas.chamfer(19, 19, size - 38, size - 38, 19));
+        for(int i = 0; i < 2; i++){
+            AffineTransform t = AffineTransform.getRotateInstance(Math.PI / 4 + i * Math.PI / 2, m, m);
+            c.poly(t, M[2], 20, m - 2, size - 20, m - 2, size - 20, m + 2, 20, m + 2);
+            c.poly(t, M[4], 20, m - 2, size - 20, m - 2, size - 20, m - 1, 20, m - 1);
+        }
+        c.octagon(M[0], m, m, 7);
+        c.octagon(r[2], m, m, 5);
+        c.octagon(r[4], m - 1, m - 1, 2);
+        for(int[] b : new int[][]{{24, 24}, {size - 25, 24}, {24, size - 25}, {size - 25, size - 25}}) c.octagon(M[0], b[0], b[1], 2);
+        c.outline();
+        return c.img;
+    }
+
+    /** Tempête 3x3 : trois tubes côte à côte, tambours de munitions latéraux, corps blindé. */
+    private static BufferedImage tempest(int size, Color[] r){
+        Canvas c = new Canvas(size);
+        int m = size / 2;
+        for(int dx : new int[]{-9, 0, 9}){
+            int x = m + dx - 2;
+            c.rect(M[3], x, 5, 5, 34);
+            c.rect(M[5], x, 5, 1, 34);
+            c.rect(M[1], x + 4, 5, 1, 34);
+            c.rect(M[1], x - 1, 3, 7, 4);
+            c.rect(r[3], x, 22, 5, 2);
+        }
+        Polygon body = Canvas.chamfer(m - 28, 32, 56, 56, 16);
+        c.fill(body, M[2]);
+        c.bevel(body, M[4], M[1], 2);
+        for(int dir : new int[]{-1, 1}){
+            int cx = m + dir * 30;
+            c.octagon(M[0], cx, 62, 10);
+            c.octagon(r[1], cx, 62, 8);
+            c.octagon(r[3], cx - 1, 61, 5);
+            c.octagon(r[5], cx - 2, 59, 1);
+        }
+        c.poly(r[2], m - 18, 42, m, 35, m + 18, 42, m + 18, 46, m, 39, m - 18, 46);
+        c.poly(r[4], m - 18, 42, m, 35, m + 18, 42, m, 36);
+        c.octagon(M[0], m, 60, 12);
+        c.octagon(r[1], m, 60, 10);
+        c.octagon(r[3], m, 60, 7);
+        c.octagon(r[5], m - 2, 58, 2);
+        for(int i = 0; i < 4; i++) c.rect(M[0], m - 11 + i * 6, 80, 4, 2);
+        c.outline();
+        return c.img;
+    }
+
+    /** Dôme de restauration : coupole centrale entourée de huit émetteurs. */
+    private static BufferedImage dome(int size, Color[] r){
+        Canvas c = frame(size);
+        cornerBrackets(c, size, r);
+        grooves(c, size);
+        int m = size / 2;
+        for(int i = 0; i < 8; i++){
+            double a = i * Math.PI / 4;
+            int ex = m + (int)Math.round(Math.cos(a) * 28), ey = m + (int)Math.round(Math.sin(a) * 28);
+            c.octagon(M[0], ex, ey, 4);
+            c.octagon(r[2], ex, ey, 2);
+        }
+        c.circle(M[0], m, m, 21);
+        c.circle(M[3], m, m, 19);
+        c.circle(r[1], m, m, 17);
+        c.circle(r[2], m - 2, m - 2, 13);
+        c.circle(r[4], m - 6, m - 6, 5);
+        c.rect(M[5], m - 2, m - 10, 4, 20);
+        c.rect(M[5], m - 10, m - 2, 20, 4);
+        c.outline();
+        return c.img;
+    }
+
+    /** Lueur du dôme : croix et anneau blancs, teintés et pulsés par le jeu quand il répare. */
+    private static BufferedImage domeTop(int size){
+        Canvas c = new Canvas(size);
+        int m = size / 2;
+        Color soft = new Color(255, 255, 255, 140);
+        c.circle(soft, m, m, 17);
+        c.rect(Color.WHITE, m - 2, m - 10, 4, 20);
+        c.rect(Color.WHITE, m - 10, m - 2, 20, 4);
+        for(int i = 0; i < 8; i++){
+            double a = i * Math.PI / 4;
+            c.octagon(Color.WHITE, m + (int)Math.round(Math.cos(a) * 28), m + (int)Math.round(Math.sin(a) * 28), 2);
+        }
+        return c.img;
+    }
+
     /** Châssis commun aux blocs de production : cadre biseauté, cuvette intérieure, boulons octogonaux. */
     private static Canvas frame(int size){
         Canvas c = new Canvas(size);
@@ -1218,6 +1481,16 @@ public final class SpriteGenerator{
             Polygon p = new Polygon();
             for(int i = 0; i < xy.length; i += 2) p.addPoint(xy[i], xy[i + 1]);
             fill(t == null ? p : t.createTransformedShape(p), c);
+        }
+
+        /** Rend transparents les pixels de la forme (fenêtres des batteries et des cuves). */
+        void clear(Shape s){
+            Rectangle b = s.getBounds();
+            for(int y = Math.max(0, b.y); y < Math.min(size, b.y + b.height + 1); y++){
+                for(int x = Math.max(0, b.x); x < Math.min(size, b.x + b.width + 1); x++){
+                    if(s.contains(x + 0.5, y + 0.5)) img.setRGB(x, y, 0);
+                }
+            }
         }
 
         void rect(Color c, int x, int y, int w, int h){

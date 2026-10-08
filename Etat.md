@@ -1,6 +1,6 @@
 # MinClaude — État du projet
 
-_Mis à jour le 2026-10-06 · version du mod **1.0.0** (V4)_
+_Mis à jour le 2026-10-08 · version du mod **1.1.0** (V5, sur `dev`)_
 
 ## Résumé
 
@@ -11,9 +11,11 @@ _Mis à jour le 2026-10-06 · version du mod **1.0.0** (V4)_
 - **Contenu** : au moins 15 éléments par catégorie (ressources, industries, bâtiments, unités alliées, ennemis).
 - **IA ennemie** : ciblage des points faibles, tactiques de groupe, adaptation des vagues ; difficulté réglable.
 
+La **V5 (1.1.0)** prolonge jusqu'à la fin de jeu la progression de l'énergie et des bâtiments utilitaires, qui s'arrêtait au milieu de partie : batterie en invar, condensateur quantique, turbine industrielle, générateur à saumure, nœud longue portée, grande cuve, tourelle Tempête et dôme de restauration. Une progression simulée de Ground Zero à la fin de jeu, calculée sur les vraies recettes, vérifie leur place.
+
 La V4 a apporté l'équilibrage (rapport automatique et simulation), les animations, la mesure de fluidité dans le vrai client et la vérification de compatibilité avec Exogenesis et New Horizon.
 
-Tous les tests passent : 69 unitaires, 38 d'intégration headless, l'autotest en jeu, et l'autotest avec les autres mods.
+Tous les tests passent : 69 unitaires, 49 d'intégration headless et l'autotest en jeu (V5). L'autotest avec les autres mods n'a pas été relancé pour la V5.
 
 Versions publiées sur `main` : `v0.1.0` à `v0.4.0`, puis `v1.0.0`.
 
@@ -41,6 +43,18 @@ Le plan détaillé est dans [docs/PLAN.md](docs/PLAN.md), et le journal des vers
 | V2 (`v0.3.0`) | Contenu lot 2, tactiques de groupe, difficulté, objectifs, convoyeurs | ✅ publié |
 | V3 (`v0.4.0`) | Contenu complet, adaptation de l'IA, flux exacts, performance | ✅ publié |
 | V4 (`v1.0.0`) | Équilibrage, animations, performance réelle, compatibilité, publication | ✅ publié |
+| V5 (`1.1.0`) | Énergie et bâtiments utilitaires jusqu'à la fin de jeu, progression simulée | ✅ sur `dev`, non publié |
+
+### V5 — détail
+
+| # | Artefact | Résultat | Vérification |
+|---|---|---|---|
+| A5.1 | Stockage d'énergie | Batterie en invar (2x2, 36 000, 9 000 par case), condensateur quantique (3x3, 250 000) | `V5IT`, `BalanceIT` (ratio 0,60 et 1,55) |
+| A5.2 | Production d'énergie | Turbine industrielle (1 500/s, meilleur générateur continu par case : 167), générateur à saumure (300/s sans combustible) | `V5IT`, `BalanceIT` (ratio par case 2,02 et 0,91) |
+| A5.3 | Réseau et liquides | Nœud longue portée (portée 28), grande cuve (4 000) | `V5IT`, `BalanceIT` |
+| A5.4 | Défense et soutien | Tempête (754 DPS, portée 32,5, sol et air), dôme de restauration (3,5 fois la couverture du projecteur de réparation) | `V5IT`, `BalanceIT` (ratio 0,86 et 1,49) |
+| A5.5 | Progression simulée | De Ground Zero (étape 0) au cristal quantique (étape 6). Avec la V5, faire tourner une usine de chaque type du mod demande 28 % de place de générateurs en moins, et jusqu'à 80 % de place de batteries en moins en fin de jeu. Laveur de minerai déplacé sous le pulvérisateur | `BalanceIT.progression` |
+| A5.6 | Sprites et autotest | Zone de démo V5 dans le vrai client : turbine en marche, batteries chargées, régions présentes dans l'atlas ; 118 i/s | `selfTest` |
 
 ### V4 — détail
 
@@ -58,7 +72,7 @@ Le plan détaillé est dans [docs/PLAN.md](docs/PLAN.md), et le journal des vers
 |---|---|---|
 | Ressources | ≥ 15 | **16** (13 objets + 3 liquides) |
 | Industries | ≥ 15 | **15** |
-| Bâtiments | ≥ 15 | **17** |
+| Bâtiments | ≥ 15 | **25** (dont 8 d'énergie et de soutien en V5) |
 | Unités alliées | ≥ 15 | **15** |
 | Ennemis | ≥ 15 | **16** (dont 2 boss) |
 | IA ennemie | 3 axes | **3** |
@@ -71,18 +85,23 @@ Le détail est dans le [guide du joueur](docs/guides/utilisation.md), et les chi
 | Suite | Commande | Tests | Résultat |
 |---|---|---|---|
 | Unitaires (logique pure + fichiers du mod) | `./gradlew test` | 69 | ✅ 69/69 |
-| Intégration headless (vrai jeu v160.5) | `./gradlew integrationTest` | 38 | ✅ 38/38 |
-| Autotest en jeu (client réel 160.4) | `./gradlew selfTest` | ~40 captures, 105 vérifications | ✅ OK (6 passes sur 6) |
-| Autotest avec les autres mods du joueur | `./gradlew selfTestCompat` | idem | ✅ OK |
+| Intégration headless (vrai jeu v160.5) | `./gradlew integrationTest` | 49 | ✅ 49/49 |
+| Autotest en jeu (client réel 160.4) | `./gradlew selfTest` | 35 captures, 116 vérifications | ✅ OK (V5, 2026-10-08) |
+| Autotest avec les autres mods du joueur | `./gradlew selfTestCompat` | idem | ✅ OK en 1.0.0 ; pas relancé en V5 |
 
 ### Performance
 
 | Mesure | Résultat | Seuil du test |
 |---|---|---|
-| Client réel, démo en combat (rendu compris) | 117 i/s, 8,6 ms par image | ≥ 30 i/s |
+| Client réel, démo en combat (rendu compris) | 118 i/s, 8,5 ms par image (V5) | ≥ 30 i/s |
 | Suivi par tick (headless, 160 bâtiments, 150 unités) | 0,011 ms | < 0,5 ms |
 | Relevé de la base + escouades, une fois par seconde | 0,38 ms | < 5 ms |
 | Sauvegarde après 1 h de jeu | 25 Ko | < 2 Mo |
+
+## Recette V5 (2026-10-08)
+
+- **Progression simulée** : elle a trouvé que le laveur de minerai, utilisable dès l'étape 1, était rangé sous le séparateur (étape 2). Il passe sous le pulvérisateur. Elle a aussi montré que la première version de la turbine industrielle (1 200/s) ne gagnait que 10 % de place sur le générateur différentiel : elle produit maintenant 1 500/s.
+- **Tests instables** : `BaseIT.defenseCountsTurretsUnitsAndWave` échouait environ une fois sur trente : quand les rochers aléatoires repoussaient la zone libre, le Poignard du test naissait sur le noyau et mourait écrasé. Il naît maintenant dans la zone libre. Les tests `V5IT` n'utilisent pas la règle de triche (munitions infinies, bonus) : la Tempête doit d'abord rester muette sans munitions, et le dôme est alimenté par une vraie batterie.
 
 ## Recette V4 (2026-10-05)
 
@@ -98,7 +117,7 @@ Le détail est dans le [guide du joueur](docs/guides/utilisation.md), et les chi
 
 ## Limitations connues
 
-- **Équilibrage** : les bornes automatiques détectent les erreurs grossières, mais l'équilibrage fin demande des parties réelles (retours du joueur dans ToDo).
+- **Équilibrage** : les bornes automatiques et la progression simulée détectent les erreurs grossières et les trous de progression, mais pas le ressenti (rythme, difficulté) : l'équilibrage fin demande toujours une partie réelle (retours du joueur dans ToDo). La simulation compte les transformations, pas le temps ni les quantités.
 - **Mesure exacte** : seulement pour les noyaux de classe vanilla, ce qui inclut ceux d'Exogenesis et de New Horizon qui utilisent cette classe.
 - **Tactiques de groupe** : déplacements en ligne droite ; une unité bloquée abandonne l'ordre quelques secondes.
 - **Minerais, ennemis et difficulté** : appliqués seulement aux nouvelles parties.
@@ -107,7 +126,7 @@ Le détail est dans le [guide du joueur](docs/guides/utilisation.md), et les chi
 ## Fichiers clés
 
 - Cahier des charges : [CAHIER_DES_CHARGES.md](CAHIER_DES_CHARGES.md)
-- Plan V0 → V4 : [docs/PLAN.md](docs/PLAN.md)
+- Plan V0 → V5 : [docs/PLAN.md](docs/PLAN.md)
 - Journal des versions : [CHANGELOG.md](CHANGELOG.md)
 - À faire : [ToDo.md](ToDo.md)
 - Architecture : [docs/architecture/architecture.md](docs/architecture/architecture.md)

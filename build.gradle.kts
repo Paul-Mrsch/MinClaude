@@ -8,7 +8,7 @@ val mindustryVersion = "v160.5"
 val modsDir = File(System.getProperty("user.home"), "Library/Application Support/Mindustry/mods")
 
 group = "minclaude"
-version = "1.0.0"
+version = "1.1.0"
 
 repositories{
     mavenCentral()

@@ -4,6 +4,24 @@ _Généré automatiquement par `BalanceIT` (`./gradlew integrationTest`) à part
 
 Chaque contenu du mod est comparé au vanilla de même rôle. Le **ratio** compare la valeur du mod à la médiane du vanilla : 1,0 = identique. Les tests échouent hors des bornes indiquées.
 
+## Cuves, nœuds et réparation
+
+| Bloc | Mesure | Valeur | Par valeur de coût | Ratio |
+|---|---|---|---|---|
+| liquid-container (vanilla) | capacité | 700 | 21.54 | — |
+| liquid-tank (vanilla) | capacité | 1800 | 20.00 | — |
+| **large-liquid-tank** | capacité | 4000 | 17.17 | 0.80 |
+| power-node (vanilla) | portée (cases) | 6.00 | 1.15 | — |
+| power-node-large (vanilla) | portée (cases) | 15.00 | 1.04 | — |
+| surge-tower (vanilla) | portée (cases) | 40.00 | 0.91 | — |
+| **aluminum-node** | portée (cases) | 9.00 | 1.55 | — |
+| **long-range-node** | portée (cases) | 28.00 | 0.60 | — |
+| mender (vanilla) | réparation × surface | 94.25 | 2.81 | — |
+| mend-projector (vanilla) | réparation × surface | 936 | 6.16 | — |
+| **restoration-dome** | réparation × surface | 3313 | 9.18 | 1.49 |
+
+Réparation × surface = % de PV rendus par seconde × surface couverte (en cases).
+
 ## Tourelles : dégâts par seconde (meilleure munition) par valeur de coût
 
 | Tourelle | DPS | Portée | Valeur | DPS / valeur | Ratio |
@@ -22,8 +40,24 @@ Chaque contenu du mod est comparé au vanilla de même rôle. Le **ratio** compa
 | **volley** | 147 | 16.25 | 185 | 0.79 | 0.46 |
 | **frost** | 90.00 | 15.00 | 179 | 0.50 | 0.29 |
 | **railgun** | 531 | 37.50 | 598 | 0.89 | 0.52 |
+| **tempest** | 754 | 32.50 | 514 | 1.47 | 0.86 |
 
 Médiane vanilla : 1.71 DPS par unité de valeur. La tourelle Givre (contrôle par le gel) est hors comparaison.
+
+## Générateurs : énergie par case et par valeur de coût
+
+| Générateur | Énergie / s | Par case | Par valeur | Énergie par combustible | Ratio (par case) |
+|---|---|---|---|---|---|
+| combustion-generator (vanilla) | 60.00 | 60.00 | 2.61 | 120 | — |
+| steam-generator (vanilla) | 330 | 82.50 | 3.49 | 495 | — |
+| differential-generator (vanilla) | 1080 | 120 | 3.83 | 3960 | — |
+| rtg-generator (vanilla) | 270 | 67.50 | 0.86 | 3780 | — |
+| solar-panel-large (vanilla) | 96.00 | 10.67 | 0.82 | — | — |
+| thorium-reactor (vanilla) | 900 | 100 | 1.18 | — | — |
+| **industrial-turbine** | 1500 | 167 | 3.28 | 2250 | 2.02 |
+| **brine-generator** | 300 | 75.00 | 2.50 | — | 0.91 |
+
+Médianes vanilla : 82.50 énergie/s par case, 2.61 par valeur de coût.
 
 ## Unités : puissance par rang
 
@@ -86,6 +120,17 @@ Médiane vanilla (cuivre → surtension, 1x1) : 107
 | cermet-wall | 800 | 12.00 | 66.67 | 0.63 |
 | cermet-wall-large | 3200 | 48.00 | 66.67 | 0.63 |
 
+## Batteries : capacité par valeur de coût
+
+| Batterie | Taille | Capacité | Par case | Par valeur | Ratio |
+|---|---|---|---|---|---|
+| battery (vanilla) | 1x1 | 4000 | 4000 | 242 | — |
+| battery-large (vanilla) | 3x3 | 50000 | 5556 | 633 | — |
+| **invar-battery** | 2x2 | 36000 | 9000 | 379 | 0.60 |
+| **quantum-capacitor** | 3x3 | 250000 | 27778 | 980 | 1.55 |
+
+Référence vanilla (meilleure des deux) : 633 de capacité par valeur. Les batteries du mod sont plus denses par case, en échange d'un coût par capacité plus élevé.
+
 ## Simulation de combat : survie face à une défense type
 
 3 duos au graphite + 2 lancers (alimentés), unité immobilisée à 5 cases, IA vanilla. Temps de destruction, plafonné à 60 s.
@@ -102,6 +147,20 @@ Médiane vanilla (cuivre → surtension, 1x1) : 107
 | warden | T1 | 2.02 | dagger : 1.55 | 1.30 |
 | sentinel | T2 | 3.35 | mace : 3.35 | 1.00 |
 | bastion | T3 | 7.35 | fortress : 4.87 | 1.51 |
+
+## Progression simulée : Ground Zero → fin de jeu
+
+Étape = nombre de transformations depuis le départ de Ground Zero (cuivre, plomb, sable, ferraille), d'après les vraies recettes. À chaque étape, on construit une usine de chaque type du mod disponible et on calcule la place des meilleurs générateurs (énergie/s par case) et la réserve des meilleures batteries pour une minute de consommation, sans puis avec la V5. Hors comparaison : le générateur thermique (sol chaud) et le réacteur à impact (démarrage par un apport d'énergie).
+
+| Étape | Usines du mod disponibles | Demande (énergie/s) | Générateurs : cases sans V5 → avec V5 | Batteries pour 60 s : cases sans V5 → avec V5 | Nouveaux blocs de la V5 |
+|---|---|---|---|---|---|
+| 0 | 2 | 78.00 | 1.30 → 1.30 | 1.17 → 1.17 | — |
+| 1 | 5 | 264 | 3.20 → 3.20 | 2.85 → 2.85 | — |
+| 2 | 8 | 462 | 3.85 → 3.85 | 4.99 → 4.99 | — |
+| 3 | 10 | 630 | 5.25 → 3.78 | 6.80 → 4.20 | invar-battery, industrial-turbine, brine-generator, long-range-node, large-liquid-tank, tempest |
+| 4 | 12 | 882 | 7.35 → 5.29 | 9.53 → 5.88 | — |
+| 5 | 13 | 1242 | 10.35 → 7.45 | 13.41 → 8.28 | restoration-dome |
+| 6 | 13 | 1242 | 10.35 → 7.45 | 13.41 → 2.68 | quantum-capacitor |
 
 ## Usines : valeur produite / valeur consommée (par cycle)
 

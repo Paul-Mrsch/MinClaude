@@ -33,7 +33,8 @@ public final class MCTechTree{
         node(Blocks.siliconSmelter.techNode, MCBlocks.cobaltSmelter);
         node(Blocks.siliconSmelter.techNode, MCBlocks.aluminumSmelter);
         node(Blocks.graphitePress.techNode, MCBlocks.brassFoundry);
-        node(Blocks.separator.techNode, MCBlocks.oreWasher);
+        // Sous le pulvérisateur : le laveur (sable + eau) est utilisable avant le séparateur (scories).
+        node(Blocks.pulverizer.techNode, MCBlocks.oreWasher);
         node(Blocks.pneumaticDrill.techNode, MCBlocks.percussionDrill);
         TechNode furnace = node(MCBlocks.aluminumSmelter.techNode, MCBlocks.steelFurnace);
         node(furnace, MCBlocks.alloyPress);
@@ -52,7 +53,8 @@ public final class MCTechTree{
         TechNode nickelWall = node(Blocks.copperWall.techNode, MCBlocks.nickelWall);
         node(nickelWall, MCBlocks.nickelWallLarge);
         TechNode rivet = node(Blocks.duo.techNode, MCBlocks.rivet);
-        node(rivet, MCBlocks.volley);
+        TechNode volley = node(rivet, MCBlocks.volley);
+        node(volley, MCBlocks.tempest);
         node(Blocks.wave.techNode, MCBlocks.frost);
         TechNode steelWall = node(MCBlocks.cobaltWall.techNode, MCBlocks.steelWall);
         node(steelWall, MCBlocks.steelWallLarge);
@@ -66,6 +68,15 @@ public final class MCTechTree{
         node(MCBlocks.reinforcedConveyor.techNode, MCBlocks.platedConveyor);
         node(Blocks.container.techNode, MCBlocks.invarContainer);
         node(Blocks.itemBridge.techNode, MCBlocks.duraluminBridge);
+        node(Blocks.liquidTank.techNode, MCBlocks.largeLiquidTank);
+        node(Blocks.powerNodeLarge.techNode, MCBlocks.longRangeNode);
+        TechNode invarBattery = node(Blocks.battery.techNode, MCBlocks.invarBattery);
+        node(invarBattery, MCBlocks.quantumCapacitor);
+        node(Blocks.steamGenerator.techNode, MCBlocks.industrialTurbine);
+        node(MCBlocks.brineMixer.techNode, MCBlocks.brineGenerator);
+
+        // Soutien
+        node(Blocks.mendProjector.techNode, MCBlocks.restorationDome);
 
         // Unités alliées (les ennemies ne sont pas recherchables)
         node(UnitTypes.dagger.techNode, MCUnits.warden);

@@ -91,7 +91,7 @@ Les minerais apparaissent dans les **nouvelles parties** (cartes et secteurs de 
 | Fonderie de cobalt (2×2) | 2 plomb + 1 sable → 1 cobalt / s | 36/s | sous la fonderie de silicium |
 | Fonderie d'aluminium (2×2) | 2 bauxite + 1 charbon → 1 aluminium / 0,83 s | 48/s | sous la fonderie de silicium |
 | Fonderie de laiton (2×2) | 3 cuivre + 1 zinc → 2 laiton / 1,17 s | 30/s | sous la presse à graphite |
-| Laveur de minerai (2×2) | 1 sable + eau → nickel, zinc, bauxite ou cobalt | 42/s | sous le séparateur |
+| Laveur de minerai (2×2) | 1 sable + eau → nickel, zinc, bauxite ou cobalt | 42/s | sous le pulvérisateur |
 | Foreuse à percussion (2×2) | niveau 3 (cobalt, titane), plus rapide que la pneumatique, accélérée par l'eau | 24/s | sous la foreuse pneumatique |
 
 ### Bâtiments
@@ -157,6 +157,23 @@ Les convoyeurs du mod ont maintenant leurs vraies formes de virage et de jonctio
 | Électrocuteur, Mastodonte | ennemis (blindés) | arcs électriques ; char à bouclier |
 | Fantôme, Cannonière, Aile-terreur | ennemis volants | rapide ; mitrailleuses ; bombardier lourd |
 | **Seigneur de guerre**, **Léviathan** | **boss** | à partir des vagues 61 et 71 (Normal), un seul à la fois, effet « boss » du jeu |
+
+### Contenu V5 : énergie et bâtiments utilitaires
+
+La progression de l'énergie et des bâtiments utilitaires continue jusqu'à la fin de jeu. Chaque bloc se place entre deux paliers du jeu de base (chiffres détaillés dans le [rapport d'équilibrage](../equilibrage.md)).
+
+| Bâtiment | Type | Caractéristiques | Déblocage |
+|---|---|---|---|
+| Batterie en invar (2x2) | énergie | 36 000 d'énergie, 9 000 par case (grande batterie : 5 556), 600 PV | sous la batterie |
+| Condensateur quantique (3x3) | énergie | 250 000 d'énergie, cinq grandes batteries ; explose fort s'il est détruit | sous la batterie en invar |
+| Turbine industrielle (3x3) | énergie | 1 500 énergie/s ; un objet inflammable toutes les 1,5 s + 18 eau/s ; 2 250 énergie par charbon (turbine à vapeur : 495) | sous la turbine à vapeur |
+| Générateur à saumure (2x2) | énergie | 300 énergie/s avec 10 saumure/s, sans combustible : un mélangeur de saumure en alimente exactement un | sous le mélangeur de saumure |
+| Nœud électrique longue portée (2x2) | énergie | portée 28 (grand nœud : 15, tour de surtension : 40), 4 liaisons | sous le grand nœud électrique |
+| Grande cuve (4x4) | liquides | 4 000 de liquide (cuve : 1 800), 1 400 PV | sous la cuve |
+| Tempête (3x3) | tourelle | trois tubes à cadence élevée, sol et air, portée 32 cases ; acier (explosif léger), duralumin (perforant, tir plus rapide) ou cermet (explosif, fait fondre le blindage) | sous la Salve |
+| Dôme de restauration (3x3) | soutien | répare 10 % des PV toutes les 3,3 s dans un rayon de 18,75 cases ; 150 énergie/s ; le cristal quantique augmente la réparation et la portée | sous le projecteur de réparation |
+
+![Base de démonstration V5](../images/base-demo-v5.png)
 
 ### IA ennemie
 

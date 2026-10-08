@@ -84,12 +84,18 @@ Légende : ✅ fait · 🔄 en cours · ⬜ à faire
 | A4.4 | Compatibilité | Dernière version de Mindustry vérifiée (v160.5). Autotest avec Exogenesis et New Horizon : aucune erreur, 18 types de noyau instrumentés, IA sur 122 types d'unités, 240 i/s | `selfTestCompat` | ✅ |
 | A4.5 | Publication | Version 1.0.0, [CHANGELOG.md](../CHANGELOG.md), `mod.hjson` final, README joueur | — | ✅ |
 
----|---|---|
-| A4.1 | Équilibrage | Coûts, temps de production, PV et dégâts comparés au vanilla, tableau d'équilibrage dans la doc |
-| A4.2 | Performance | Mesure du coût par tick (suivi, IA, UI) sur une grosse base, optimisation |
-| A4.3 | Qualité des sprites | Retouche du générateur, ombres, animations |
-| A4.4 | Compatibilité | Vérification sur la dernière version de Mindustry à cette date, montée de `mindustryVersion` |
-| A4.5 | Publication | Notes de version, page du mod, captures d'écran |
+## V5 — Énergie et bâtiments utilitaires (1.1.0) ✅
+
+Constat après la 1.0 : la progression des matériaux et des usines va jusqu'à la fin de jeu, mais celle de l'énergie et des bâtiments utilitaires s'arrêtait au nœud en aluminium et au conteneur en invar.
+
+| # | Artefact | Contenu livré | Tests | Statut |
+|---|---|---|---|---|
+| A5.1 | Stockage d'énergie | Batterie en invar (2x2, 36 000), condensateur quantique (3x3, 250 000) | `ContentIT`, `V5IT` (capacité dans le réseau), `BalanceIT` (capacité par coût) | ✅ |
+| A5.2 | Production d'énergie | Turbine industrielle (3x3, 1 500/s, combustible + eau), générateur à saumure (2x2, 300/s, sans combustible) | `V5IT` (sans entrée : rien ; avec : pleine production, consommation du charbon), `BalanceIT` (par case et par coût) | ✅ |
+| A5.3 | Réseau et liquides | Nœud longue portée (2x2, portée 28), grande cuve (4x4, 4 000) | `V5IT` (liaison à 26 cases, refus à 34), `BalanceIT` | ✅ |
+| A5.4 | Défense et soutien | Tempête (tourelle 3x3, sol et air), dôme de restauration (réparation de zone, boost au cristal quantique) | `V5IT` (cibles au sol et en l'air détruites, mur réparé à 15 cases), `BalanceIT` | ✅ |
+| A5.5 | Progression simulée | `Progression` : étape de chaque objet et bloc depuis le départ de Ground Zero, d'après les vraies recettes. Vérifie que tout est atteignable, que l'arbre ne débloque pas un bloc après qu'il est utilisable, et mesure à chaque étape la place des générateurs et des batteries nécessaires aux usines du mod, sans puis avec la V5. Correction trouvée : laveur de minerai déplacé sous le pulvérisateur | `BalanceIT.progression` | ✅ |
+| A5.6 | Sprites et autotest | 7 nouveaux dessins (fenêtres de charge des batteries, rotor de turbine, cuve transparente, lueurs) ; zone de démo V5 en marche dans le vrai client, régions vérifiées dans l'atlas | `ContentIT`, `selfTest` | ✅ |
 
 ---
 

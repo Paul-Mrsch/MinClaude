@@ -1,9 +1,9 @@
 # MinClaude
 
-Mod Java pour **Mindustry v160** (PC), version **1.0.0**.
+Mod Java pour **Mindustry v160** (PC), version **1.1.0**.
 
 - **Gestion** : suivi des ressources dans le temps (graphiques, flux exacts du noyau, prévisions, objectifs, alertes) et dashboard (énergie, industries et goulots, défense).
-- **Contenu Serpulo** : au moins 15 ressources, industries, bâtiments, unités alliées et ennemis, dont 2 boss.
+- **Contenu Serpulo** : au moins 15 ressources, industries, bâtiments, unités alliées et ennemis, dont 2 boss ; une progression de l'énergie et des bâtiments utilitaires jusqu'à la fin de jeu.
 - **IA ennemie** : elle vise vos points faibles, attaque en escouades et adapte ses vagues à vos défenses.
 
 ## Installer (joueur)
@@ -26,7 +26,7 @@ Voir le [guide du joueur](docs/guides/utilisation.md) et le [journal des version
 | [CAHIER_DES_CHARGES.md](CAHIER_DES_CHARGES.md) | Besoin, issu de l'interview |
 | [Etat.md](Etat.md) | État détaillé du projet : avancement, tests, limites |
 | [ToDo.md](ToDo.md) | Prochaines tâches |
-| [docs/PLAN.md](docs/PLAN.md) | Plan V0 → V4 découpé en artefacts |
+| [docs/PLAN.md](docs/PLAN.md) | Plan V0 → V5 découpé en artefacts |
 | [docs/architecture/architecture.md](docs/architecture/architecture.md) | Architecture, flux de données, format de sauvegarde |
 | [docs/guides/utilisation.md](docs/guides/utilisation.md) | Guide du joueur |
 | [docs/guides/developpement.md](docs/guides/developpement.md) | Guide du développeur : build, tests, ajout de contenu |

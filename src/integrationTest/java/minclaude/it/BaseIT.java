@@ -75,9 +75,10 @@ class BaseIT{
 
     @Test
     void defenseCountsTurretsUnitsAndWave(){
-        var at = freeArea(1, 1);
+        // L'unité naît dans la zone libre : 5 cases plus loin, elle pouvait tomber sur le noyau et mourir écrasée.
+        var at = freeArea(1, 6);
         place(Blocks.duo, state.rules.defaultTeam, at.x, at.y);
-        UnitTypes.dagger.spawn(state.rules.defaultTeam, at.worldx() + 40f, at.worldy());
+        UnitTypes.dagger.spawn(state.rules.defaultTeam, at.worldx(), at.worldy() + 5 * tilesize);
         run(120);
 
         var d = MinClaudeMod.tracker.base().defense();

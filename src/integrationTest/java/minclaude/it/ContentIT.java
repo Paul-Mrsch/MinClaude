@@ -100,6 +100,41 @@ class ContentIT{
         }
     }
 
+    /** V5 : chaque bloc d'énergie ou de soutien s'insère entre deux paliers vanilla, sans en dépasser le suivant. */
+    @Test
+    void powerAndUtilityBlocksFitBetweenVanillaTiers(){
+        float battery = Blocks.battery.consPower.capacity, large = Blocks.batteryLarge.consPower.capacity;
+        float invar = MCBlocks.invarBattery.consPower.capacity, quantum = MCBlocks.quantumCapacitor.consPower.capacity;
+        assertTrue(invar > battery * 4 && invar < large, "batterie en invar : entre la batterie et la grande batterie");
+        assertTrue(invar / 4f > large / 9f, "batterie en invar : plus dense par case que la grande batterie");
+        assertTrue(quantum > large, "condensateur quantique : au-delà de la grande batterie");
+
+        var node = (mindustry.world.blocks.power.PowerNode)MCBlocks.longRangeNode;
+        assertTrue(node.laserRange > ((mindustry.world.blocks.power.PowerNode)Blocks.powerNodeLarge).laserRange);
+        assertTrue(node.laserRange < ((mindustry.world.blocks.power.PowerNode)Blocks.surgeTower).laserRange);
+        assertTrue(node.maxNodes > ((mindustry.world.blocks.power.PowerNode)Blocks.surgeTower).maxNodes);
+
+        var turbine = (mindustry.world.blocks.power.ConsumeGenerator)MCBlocks.industrialTurbine;
+        var steam = (mindustry.world.blocks.power.ConsumeGenerator)Blocks.steamGenerator;
+        assertTrue(turbine.powerProduction * turbine.itemDuration > 2 * steam.powerProduction * steam.itemDuration, "turbine : meilleur rendement par combustible");
+        var brine = (mindustry.world.blocks.power.ConsumeGenerator)MCBlocks.brineGenerator;
+        assertEquals(((GenericCrafter)MCBlocks.brineMixer).outputLiquid.amount,
+            ((mindustry.world.consumers.ConsumeLiquid)brine.findConsumer(c -> c instanceof mindustry.world.consumers.ConsumeLiquid)).amount, 1e-6f,
+            "un mélangeur de saumure alimente exactement un générateur");
+
+        assertTrue(MCBlocks.largeLiquidTank.liquidCapacity > Blocks.liquidTank.liquidCapacity);
+        assertEquals(4, MCBlocks.largeLiquidTank.size);
+        var dome = (mindustry.world.blocks.defense.MendProjector)MCBlocks.restorationDome;
+        assertTrue(dome.range > ((mindustry.world.blocks.defense.MendProjector)Blocks.mendProjector).range);
+        var tempest = (mindustry.world.blocks.defense.turrets.Turret)MCBlocks.tempest;
+        assertTrue(tempest.targetAir && tempest.targetGround, "Tempête : sol et air");
+
+        assertSame(Blocks.battery.techNode, MCBlocks.invarBattery.techNode.parent);
+        assertSame(MCBlocks.invarBattery.techNode, MCBlocks.quantumCapacitor.techNode.parent);
+        assertSame(MCBlocks.volley.techNode, MCBlocks.tempest.techNode.parent);
+        assertSame(Blocks.mendProjector.techNode, MCBlocks.restorationDome.techNode.parent);
+    }
+
     @Test
     void alliesAreBuiltInVanillaFactories(){
         assertTrue(((UnitFactory)Blocks.groundFactory).plans.contains(p -> p.unit == MCUnits.warden));
@@ -185,6 +220,10 @@ class ContentIT{
         }else{
             r.add(c.name);
         }
+        // Batteries (fenêtres de charge) et projecteurs de réparation (lueur) : région « -top » ; cuves : fond « -bottom ».
+        if(c instanceof mindustry.world.blocks.power.Battery || c instanceof mindustry.world.blocks.defense.MendProjector) r.add(c.name + "-top");
+        if(c instanceof mindustry.world.blocks.liquid.LiquidRouter) r.add(c.name + "-bottom");
+        if(c instanceof Block b && MCBlocks.rotors.contains(b)) r.add(c.name + "-rotator");
         if(c instanceof Block b && MCBlocks.glowing.contains(b)) r.add(c.name + "-glow");
         if(c instanceof mindustry.world.blocks.defense.turrets.ItemTurret) r.add(c.name + "-heat");
         return r;

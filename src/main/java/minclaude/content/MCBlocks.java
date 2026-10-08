@@ -17,7 +17,16 @@ import mindustry.world.blocks.distribution.ArmoredConveyor;
 import mindustry.world.blocks.distribution.BufferedItemBridge;
 import mindustry.world.blocks.distribution.Conveyor;
 import mindustry.world.blocks.environment.OreBlock;
+import mindustry.world.blocks.defense.MendProjector;
+import mindustry.world.blocks.liquid.LiquidRouter;
+import mindustry.world.blocks.power.Battery;
+import mindustry.world.blocks.power.ConsumeGenerator;
+import mindustry.world.blocks.power.PowerGenerator;
 import mindustry.world.blocks.power.PowerNode;
+import mindustry.entities.pattern.ShootAlternate;
+import mindustry.world.consumers.ConsumeItemExplode;
+import mindustry.world.consumers.ConsumeItemFlammable;
+import mindustry.world.draw.*;
 import mindustry.world.blocks.production.*;
 
 import static mindustry.type.ItemStack.with;
@@ -37,6 +46,9 @@ public final class MCBlocks{
     public static Block cobaltWall, cobaltWallLarge, nickelWall, nickelWallLarge, reinforcedConveyor, rivet, aluminumNode,
         steelWall, steelWallLarge, platedConveyor, volley, frost, invarContainer,
         cermetWall, cermetWallLarge, duraluminBridge, railgun;
+    // Énergie et soutien (V5)
+    public static Block invarBattery, quantumCapacitor, industrialTurbine, brineGenerator, longRangeNode,
+        largeLiquidTank, tempest, restorationDome;
 
     /** Tous les blocs du mod (tests, générateur de sprites). */
     public static final Seq<Block> all = new Seq<>();
@@ -188,6 +200,7 @@ public final class MCBlocks{
 
         loadV2();
         loadV3();
+        loadV5();
 
         // V4 : lueur animée (région -glow) des fours et réacteurs, qui pulse quand l'usine tourne.
         glow(cobaltSmelter, MCItems.cobalt.color);
@@ -199,19 +212,176 @@ public final class MCBlocks{
         glow(duraluminForge, MCItems.duralumin.color);
         glow(cermetKiln, MCItems.cermet.color);
         glow(quantumResonator, MCItems.quantumCrystal.color);
+        glow(brineGenerator, MCLiquids.brine.color);
     }
 
     /** Blocs dont le sprite a une région « -glow » (vérifié par ContentIT). */
     public static final Seq<Block> glowing = new Seq<>();
+    /** Blocs dont le sprite a une région « -rotator » qui tourne en marche (vérifié par ContentIT). */
+    public static final Seq<Block> rotors = new Seq<>();
 
     private static void glow(Block block, arc.graphics.Color color){
-        var crafter = (GenericCrafter)block;
-        crafter.drawer = new mindustry.world.draw.DrawMulti(new mindustry.world.draw.DrawDefault(), new mindustry.world.draw.DrawGlowRegion(){{
+        var drawer = new DrawMulti(new DrawDefault(), new DrawGlowRegion(){{
             this.color = color.cpy();
             glowScale = 8f;
             glowIntensity = 0.4f;
         }});
+        if(block instanceof GenericCrafter crafter) crafter.drawer = drawer;
+        else ((PowerGenerator)block).drawer = drawer;
         glowing.add(block);
+    }
+
+    /**
+     * V5 : progression de l'énergie et des bâtiments utilitaires après le milieu de partie.
+     * Chaque bloc se place entre deux paliers vanilla (voir docs/equilibrage.md) :
+     * batterie en invar entre la batterie et la grande batterie, condensateur au-delà ; turbine au-delà du
+     * générateur différentiel ; générateur à saumure au niveau de la turbine à vapeur ; nœud longue portée
+     * entre le grand nœud et la tour de surtension ; grande cuve après la cuve ; Tempête entre le Cyclone et le
+     * canon électrique ; dôme de restauration après le projecteur de réparation.
+     */
+    private static void loadV5(){
+        invarBattery = add(new Battery("invar-battery"){{
+            requirements(Category.power, with(Items.lead, 40, Items.silicon, 20, MCItems.invar, 30));
+            size = 2;
+            health = 600;
+            consumePowerBuffered(36000f);
+            baseExplosiveness = 2f;
+        }});
+
+        quantumCapacitor = add(new Battery("quantum-capacitor"){{
+            requirements(Category.power, with(Items.silicon, 80, Items.surgeAlloy, 30, MCItems.cermet, 40, MCItems.quantumCrystal, 25));
+            size = 3;
+            health = 1400;
+            consumePowerBuffered(250000f);
+            baseExplosiveness = 6f;
+            emptyLightColor = arc.graphics.Color.valueOf("6a3fb0");
+            fullLightColor = MCItems.quantumCrystal.color.cpy();
+        }});
+
+        industrialTurbine = add(new ConsumeGenerator("industrial-turbine"){{
+            requirements(Category.power, with(Items.lead, 120, Items.silicon, 80, MCItems.steel, 90, MCItems.invar, 60, MCItems.duralumin, 40));
+            size = 3;
+            health = 1100;
+            // 1 500 énergie/s, un combustible toutes les 1,5 s : 4,5 fois le rendement par objet de la turbine à vapeur,
+            // le meilleur générateur continu par case, sans les deux chaînes (pyratite, cryofluide) du différentiel.
+            powerProduction = 25f;
+            itemDuration = 90f;
+            hasLiquids = true;
+            liquidCapacity = 60f;
+            consume(new ConsumeItemFlammable());
+            consume(new ConsumeItemExplode());
+            consumeLiquid(Liquids.water, 0.3f);
+            generateEffect = Fx.generatespark;
+            effectChance = 0.08f;
+            ambientSound = Sounds.loopSteam;
+            ambientSoundVolume = 0.05f;
+            drawer = new DrawMulti(new DrawDefault(), new DrawRegion("-rotator", 6f, true));
+        }});
+        rotors.add(industrialTurbine);
+
+        brineGenerator = add(new ConsumeGenerator("brine-generator"){{
+            requirements(Category.power, with(Items.copper, 60, Items.metaglass, 30, Items.silicon, 30, MCItems.zinc, 30));
+            size = 2;
+            health = 400;
+            // Osmose : un mélangeur de saumure alimente exactement un générateur, sans combustible
+            // (bilan net avec le mélangeur : 270 énergie/s pour 1 sable/s).
+            powerProduction = 5f;
+            hasLiquids = true;
+            liquidCapacity = 30f;
+            consumeLiquid(MCLiquids.brine, 10f / 60f);
+            generateEffect = Fx.generatespark;
+            effectChance = 0.03f;
+        }});
+
+        longRangeNode = add(new PowerNode("long-range-node"){{
+            requirements(Category.power, with(Items.lead, 10, Items.silicon, 10, MCItems.aluminum, 10, MCItems.duralumin, 12));
+            size = 2;
+            health = 300;
+            maxNodes = 4;
+            laserRange = 28f;
+        }});
+
+        largeLiquidTank = add(new LiquidRouter("large-liquid-tank"){{
+            requirements(Category.liquid, with(Items.metaglass, 60, MCItems.steel, 50, MCItems.invar, 40));
+            size = 4;
+            solid = true;
+            health = 1400;
+            liquidCapacity = 4000f;
+            liquidPadding = 3f;
+        }});
+
+        tempest = add(new ItemTurret("tempest"){{
+            requirements(Category.turret, with(Items.titanium, 120, MCItems.steel, 100, MCItems.invar, 80, MCItems.duralumin, 60));
+            ammo(
+                MCItems.steel, new BasicBulletType(6f, 34){{
+                    width = 9f;
+                    height = 13f;
+                    lifetime = 44f;
+                    ammoMultiplier = 3;
+                    splashDamage = 16f;
+                    splashDamageRadius = 18f;
+                    hitEffect = Fx.flakExplosion;
+                    hitColor = backColor = trailColor = MCItems.steel.color.cpy().mul(0.8f);
+                    frontColor = Pal.lightishGray;
+                }},
+                MCItems.duralumin, new BasicBulletType(7f, 44){{
+                    width = 8f;
+                    height = 14f;
+                    lifetime = 38f;
+                    ammoMultiplier = 4;
+                    reloadMultiplier = 1.25f;
+                    pierce = true;
+                    pierceCap = 3;
+                    hitColor = backColor = trailColor = MCItems.duralumin.color.cpy().mul(0.8f);
+                    frontColor = MCItems.duralumin.color;
+                }},
+                MCItems.cermet, new BasicBulletType(5.5f, 40){{
+                    width = 10f;
+                    height = 13f;
+                    lifetime = 48f;
+                    ammoMultiplier = 2;
+                    splashDamage = 34f;
+                    splashDamageRadius = 26f;
+                    status = StatusEffects.melting;
+                    statusDuration = 120f;
+                    hitEffect = Fx.blastExplosion;
+                    hitColor = backColor = trailColor = MCItems.cermet.color.cpy().mul(0.8f);
+                    frontColor = MCItems.cermet.color;
+                }}
+            );
+            // Trois canons tirés à tour de rôle : cadence élevée, cibles au sol et en l'air.
+            shoot = new ShootAlternate(7f){{
+                barrels = 3;
+            }};
+            size = 3;
+            range = 260f;
+            reload = 7f;
+            recoil = 2f;
+            shake = 1f;
+            inaccuracy = 3f;
+            shootCone = 15f;
+            rotateSpeed = 5f;
+            health = 1900;
+            targetAir = true;
+            shootSound = Sounds.shootCyclone;
+            coolant = consumeCoolant(0.4f);
+            limitRange();
+        }});
+
+        restorationDome = add(new MendProjector("restoration-dome"){{
+            requirements(Category.effect, with(Items.silicon, 120, MCItems.invar, 60, MCItems.cermet, 50, MCItems.carbonFiber, 30));
+            size = 3;
+            health = 900;
+            consumePower(2.5f);
+            reload = 200f;
+            range = 150f;
+            healPercent = 10f;
+            phaseBoost = 12f;
+            phaseRangeBoost = 50f;
+            baseColor = arc.graphics.Color.valueOf("6ee6a0");
+            phaseColor = MCItems.quantumCrystal.color.cpy();
+            consumeItem(MCItems.quantumCrystal).boost();
+        }});
     }
 
     /** V3 : chimie et matériaux de fin de jeu, pont longue portée, tourelle lourde. */
