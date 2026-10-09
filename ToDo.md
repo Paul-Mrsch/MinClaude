@@ -1,12 +1,21 @@
 # MinClaude — À faire
 
-_Mis à jour le 2026-10-06._ Chaque tâche cite son artefact (voir [docs/PLAN.md](docs/PLAN.md)).
+_Mis à jour le 2026-10-08._ Chaque tâche cite son artefact (voir [docs/PLAN.md](docs/PLAN.md)).
 Une tâche n'est terminée que si ses **tests** et sa **doc** sont faits, et si `./gradlew check selfTest` passe.
 Branches : on développe sur `dev`, on fusionne dans `main` à chaque version publiée (tag `v0.x.0` puis `v1.x.y`).
 
-## Maintenant : après la publication de la 1.0
+## Maintenant : V5 (1.1.0) sur `dev`
 
-- [ ] **Partie réelle** (à faire par le joueur) : une partie complète sur Serpulo, de Ground Zero au contenu de fin de jeu, en Normal puis en Brutal
+- [x] Énergie : batterie en invar, condensateur quantique, turbine industrielle, générateur à saumure, nœud longue portée
+- [x] Utilitaires : grande cuve, tourelle Tempête, dôme de restauration
+- [x] Équilibrage automatique : bornes générateurs, batteries, cuves, réparation ; progression simulée Ground Zero → fin de jeu (`BalanceIT.progression`)
+- [x] `check` (69 + 49 tests) et `selfTest` passent
+- [x] `selfTestCompat` avec Exogenesis et New Horizon
+- [ ] Partie réelle avec la V5 (voir ci-dessous), puis fusion dans `main`, tag `v1.1.0`, release GitHub
+
+## Après la publication de la 1.0
+
+- [ ] **Partie réelle** (à faire par le joueur) : une partie complète sur Serpulo, de Ground Zero au contenu de fin de jeu, en Normal puis en Brutal. La progression simulée (`docs/equilibrage.md`) couvre la cohérence des recettes et de l'arbre, pas le rythme ni la difficulté ressentie
 - [ ] Noter les retours d'équilibrage ci-dessous : ils alimentent une 1.0.1
 - [x] Campagne de tests globale (unitaires, intégration, 6 autotests, autotest avec les autres mods)
 - [x] Fusionner `dev` dans `main`, tag `v1.0.0`, pousser

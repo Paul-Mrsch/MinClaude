@@ -183,6 +183,24 @@ public final class SelfTest{
             shot("12c-defense-adaptation");
         });
         step(0.5f, "adaptation-fermeture", MinClaudeMod::toggleDashboard);
+        // ---- V5 : énergie et bâtiments utilitaires (après l'adaptation : la Tempête compte comme anti-aérien) ----
+        step(0.5f, "regions-atlas", this::checkRegions);
+        step(0.5f, "monde-base-v5", () -> {
+            buildDemoBaseV5();
+            if(v5X >= 0) lookAt((v5X + 9) * tilesize, (v5Y + 5) * tilesize);
+            state.set(mindustry.core.GameState.State.playing);
+        });
+        step(2f, "monde-base-v5-pause", () -> {
+            state.set(mindustry.core.GameState.State.paused);
+            var turbine = world.build(v5X + 11, v5Y + 2);
+            check("turbine industrielle en marche", turbine instanceof mindustry.world.blocks.power.ConsumeGenerator.ConsumeGeneratorBuild g && g.productionEfficiency > 0.9f);
+            var battery = world.build(v5X + 5, v5Y + 6);
+            check("batterie en invar chargée par la turbine", battery != null && battery.power.graph.getBatteryStored() > 0);
+        });
+        step(1f, "monde-base-v5-capture", () -> shot("13d-base-demo-v5"));
+        step(0.5f, "fiche-tempete", () -> ui.content.show(MCBlocks.tempest));
+        step(1.5f, "fiche-tempete-capture", () -> shot("26-fiche-tempete"));
+        step(0.5f, "fiche-tempete-fermeture", () -> ui.content.hide());
         step(0.5f, "monde-minerais", () -> {
             var ore = nearestModOre();
             check("minerais du mod présents sur la carte", ore != null);
@@ -393,6 +411,72 @@ public final class SelfTest{
         // Anti-sol seulement : l'ennemi s'adapte (plus de volants).
         for(int i = 0; i < 9; i++) put(mindustry.content.Blocks.hail, x + 13 + i, y + 6, team);
         for(int i = 0; i < 9; i++) put(mindustry.content.Blocks.hail, x + 13 + i, y + 7, team);
+    }
+
+    private int v5X = -1, v5Y = -1;
+
+    /** V5 : énergie et soutien en marche (turbine, batteries, cuve pleine, nœud longue portée relié). */
+    private void buildDemoBaseV5(){
+        var core = MinClaudeMod.tracker.core();
+        var team = state.rules.defaultTeam;
+        float best = Float.MAX_VALUE;
+        for(int x = 1; x < world.width() - 19; x++){
+            for(int y = 1; y < world.height() - 10; y++){
+                boolean overDemo = x < demoX - 9 + 18 + 2 && x + 18 + 2 > demoX - 9 && y < demoY - 3 + 12 + 2 && y + 10 + 2 > demoY - 3;
+                boolean overV3 = v3X >= 0 && x < v3X + 22 + 2 && x + 18 + 2 > v3X && y < v3Y + 12 + 2 && y + 10 + 2 > v3Y;
+                if(overDemo || overV3) continue;
+                float d = core.tile.dst(world.tile(x, y));
+                if(d < best && free(x, y, 18, 10)){
+                    best = d;
+                    v5X = x;
+                    v5Y = y;
+                }
+            }
+        }
+        check("zone libre pour la démo V5", v5X >= 0);
+        if(v5X < 0) return;
+        int x = v5X, y = v5Y;
+        var tank = put(MCBlocks.largeLiquidTank, x + 2, y + 2, team);
+        var capacitor = put(MCBlocks.quantumCapacitor, x + 7, y + 2, team);
+        var turbine = put(MCBlocks.industrialTurbine, x + 11, y + 2, team);
+        var tempest = put(MCBlocks.tempest, x + 15, y + 2, team);
+        var dome = put(MCBlocks.restorationDome, x + 2, y + 7, team);
+        var battery = put(MCBlocks.invarBattery, x + 5, y + 6, team);
+        var brine = put(MCBlocks.brineGenerator, x + 8, y + 6, team);
+        var node = put(MCBlocks.longRangeNode, x + 11, y + 6, team);
+        if(tank != null) tank.liquids.add(mindustry.content.Liquids.water, 2500f);
+        if(turbine != null){
+            turbine.items.add(Items.coal, 10);
+            turbine.liquids.add(mindustry.content.Liquids.water, 60f);
+        }
+        if(brine != null) brine.liquids.add(MCLiquids.brine, 30f);
+        if(tempest != null) tempest.handleStack(MCItems.steel, 20, null);
+        // Le nœud longue portée relie la turbine, le générateur, les batteries et le dôme.
+        if(node != null){
+            for(var b : new mindustry.gen.Building[]{turbine, brine, battery, capacitor, dome}){
+                if(b != null) node.configureAny(b.pos());
+            }
+        }
+    }
+
+    /** Toutes les régions que le jeu cherche pour les blocs du mod sont dans le vrai atlas (pas de texture d'erreur). */
+    private void checkRegions(){
+        int missing = 0;
+        for(var b : MCBlocks.all){
+            java.util.List<String> names = new java.util.ArrayList<>(java.util.List.of(b instanceof mindustry.world.blocks.environment.OreBlock ? b.name + "1" : b.name));
+            if(b instanceof mindustry.world.blocks.power.Battery || b instanceof mindustry.world.blocks.defense.MendProjector) names.add(b.name + "-top");
+            if(b instanceof mindustry.world.blocks.liquid.LiquidRouter) names.add(b.name + "-bottom");
+            if(MCBlocks.rotors.contains(b)) names.add(b.name + "-rotator");
+            if(MCBlocks.glowing.contains(b)) names.add(b.name + "-glow");
+            if(b instanceof mindustry.world.blocks.defense.turrets.ItemTurret) names.add(b.name + "-heat");
+            for(String n : names){
+                if(!Core.atlas.has(n)){
+                    missing++;
+                    line("info région absente : " + n);
+                }
+            }
+        }
+        check("régions des blocs du mod dans l'atlas", missing == 0);
     }
 
     private static void putRotated(mindustry.world.Block block, int x, int y, int rotation, mindustry.game.Team team){

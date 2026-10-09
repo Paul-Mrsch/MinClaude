@@ -1,5 +1,11 @@
 # Journal des versions
 
+## 1.1.0 — V5 (2026-10-08)
+
+- **Énergie** : batterie en invar (2x2), condensateur quantique (3x3, fin de jeu), turbine industrielle (3x3, combustible + eau), générateur à saumure (2x2, sans combustible), nœud électrique longue portée (2x2, portée 28).
+- **Bâtiments utilitaires** : grande cuve (4x4, 4 000 de liquide), Tempête (tourelle 3x3 à trois tubes, sol et air, entre le Cyclone et le canon électrique), dôme de restauration (réparation de zone, renforcé par le cristal quantique).
+- **Équilibrage** : nouvelles bornes pour les générateurs, batteries, cuves et la réparation, et une **progression simulée** de Ground Zero à la fin de jeu à partir des vraies recettes. Elle a montré que le laveur de minerai, utilisable avant le séparateur, était rangé sous lui dans l'arbre : il passe sous le pulvérisateur.
+
 ## 1.0.0 — V4 (2026-10-05)
 
 - **Équilibrage** : rapport automatique [docs/equilibrage.md](docs/equilibrage.md), qui compare chaque contenu au jeu de base, et simulation de combat. Brute, Mastodonte, Seigneur de guerre, Sapeur, Électrocuteur et Essaimeur sont renforcés pour tenir leur rang. La fonderie de laiton demande 3 cuivre au lieu de 2.

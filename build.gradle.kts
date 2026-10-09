@@ -8,7 +8,7 @@ val mindustryVersion = "v160.5"
 val modsDir = File(System.getProperty("user.home"), "Library/Application Support/Mindustry/mods")
 
 group = "minclaude"
-version = "1.0.0"
+version = "1.1.0"
 
 repositories{
     mavenCentral()
@@ -155,7 +155,9 @@ fun registerSelfTest(taskName: String, withOtherMods: Boolean){
             if(withOtherMods){
                 copy{
                     from(modsDir)
-                    exclude("MinClaude.jar")
+                    // Toute autre copie de MinClaude (ex. Paul-MrschMinClaude1.zip, installée depuis le navigateur de mods) :
+                    // le jeu garderait une seule des deux, pas forcément celle qu'on teste.
+                    exclude{ it.name.contains("MinClaude", ignoreCase = true) }
                     into(File(root, "data/mods"))
                 }
             }

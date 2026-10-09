@@ -11,8 +11,11 @@ import mindustry.entities.bullet.BulletType;
 import mindustry.gen.Unit;
 import mindustry.type.*;
 import mindustry.world.Block;
+import mindustry.world.blocks.defense.MendProjector;
 import mindustry.world.blocks.defense.Wall;
 import mindustry.world.blocks.defense.turrets.*;
+import mindustry.world.blocks.liquid.LiquidRouter;
+import mindustry.world.blocks.power.*;
 import mindustry.world.blocks.production.GenericCrafter;
 import org.junit.jupiter.api.*;
 
@@ -161,6 +164,197 @@ class BalanceIT{
             check("usine " + b.name, r / med, 0.5f, 2.5f);
         }
         md.append("\nMédiane vanilla : ").append(f(med)).append(".\n\n");
+    }
+
+    /** Énergie produite par seconde, par case occupée. */
+    static float powerPerTile(PowerGenerator g){
+        return g.powerProduction * 60f / (g.size * g.size);
+    }
+
+    /** Énergie tirée d'un objet consommé (générateurs à combustible), à efficacité 1. */
+    static float energyPerItem(ConsumeGenerator g){
+        return g.powerProduction * g.itemDuration;
+    }
+
+    @Test
+    void powerGeneration(){
+        Block[] vanilla = {Blocks.combustionGenerator, Blocks.steamGenerator, Blocks.differentialGenerator, Blocks.rtgGenerator,
+            Blocks.largeSolarPanel, Blocks.thoriumReactor};
+        Seq<Float> ref = new Seq<>(), perValue = new Seq<>();
+        md.append("## Générateurs : énergie par case et par valeur de coût\n\n")
+            .append("| Générateur | Énergie / s | Par case | Par valeur | Énergie par combustible | Ratio (par case) |\n|---|---|---|---|---|---|\n");
+        for(Block b : vanilla){
+            var g = (PowerGenerator)b;
+            ref.add(powerPerTile(g));
+            perValue.add(g.powerProduction * 60f / value(b.requirements));
+            generatorRow(g, "—", true);
+        }
+        float med = median(ref), medValue = median(perValue);
+        for(Block b : MCBlocks.all){
+            if(!(b instanceof PowerGenerator g)) continue;
+            float ratio = powerPerTile(g) / med;
+            generatorRow(g, f(ratio), false);
+            check("générateur " + b.name + " (par case)", ratio, 0.4f, 2.5f);
+            check("générateur " + b.name + " (par valeur)", g.powerProduction * 60f / value(b.requirements) / medValue, 0.4f, 2.5f);
+        }
+        md.append("\nMédianes vanilla : ").append(f(med)).append(" énergie/s par case, ").append(f(medValue)).append(" par valeur de coût.\n\n");
+    }
+
+    private static void generatorRow(PowerGenerator g, String ratio, boolean vanilla){
+        md.append("| ").append(vanilla ? g.name + " (vanilla)" : "**" + g.name + "**").append(" | ").append(f(g.powerProduction * 60f)).append(" | ")
+            .append(f(powerPerTile(g))).append(" | ").append(f(g.powerProduction * 60f / value(g.requirements))).append(" | ")
+            .append(g instanceof ConsumeGenerator cg && cg.itemDuration > 0 && cg.hasItems ? f(energyPerItem(cg)) : "—").append(" | ").append(ratio).append(" |\n");
+    }
+
+    @Test
+    void powerStorage(){
+        Seq<Float> ref = new Seq<>();
+        md.append("## Batteries : capacité par valeur de coût\n\n| Batterie | Taille | Capacité | Par case | Par valeur | Ratio |\n|---|---|---|---|---|---|\n");
+        for(Block b : new Block[]{Blocks.battery, Blocks.batteryLarge}){
+            ref.add(b.consPower.capacity / value(b.requirements));
+            batteryRow(b, "—");
+        }
+        float med = median(ref);
+        for(Block b : MCBlocks.all){
+            if(!(b instanceof Battery)) continue;
+            float ratio = b.consPower.capacity / value(b.requirements) / med;
+            batteryRow(b, f(ratio));
+            check("batterie " + b.name, ratio, 0.4f, 2.5f);
+        }
+        md.append("\nRéférence vanilla (meilleure des deux) : ").append(f(med)).append(" de capacité par valeur. ")
+            .append("Les batteries du mod sont plus denses par case, en échange d'un coût par capacité plus élevé.\n\n");
+    }
+
+    private static void batteryRow(Block b, String ratio){
+        boolean mod = MCBlocks.all.contains(b);
+        md.append("| ").append(mod ? "**" + b.name + "**" : b.name + " (vanilla)").append(" | ").append(b.size).append("x").append(b.size).append(" | ")
+            .append(f(b.consPower.capacity)).append(" | ").append(f(b.consPower.capacity / (b.size * b.size))).append(" | ")
+            .append(f(b.consPower.capacity / value(b.requirements))).append(" | ").append(ratio).append(" |\n");
+    }
+
+    @Test
+    void logisticsAndSupport(){
+        md.append("## Cuves, nœuds et réparation\n\n| Bloc | Mesure | Valeur | Par valeur de coût | Ratio |\n|---|---|---|---|---|\n");
+        // Cuves : capacité par valeur.
+        Seq<Float> tanks = new Seq<>();
+        for(Block b : new Block[]{Blocks.liquidContainer, Blocks.liquidTank}){
+            tanks.add(b.liquidCapacity / value(b.requirements));
+            supportRow(b, "capacité", b.liquidCapacity, "—");
+        }
+        float medTank = median(tanks);
+        for(Block b : MCBlocks.all){
+            if(!(b instanceof LiquidRouter)) continue;
+            float ratio = b.liquidCapacity / value(b.requirements) / medTank;
+            supportRow(b, "capacité", b.liquidCapacity, f(ratio));
+            check("cuve " + b.name, ratio, 0.4f, 2.5f);
+        }
+        // Nœuds : portée × connexions par valeur (la tour de surtension n'a que 2 liens : on compare la portée seule).
+        for(Block b : new Block[]{Blocks.powerNode, Blocks.powerNodeLarge, Blocks.surgeTower}){
+            supportRow(b, "portée (cases)", ((PowerNode)b).laserRange, "—");
+        }
+        for(Block b : MCBlocks.all){
+            if(!(b instanceof PowerNode n)) continue;
+            supportRow(b, "portée (cases)", n.laserRange, "—");
+        }
+        // Réparation : PV rendus par seconde (en % des PV des bâtiments) × surface couverte, par valeur.
+        Seq<Float> menders = new Seq<>();
+        for(Block b : new Block[]{Blocks.mender, Blocks.mendProjector}){
+            menders.add(mendCoverage((MendProjector)b) / value(b.requirements));
+            supportRow(b, "réparation × surface", mendCoverage((MendProjector)b), "—");
+        }
+        float medMend = median(menders);
+        for(Block b : MCBlocks.all){
+            if(!(b instanceof MendProjector m)) continue;
+            float ratio = mendCoverage(m) / value(b.requirements) / medMend;
+            supportRow(b, "réparation × surface", mendCoverage(m), f(ratio));
+            check("réparation " + b.name, ratio, 0.4f, 2.5f);
+        }
+        md.append("\nRéparation × surface = % de PV rendus par seconde × surface couverte (en cases).\n\n");
+    }
+
+    static float mendCoverage(MendProjector m){
+        float tiles = (float)(Math.PI * Math.pow(m.range / tilesize, 2));
+        return m.healPercent * 60f / m.reload * tiles;
+    }
+
+    private static void supportRow(Block b, String what, float v, String ratio){
+        boolean mod = MCBlocks.all.contains(b);
+        md.append("| ").append(mod ? "**" + b.name + "**" : b.name + " (vanilla)").append(" | ").append(what).append(" | ").append(f(v)).append(" | ")
+            .append(f(v / value(b.requirements))).append(" | ").append(ratio).append(" |\n");
+    }
+
+    /**
+     * Partie simulée de Ground Zero à la fin de jeu (voir {@link Progression}). À chaque étape, on construit une usine
+     * de chaque type du mod disponible, et on mesure la place que prennent les meilleurs générateurs et batteries
+     * disponibles pour les faire tourner, avec et sans les blocs de la V5.
+     */
+    @Test
+    void progression(){
+        Progression p = new Progression();
+        for(Block b : MCBlocks.all){
+            if(b instanceof mindustry.world.blocks.environment.OreBlock) continue;
+            if(p.usable(b) >= Progression.UNREACHABLE) problems.add("progression : " + b.name + " n'est pas atteignable depuis Ground Zero");
+            // Un bloc ne doit pas être utilisable avant son parent dans l'arbre technologique.
+            if(b.techNode != null && b.techNode.parent != null && b.techNode.parent.content instanceof Block parent && p.usable(parent) > p.usable(b)){
+                problems.add("progression : " + b.name + " (étape " + p.usable(b) + ") est sous " + parent.name + " (étape " + p.usable(parent) + ") dans l'arbre");
+            }
+        }
+        for(var i : MCItems.all) if(p.of(i) >= Progression.UNREACHABLE) problems.add("progression : " + i.name + " n'est pas obtenable");
+
+        // Dernière étape : le matériau le plus avancé du mod (cristal quantique).
+        int lastItem = 0;
+        for(var i : MCItems.all) lastItem = Math.max(lastItem, p.of(i));
+        final int last = lastItem;
+        List<Block> v5 = List.of(MCBlocks.invarBattery, MCBlocks.quantumCapacitor, MCBlocks.industrialTurbine, MCBlocks.brineGenerator,
+            MCBlocks.longRangeNode, MCBlocks.largeLiquidTank, MCBlocks.tempest, MCBlocks.restorationDome);
+
+        md.append("## Progression simulée : Ground Zero → fin de jeu\n\n")
+            .append("Étape = nombre de transformations depuis le départ de Ground Zero (cuivre, plomb, sable, ferraille), d'après les vraies recettes. ")
+            .append("À chaque étape, on construit une usine de chaque type du mod disponible et on calcule la place des meilleurs générateurs ")
+            .append("(énergie/s par case) et la réserve des meilleures batteries pour une minute de consommation, sans puis avec la V5. ")
+            .append("Hors comparaison : le générateur thermique (sol chaud) et le réacteur à impact (démarrage par un apport d'énergie).\n\n")
+            .append("| Étape | Usines du mod disponibles | Demande (énergie/s) | Générateurs : cases sans V5 → avec V5 | Batteries pour 60 s : cases sans V5 → avec V5 | Nouveaux blocs de la V5 |\n")
+            .append("|---|---|---|---|---|---|\n");
+        float worstWith = 0;
+        for(int s = 0; s <= last; s++){
+            float demand = 0;
+            int crafters = 0;
+            for(Block b : MCBlocks.all){
+                if(b instanceof GenericCrafter && p.usable(b) <= s && b.consPower != null){
+                    demand += b.consPower.usage * 60f;
+                    crafters++;
+                }
+            }
+            float genWithout = 0, genWith = 0, batWithout = 0, batWith = 0;
+            for(Block b : p.blocks()){
+                if(p.usable(b) > s) continue;
+                boolean isV5 = v5.contains(b);
+                // Hors comparaison : le générateur thermique (sol chaud) et le réacteur à impact (démarrage par un apport d'énergie).
+                if(b instanceof PowerGenerator g && !(b instanceof ThermalGenerator) && !(b instanceof ImpactReactor)){
+                    genWith = Math.max(genWith, powerPerTile(g));
+                    if(!isV5) genWithout = Math.max(genWithout, powerPerTile(g));
+                }
+                if(b instanceof Battery){
+                    float perTile = b.consPower.capacity / (b.size * b.size);
+                    batWith = Math.max(batWith, perTile);
+                    if(!isV5) batWithout = Math.max(batWithout, perTile);
+                }
+            }
+            StringBuilder unlocked = new StringBuilder();
+            for(Block b : v5) if(p.usable(b) == s) unlocked.append(unlocked.length() > 0 ? ", " : "").append(b.name);
+            float tilesWithout = demand / Math.max(genWithout, 1e-3f), tilesWith = demand / Math.max(genWith, 1e-3f);
+            worstWith = Math.max(worstWith, tilesWith);
+            md.append("| ").append(s).append(" | ").append(crafters).append(" | ").append(f(demand)).append(" | ")
+                .append(f(tilesWithout)).append(" → ").append(f(tilesWith)).append(" | ")
+                .append(f(demand * 60f / Math.max(batWithout, 1e-3f))).append(" → ").append(f(demand * 60f / Math.max(batWith, 1e-3f))).append(" | ")
+                .append(unlocked.length() == 0 ? "—" : unlocked.toString()).append(" |\n");
+        }
+        md.append('\n');
+        // Chaque bloc de la V5 est utilisable au plus tard quand le dernier matériau du mod est obtenu.
+        for(Block b : v5) if(p.usable(b) > last) problems.add("progression : " + b.name + " arrive après le dernier matériau du mod");
+        // Au moins un générateur et une batterie de la V5 arrivent dans la seconde moitié de la partie.
+        if(v5.stream().noneMatch(b -> b instanceof PowerGenerator && p.usable(b) * 2 >= last)) problems.add("progression : aucun générateur V5 en fin de partie");
+        if(v5.stream().noneMatch(b -> b instanceof Battery && p.usable(b) >= last - 1)) problems.add("progression : aucune batterie V5 à la dernière étape");
     }
 
     /** DPS d'une unité : somme des armes (×2 si en miroir). */

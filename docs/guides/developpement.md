@@ -107,7 +107,9 @@ Les captures sont prises après le dessin de l'UI (`Trigger.uiDrawEnd`). Il faut
 - tourelles : DPS de la meilleure munition par valeur de coût ;
 - usines : valeur produite / consommée, comparée à la médiane vanilla ;
 - unités : puissance √(PV effectifs × DPS) par rang et lignées croissantes ;
-- simulation de combat : temps de survie face à 3 duos et 2 lancers.
+- simulation de combat : temps de survie face à 3 duos et 2 lancers ;
+- générateurs (énergie par case et par coût), batteries (capacité par coût), cuves, réparation (réparation × surface par coût) ;
+- progression simulée (`Progression`) : étape de chaque objet et bloc depuis le départ de Ground Zero d'après les vraies recettes ; tout doit être atteignable, aucun bloc ne doit être rangé dans l'arbre sous un parent utilisable plus tard que lui, et chaque étape indique la place des générateurs et batteries nécessaires aux usines du mod.
 
 Le test échoue si une valeur sort des bornes. **Tout nouveau contenu doit y trouver sa place.** Une nouvelle unité doit recevoir un rang dans `BalanceIT.units`, sinon le test échoue.
 
@@ -115,6 +117,8 @@ Le test échoue si une valeur sort des bornes. **Tout nouveau contenu doit y tro
 
 - **Lueur** : `MCBlocks.glow(bloc, couleur)` ajoute `DrawGlowRegion` au dessin du bloc. Le sprite `<nom>-glow.png` (blanc sur transparent) est généré par `SpriteGenerator.glow` pour les noms listés dans `GLOWING`.
 - **Chaleur** : toute `ItemTurret` du mod a un sprite `<nom>-heat.png`, que le jeu teinte en rouge après chaque tir.
+- **Rotor** : un bloc ajouté à `MCBlocks.rotors` a un sprite `<nom>-rotator.png` qui tourne quand il produit (turbine industrielle).
+- **Fenêtres** : les batteries ont un dessus `<nom>-top.png` percé de fenêtres où le jeu affiche la charge ; les cuves (`LiquidRouter`) ont un fond `<nom>-bottom.png` sous le liquide, et un dessus percé. Les projecteurs de réparation ont une lueur `<nom>-top.png`.
 
 `ContentIT` exige ces régions.
 
