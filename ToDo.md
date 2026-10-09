@@ -1,17 +1,19 @@
 # MinClaude — À faire
 
-_Mis à jour le 2026-10-08._ Chaque tâche cite son artefact (voir [docs/PLAN.md](docs/PLAN.md)).
+_Mis à jour le 2026-10-09._ Chaque tâche cite son artefact (voir [docs/PLAN.md](docs/PLAN.md)).
 Une tâche n'est terminée que si ses **tests** et sa **doc** sont faits, et si `./gradlew check selfTest` passe.
 Branches : on développe sur `dev`, on fusionne dans `main` à chaque version publiée (tag `v0.x.0` puis `v1.x.y`).
 
-## Maintenant : V5 (1.1.0) sur `dev`
+## V5 (1.1.0) : publiée
 
 - [x] Énergie : batterie en invar, condensateur quantique, turbine industrielle, générateur à saumure, nœud longue portée
 - [x] Utilitaires : grande cuve, tourelle Tempête, dôme de restauration
 - [x] Équilibrage automatique : bornes générateurs, batteries, cuves, réparation ; progression simulée Ground Zero → fin de jeu (`BalanceIT.progression`)
 - [x] `check` (69 + 49 tests) et `selfTest` passent
 - [x] `selfTestCompat` avec Exogenesis et New Horizon
-- [ ] Partie réelle avec la V5 (voir ci-dessous), puis fusion dans `main`, tag `v1.1.0`, release GitHub
+- [x] Fusion de `dev` dans `main`, tag `v1.1.0`, pousser
+- [x] Release GitHub `v1.1.0` avec `MinClaude.jar` : https://github.com/Paul-Mrsch/MinClaude/releases/tag/v1.1.0
+- [ ] Partie réelle avec la V5 (voir ci-dessous) : publiée sans elle, ses retours alimenteront une 1.1.1
 
 ## Après la publication de la 1.0
 
