@@ -15,7 +15,7 @@ La **V5 (1.1.0)** prolonge jusqu'à la fin de jeu la progression de l'énergie e
 
 La V4 a apporté l'équilibrage (rapport automatique et simulation), les animations, la mesure de fluidité dans le vrai client et la vérification de compatibilité avec Exogenesis et New Horizon.
 
-Tous les tests passent : 69 unitaires, 49 d'intégration headless et l'autotest en jeu (V5). L'autotest avec les autres mods n'a pas été relancé pour la V5.
+Tous les tests passent : 69 unitaires, 49 d'intégration headless, l'autotest en jeu et l'autotest avec Exogenesis et New Horizon (V5, 2026-10-09).
 
 Versions publiées sur `main` : `v0.1.0` à `v0.4.0`, puis `v1.0.0`.
 
@@ -87,7 +87,7 @@ Le détail est dans le [guide du joueur](docs/guides/utilisation.md), et les chi
 | Unitaires (logique pure + fichiers du mod) | `./gradlew test` | 69 | ✅ 69/69 |
 | Intégration headless (vrai jeu v160.5) | `./gradlew integrationTest` | 49 | ✅ 49/49 |
 | Autotest en jeu (client réel 160.4) | `./gradlew selfTest` | 35 captures, 116 vérifications | ✅ OK (V5, 2026-10-08) |
-| Autotest avec les autres mods du joueur | `./gradlew selfTestCompat` | idem | ✅ OK en 1.0.0 ; pas relancé en V5 |
+| Autotest avec les autres mods du joueur | `./gradlew selfTestCompat` | idem | ✅ OK (V5, 2026-10-09, 120 i/s) |
 
 ### Performance
 
@@ -102,6 +102,8 @@ Le détail est dans le [guide du joueur](docs/guides/utilisation.md), et les chi
 
 - **Progression simulée** : elle a trouvé que le laveur de minerai, utilisable dès l'étape 1, était rangé sous le séparateur (étape 2). Il passe sous le pulvérisateur. Elle a aussi montré que la première version de la turbine industrielle (1 200/s) ne gagnait que 10 % de place sur le générateur différentiel : elle produit maintenant 1 500/s.
 - **Tests instables** : `BaseIT.defenseCountsTurretsUnitsAndWave` échouait environ une fois sur trente : quand les rochers aléatoires repoussaient la zone libre, le Poignard du test naissait sur le noyau et mourait écrasé. Il naît maintenant dans la zone libre. Les tests `V5IT` n'utilisent pas la règle de triche (munitions infinies, bonus) : la Tempête doit d'abord rester muette sans munitions, et le dôme est alimenté par une vraie batterie.
+
+- **Autotest de compatibilité** : il chargeait aussi la 1.0.0 installée depuis le navigateur de mods (`Paul-MrschMinClaude1.zip`), que le jeu gardait à la place de la version testée. Toute autre copie de MinClaude est maintenant exclue. Relancé : 116 vérifications OK avec Exogenesis et New Horizon, aucune erreur dans le journal du jeu.
 
 ## Recette V4 (2026-10-05)
 

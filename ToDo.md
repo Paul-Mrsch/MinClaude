@@ -10,7 +10,7 @@ Branches : on développe sur `dev`, on fusionne dans `main` à chaque version pu
 - [x] Utilitaires : grande cuve, tourelle Tempête, dôme de restauration
 - [x] Équilibrage automatique : bornes générateurs, batteries, cuves, réparation ; progression simulée Ground Zero → fin de jeu (`BalanceIT.progression`)
 - [x] `check` (69 + 49 tests) et `selfTest` passent
-- [ ] `selfTestCompat` avec Exogenesis et New Horizon
+- [x] `selfTestCompat` avec Exogenesis et New Horizon
 - [ ] Partie réelle avec la V5 (voir ci-dessous), puis fusion dans `main`, tag `v1.1.0`, release GitHub
 
 ## Après la publication de la 1.0

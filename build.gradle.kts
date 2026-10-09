@@ -155,7 +155,9 @@ fun registerSelfTest(taskName: String, withOtherMods: Boolean){
             if(withOtherMods){
                 copy{
                     from(modsDir)
-                    exclude("MinClaude.jar")
+                    // Toute autre copie de MinClaude (ex. Paul-MrschMinClaude1.zip, installée depuis le navigateur de mods) :
+                    // le jeu garderait une seule des deux, pas forcément celle qu'on teste.
+                    exclude{ it.name.contains("MinClaude", ignoreCase = true) }
                     into(File(root, "data/mods"))
                 }
             }
