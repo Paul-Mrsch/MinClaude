@@ -1,6 +1,6 @@
 # MinClaude — État du projet
 
-_Mis à jour le 2026-10-08 · version du mod **1.1.0** (V5, sur `dev`)_
+_Mis à jour le 2026-10-08 · version du mod **1.1.0** (V5)_
 
 ## Résumé
 
@@ -17,7 +17,7 @@ La V4 a apporté l'équilibrage (rapport automatique et simulation), les animati
 
 Tous les tests passent : 69 unitaires, 49 d'intégration headless, l'autotest en jeu et l'autotest avec Exogenesis et New Horizon (V5, 2026-10-09).
 
-Versions publiées sur `main` : `v0.1.0` à `v0.4.0`, puis `v1.0.0`.
+Versions publiées sur `main` : `v0.1.0` à `v0.4.0`, puis `v1.0.0` et `v1.1.0` ([release](https://github.com/Paul-Mrsch/MinClaude/releases/tag/v1.1.0)).
 
 ## Versions et environnement
 
@@ -43,7 +43,7 @@ Le plan détaillé est dans [docs/PLAN.md](docs/PLAN.md), et le journal des vers
 | V2 (`v0.3.0`) | Contenu lot 2, tactiques de groupe, difficulté, objectifs, convoyeurs | ✅ publié |
 | V3 (`v0.4.0`) | Contenu complet, adaptation de l'IA, flux exacts, performance | ✅ publié |
 | V4 (`v1.0.0`) | Équilibrage, animations, performance réelle, compatibilité, publication | ✅ publié |
-| V5 (`1.1.0`) | Énergie et bâtiments utilitaires jusqu'à la fin de jeu, progression simulée | ✅ sur `dev`, non publié |
+| V5 (`v1.1.0`) | Énergie et bâtiments utilitaires jusqu'à la fin de jeu, progression simulée | ✅ publié |
 
 ### V5 — détail
 
